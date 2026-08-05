@@ -1,0 +1,141 @@
+/* A readout strip: status line, then five figures in hairline columns. */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding-bottom: var(--sp-3);
+  border-bottom: var(--hair) solid var(--line-2);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Confirmed-on-chain data flowing — one of the five permitted green uses. */
+.statusOn {
+  color: var(--green);
+}
+
+.statusOff {
+  color: var(--muted);
+}
+
+.dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  background-color: currentColor;
+  clip-path: var(--path-notch-br);
+}
+
+.barRule {
+  flex: 1 1 auto;
+  min-width: 8px;
+  height: var(--hair);
+  background-color: var(--line);
+}
+
+.endpoint {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── figures ────────────────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  min-width: 0;
+}
+
+.cell {
+  min-width: 0;
+  padding: var(--sp-5) var(--sp-4) var(--sp-5) 0;
+}
+
+.cell + .cell {
+  padding-left: var(--sp-4);
+  border-left: var(--hair) solid var(--line);
+}
+
+/* ── offline note ───────────────────────────────────────────────────────── */
+
+.offline {
+  max-width: 76ch;
+  min-width: 0;
+  padding-top: var(--sp-4);
+  border-top: var(--hair) solid var(--line);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.code {
+  color: var(--bone);
+  background-color: var(--panel-2);
+  padding: 1px 5px;
+  word-break: break-all;
+}
+
+/* ── breakpoints ────────────────────────────────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cell {
+    padding-right: var(--sp-4);
+    border-bottom: var(--hair) solid var(--line);
+  }
+
+  .cell + .cell {
+    padding-left: var(--sp-4);
+  }
+
+  .cell:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .cell:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cell,
+  .cell + .cell {
+    padding: var(--sp-4) 0;
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .endpoint {
+    display: none;
+  }
+}

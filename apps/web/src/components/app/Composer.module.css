@@ -1,0 +1,397 @@
+/* The composer. A ruled field, not a rounded chat box: one hairline above it,
+   a 2px gutter mark to the left, and a mono instrument strip underneath. */
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  flex: none;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-5) var(--sp-3);
+  border-top: 1px solid var(--line);
+  background-color: var(--panel);
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 2px minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.gutter {
+  align-self: stretch;
+  min-height: 34px;
+  background-color: var(--line-2);
+  transition: background-color var(--dur-2) var(--ease);
+}
+
+.composer:focus-within .gutter {
+  background-color: var(--green);
+}
+
+.disabled .gutter {
+  background-color: var(--line);
+}
+
+.area {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-height: 208px;
+  padding: var(--sp-2) 0;
+  resize: none;
+  overflow-y: auto;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--bone);
+  background: none;
+  outline: none;
+}
+
+.area:disabled {
+  color: var(--dim);
+}
+
+.send {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: none;
+  padding-bottom: 2px;
+}
+
+/* ── attach ─────────────────────────────────────────────────────────────── */
+
+.attach {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  background-color: var(--panel-2);
+  clip-path: var(--path-notch-br);
+  color: var(--muted);
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.attach:hover:not(:disabled),
+.attach:focus-visible:not(:disabled) {
+  color: var(--bone);
+  border-color: var(--line-2);
+}
+
+.attach:disabled {
+  color: var(--dim);
+}
+
+.attachGlyph {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linecap: square;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── reply strip ────────────────────────────────────────────────────────── */
+
+.replyStrip {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-2) 0 0 calc(2px + var(--sp-3));
+}
+
+.replyRule {
+  align-self: stretch;
+  flex: none;
+  width: 2px;
+  background-color: var(--line-2);
+}
+
+.replyKey {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.replyText {
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.replyCancel {
+  flex: none;
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-2);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.replyCancel:hover,
+.replyCancel:focus-visible {
+  color: var(--bone);
+}
+
+/* ── instrument strip ───────────────────────────────────────────────────── */
+
+.meter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-4);
+  min-width: 0;
+  padding-left: calc(2px + var(--sp-3));
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+}
+
+.stage {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.stageDot {
+  width: 5px;
+  height: 5px;
+  flex: none;
+  background-color: var(--dim);
+}
+
+.stageWorking {
+  color: var(--steel);
+}
+
+.stageWorking .stageDot {
+  background-color: var(--steel);
+  animation: tick 1.1s var(--ease-in-out) infinite;
+}
+
+/* confirmed on chain — permitted green */
+.stageAnchored {
+  color: var(--green);
+}
+
+.stageAnchored .stageDot {
+  background-color: var(--green);
+}
+
+/* accepted by the relay, anchor still in flight — steel, not green */
+.stageQueued {
+  color: var(--steel);
+}
+
+.stageQueued .stageDot {
+  background-color: var(--steel);
+  animation: tick 1.1s var(--ease-in-out) infinite;
+}
+
+.stageFailed {
+  color: var(--crimson);
+}
+
+.stageFailed .stageDot {
+  background-color: var(--crimson);
+}
+
+/* the four padded buckets, as a ladder */
+.buckets {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  flex: none;
+  height: 12px;
+}
+
+.bucket {
+  width: 5px;
+  background-color: var(--line-2);
+  transition:
+    background-color var(--dur-1) var(--ease),
+    height var(--dur-2) var(--ease);
+}
+
+.bucket:nth-child(1) {
+  height: 4px;
+}
+.bucket:nth-child(2) {
+  height: 6px;
+}
+.bucket:nth-child(3) {
+  height: 9px;
+}
+.bucket:nth-child(4) {
+  height: 12px;
+}
+
+.bucketFilled {
+  background-color: var(--dim);
+}
+
+.bucketHead {
+  background-color: var(--bone);
+}
+
+.readout {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.readoutKey {
+  color: var(--dim);
+}
+
+.readoutValue {
+  color: var(--muted);
+}
+
+.readoutSep {
+  color: var(--dim);
+}
+
+/* ── send-path toggle: relay (free) vs self-post (wallet + gas) ─────────── */
+
+.pathToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.pathToggle:hover,
+.pathToggle:focus-visible {
+  color: var(--muted);
+}
+
+.pathDot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--dim);
+}
+
+/* self-post is the deliberate, visible exception */
+.pathToggleSelf {
+  color: var(--steel);
+}
+
+.pathToggleSelf .pathDot {
+  border-color: var(--steel);
+  background-color: var(--steel);
+}
+
+/* ── inline problems ────────────────────────────────────────────────────── */
+
+.warn,
+.error {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding-left: calc(2px + var(--sp-3));
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--crimson);
+}
+
+.errorMark {
+  align-self: center;
+  flex: none;
+  width: 5px;
+  height: 5px;
+  background-color: var(--crimson);
+}
+
+.errorText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.errorAction {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-2);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.errorAction:hover,
+.errorAction:focus-visible {
+  color: var(--bone);
+}
+
+@keyframes tick {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (max-width: 759px) {
+  .composer {
+    padding-inline: var(--sp-4);
+  }
+
+  .readout {
+    display: none;
+  }
+}

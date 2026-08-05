@@ -1,0 +1,104 @@
+/* A strip, not a card: a 2px tone rule on the left, matte inset behind it, and
+   never a rounded corner larger than the system's 2px. */
+
+.notice {
+  display: grid;
+  grid-template-columns: 2px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background-color: var(--panel-2);
+  border: 1px solid var(--line);
+}
+
+.rule {
+  align-self: stretch;
+  min-height: 24px;
+  background-color: var(--dim);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--bone);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.text {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  max-width: 76ch;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--dim);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: none;
+  min-width: 0;
+}
+
+/* ── tones ──────────────────────────────────────────────────────────────── */
+
+.info .rule {
+  background-color: var(--steel);
+}
+
+.warn {
+  border-color: var(--line-2);
+}
+
+.warn .rule {
+  background-color: var(--green-dim);
+}
+
+.error {
+  background-color: var(--crimson-wash);
+  border-color: var(--crimson-edge);
+}
+
+.error .rule {
+  background-color: var(--crimson);
+}
+
+.error .title {
+  color: var(--crimson);
+}
+
+@media (max-width: 639px) {
+  .notice {
+    grid-template-columns: 2px minmax(0, 1fr);
+    row-gap: var(--sp-3);
+  }
+
+  .action {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

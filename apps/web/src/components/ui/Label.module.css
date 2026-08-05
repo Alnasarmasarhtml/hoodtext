@@ -1,0 +1,97 @@
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  line-height: var(--lh-mono);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A short hairline before the word — editorial section marker, not decoration
+   for its own sake: it anchors the eyebrow to the column edge. */
+.rule::before {
+  content: '';
+  flex: none;
+  width: 18px;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.45;
+}
+
+.micro {
+  font-size: var(--fs-micro);
+}
+
+.large {
+  font-size: var(--fs-xs);
+}
+
+/* ── tones ──────────────────────────────────────────────────────────────── */
+
+.muted {
+  color: var(--muted);
+}
+
+.dim {
+  color: var(--dim);
+}
+
+.bone {
+  color: var(--bone);
+}
+
+.steel {
+  color: var(--steel);
+}
+
+.crimson {
+  color: var(--crimson);
+}
+
+/* Permitted: active state / confirmed-on-chain / live badge / $THOOD wordmark. */
+.green {
+  color: var(--green);
+}
+
+/* ── form label ─────────────────────────────────────────────────────────── */
+
+.label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.labelText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optional {
+  flex: none;
+  color: var(--dim);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--fs-micro);
+}

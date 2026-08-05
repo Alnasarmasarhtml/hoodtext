@@ -1,0 +1,149 @@
+/* Crimson is reserved for destructive and failure states. This is the only
+   place in the messenger that qualifies as a genuine integrity failure. */
+
+.banner {
+  flex: none;
+  min-width: 0;
+  background-color: var(--crimson-wash);
+  border-bottom: 1px solid var(--crimson-edge);
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: 3px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-5);
+}
+
+.mark {
+  align-self: stretch;
+  min-height: 26px;
+  background-color: var(--crimson);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--crimson);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.text {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  max-width: 86ch;
+  min-width: 0;
+}
+
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  color: var(--bone);
+}
+
+.toggle {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--crimson);
+  border-bottom: 1px solid var(--crimson-edge);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.toggle:hover,
+.toggle:focus-visible {
+  color: var(--bone);
+}
+
+/* ── detail ─────────────────────────────────────────────────────────────── */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-top: 1px solid var(--crimson-edge);
+}
+
+.entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-5);
+  min-width: 0;
+  padding: var(--sp-2) var(--sp-5);
+}
+
+.entry + .entry {
+  border-top: 1px solid var(--line);
+}
+
+.entryKey {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--crimson);
+}
+
+.entryPair {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.entryLabel {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.entryMeta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 759px) {
+  .bar {
+    grid-template-columns: 3px minmax(0, 1fr);
+    row-gap: var(--sp-3);
+    padding-inline: var(--sp-4);
+  }
+
+  .toggle {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .entry {
+    padding-inline: var(--sp-4);
+  }
+}

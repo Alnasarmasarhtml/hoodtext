@@ -1,0 +1,314 @@
+.panel {
+  min-width: 0;
+}
+
+/* ── seal control ───────────────────────────────────────────────────────── */
+
+.seal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sp-4);
+  align-items: center;
+  min-width: 0;
+  padding: var(--sp-4);
+  background-color: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+}
+
+@media (max-width: 700px) {
+  .seal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.sealMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.sealLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sealPending {
+  font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--dim);
+}
+
+.sealNote {
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--dim);
+  max-width: 62ch;
+  min-width: 0;
+}
+
+.sealSide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-2);
+  flex: none;
+}
+
+@media (max-width: 700px) {
+  .sealSide {
+    align-items: stretch;
+  }
+}
+
+.permissionless {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--steel);
+  white-space: nowrap;
+}
+
+.permissionlessMark {
+  width: 5px;
+  height: 5px;
+  flex: none;
+  background-color: currentColor;
+}
+
+.sealNotice {
+  padding: var(--sp-4) var(--sp-4) 0;
+}
+
+/* ── table ──────────────────────────────────────────────────────────────── */
+
+.tableWrap {
+  min-width: 0;
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 92px) minmax(0, 1fr) minmax(0, 1fr)
+    minmax(0, 1fr) minmax(0, 1fr) minmax(0, 116px);
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.headRow {
+  padding-block: var(--sp-2);
+  background-color: rgba(255, 255, 255, 0.014);
+}
+
+.headCell {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+/* The per-cell label only shows in the stacked layout. */
+.cellLabel {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cellValue {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  font-size: var(--fs-xs);
+  color: var(--bone);
+}
+
+.cellNote {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blockLink {
+  color: var(--bone);
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--dur-1) var(--ease);
+}
+
+.blockLink:hover {
+  text-decoration-color: var(--muted);
+}
+
+.id {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+}
+
+.idNote {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share {
+  font-weight: 600;
+}
+
+/* ── status ─────────────────────────────────────────────────────────────── */
+
+.cellStatus {
+  align-items: flex-start;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding-inline: 8px;
+  clip-path: var(--path-notch-br);
+  background-color: var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 5px;
+  height: 5px;
+  flex: none;
+  background-color: currentColor;
+}
+
+/* Confirmed on chain — permitted green. */
+.status_claimed {
+  background-color: var(--green-wash);
+  color: var(--green);
+}
+
+.status_claimable {
+  background-color: var(--bone-wash);
+  color: var(--bone);
+}
+
+.status_swept {
+  background-color: var(--steel-wash);
+  color: var(--steel);
+}
+
+.status_none {
+  background-color: var(--line);
+  color: var(--dim);
+}
+
+/* ── stacked layout ─────────────────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  .headRow {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    align-items: start;
+  }
+
+  .cellLabel {
+    display: block;
+  }
+
+  .cellId {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── foot ───────────────────────────────────────────────────────────────── */
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-4);
+}
+
+.footText {
+  max-width: 82ch;
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+  color: var(--dim);
+  min-width: 0;
+}

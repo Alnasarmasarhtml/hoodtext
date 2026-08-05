@@ -1,0 +1,704 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TELEHOOD — "SIGNALS DESK"
+   Matte. Hairline. Editorial. Tabular.
+   Plain CSS + CSS Modules. No utility framework.
+
+   Green (--green) is a RESERVED accent. It is permitted ONLY on:
+     · primary CTAs
+     · the active nav / tab state (incl. focus-visible, the keyboard "active")
+     · confirmed-on-chain status
+     · the live subscription badge
+     · the $THOOD wordmark
+   Never on borders, body text, or as decoration.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@layer reset, tokens, base, utilities;
+
+/* ───────────────────────────────────────────────────────────── tokens ───── */
+@layer tokens {
+  :root {
+    /* Surfaces & ink — SPEC 7.1, exact */
+    --void: #08090a;
+    --panel: #0e1012;
+    --panel-2: #14171a;
+    --line: rgba(255, 255, 255, 0.07);
+    --line-2: rgba(255, 255, 255, 0.13);
+    --bone: #e8eaeb;
+    --muted: #7a8288;
+    --dim: #4a5157;
+    --green: #00c805;
+    --green-dim: #0a6b14;
+    --steel: #8fa3b0;
+    --crimson: #e23d28;
+
+    /* Derived washes — same hues, never new colours */
+    --green-wash: rgba(0, 200, 5, 0.10);
+    --green-edge: rgba(0, 200, 5, 0.36);
+    --crimson-wash: rgba(226, 61, 40, 0.09);
+    --crimson-edge: rgba(226, 61, 40, 0.34);
+    --steel-wash: rgba(143, 163, 176, 0.08);
+    --bone-wash: rgba(232, 234, 235, 0.05);
+    --void-veil: rgba(8, 9, 10, 0.86);
+
+    /* Top highlight — the only permitted "shadow" */
+    --highlight: rgba(255, 255, 255, 0.09);
+
+    /* Type */
+    /* The inner fallback matters: an undefined `var()` with no fallback makes
+       the whole declaration invalid, which would drop the entire stack rather
+       than fall through to the system face. */
+    --font-sans: var(--font-geist-sans, ui-sans-serif), system-ui, -apple-system,
+      "Segoe UI", sans-serif;
+    --font-mono: var(--font-geist-mono, ui-monospace), "SF Mono", "JetBrains Mono",
+      Menlo, monospace;
+
+    --fs-micro: 10px;
+    --fs-eyebrow: 11px;
+    --fs-xs: 12px;
+    --fs-sm: 13px;
+    --fs-base: 15px;
+    --fs-md: 17px;
+    --fs-lg: 20px;
+    --fs-xl: clamp(21px, 2.1vw, 25px);
+    --fs-2xl: clamp(26px, 3.3vw, 34px);
+    --fs-3xl: clamp(31px, 4.6vw, 48px);
+    --fs-display: clamp(38px, 6.2vw, 76px);
+
+    --lh-tight: 1.02;
+    --lh-snug: 1.2;
+    --lh-body: 1.55;
+    --lh-mono: 1.4;
+
+    --tr-eyebrow: 0.06em;
+    --tr-label: 0.04em;
+    --tr-display: -0.02em;
+
+    /* Space */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 24px;
+    --sp-6: 32px;
+    --sp-7: 48px;
+    --sp-8: 64px;
+    --sp-9: 96px;
+    --sp-10: 128px;
+
+    /* Geometry — radius never exceeds 2px; the notch is the signature */
+    --r: 2px;
+    --notch: 6px;
+    /* Inner notch for a 1px inset child so the diagonal hairline stays 1px:
+       n' = n - (2 - √2) */
+    --notch-in: calc(var(--notch) - 0.586px);
+    --hair: 1px;
+
+    /* Clip paths. Percentages resolve against the element they are applied to,
+       so these are safe to inherit and reuse. */
+    --path-notch: polygon(
+      0 0,
+      calc(100% - var(--notch)) 0,
+      100% var(--notch),
+      100% 100%,
+      var(--notch) 100%,
+      0 calc(100% - var(--notch))
+    );
+    --path-notch-in: polygon(
+      0 0,
+      calc(100% - var(--notch-in)) 0,
+      100% var(--notch-in),
+      100% 100%,
+      var(--notch-in) 100%,
+      0 calc(100% - var(--notch-in))
+    );
+    --path-notch-tr: polygon(
+      0 0,
+      calc(100% - var(--notch)) 0,
+      100% var(--notch),
+      100% 100%,
+      0 100%
+    );
+    --path-notch-tr-in: polygon(
+      0 0,
+      calc(100% - var(--notch-in)) 0,
+      100% var(--notch-in),
+      100% 100%,
+      0 100%
+    );
+    --path-notch-br: polygon(
+      0 0,
+      100% 0,
+      100% calc(100% - var(--notch)),
+      calc(100% - var(--notch)) 100%,
+      0 100%
+    );
+    --path-notch-br-in: polygon(
+      0 0,
+      100% 0,
+      100% calc(100% - var(--notch-in)),
+      calc(100% - var(--notch-in)) 100%,
+      0 100%
+    );
+    --path-notch-bl: polygon(
+      0 0,
+      100% 0,
+      100% 100%,
+      var(--notch) 100%,
+      0 calc(100% - var(--notch))
+    );
+    --path-notch-bl-in: polygon(
+      0 0,
+      100% 0,
+      100% 100%,
+      var(--notch-in) 100%,
+      0 calc(100% - var(--notch-in))
+    );
+    --path-notch-tl: polygon(
+      var(--notch) 0,
+      100% 0,
+      100% 100%,
+      0 100%,
+      0 var(--notch)
+    );
+    --path-notch-tl-in: polygon(
+      var(--notch-in) 0,
+      100% 0,
+      100% 100%,
+      0 100%,
+      0 var(--notch-in)
+    );
+
+    /* Motion — reveals 240–420ms, power3.out, ≤16px travel */
+    --dur-1: 120ms;
+    --dur-2: 240ms;
+    --dur-3: 320ms;
+    --dur-4: 420ms;
+    --ease: cubic-bezier(0.215, 0.61, 0.355, 1); /* power3.out */
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+    /* Layout */
+    --wrap: 1320px;
+    --gutter: clamp(16px, 3.4vw, 40px);
+    --header-h: 60px;
+
+    /* Layers */
+    --z-grain: 0;
+    --z-base: 1;
+    --z-header: 40;
+    --z-sheet: 60;
+    --z-toast: 80;
+
+    /* 3% fractal-noise grain, inline data-URI (SPEC 7.1) */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+
+    color-scheme: dark;
+    accent-color: var(--green);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────── reset ───── */
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    /* SPEC 7.5 — nothing may overflow its container. Flex/grid children default
+       to min-width:auto, which is the single most common cause of blow-out. */
+    min-width: 0;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: auto; /* Lenis owns smooth scrolling */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow-x: clip;
+    background: var(--void);
+    color: var(--bone);
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    line-height: var(--lh-body);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  img,
+  svg,
+  video,
+  canvas,
+  picture {
+    display: block;
+    max-width: 100%;
+  }
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    flex: none;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    letter-spacing: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ul,
+  ol {
+    list-style: none;
+  }
+
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  hr {
+    border: 0;
+    border-top: var(--hair) solid var(--line);
+  }
+
+  ::selection {
+    background: var(--green-dim);
+    color: var(--bone);
+  }
+
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--green);
+    outline-offset: 2px;
+  }
+
+  /* Scrollbars — hairline, matte, never chrome-blue */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-2) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-2);
+    border: 3px solid var(--void);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--dim);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────── base ───── */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    letter-spacing: var(--tr-display);
+    line-height: var(--lh-snug);
+    text-wrap: balance;
+    color: var(--bone);
+  }
+
+  h1 {
+    font-size: var(--fs-3xl);
+    line-height: var(--lh-tight);
+  }
+
+  h2 {
+    font-size: var(--fs-2xl);
+  }
+
+  h3 {
+    font-size: var(--fs-xl);
+  }
+
+  h4 {
+    font-size: var(--fs-md);
+    letter-spacing: -0.01em;
+  }
+
+  h5,
+  h6 {
+    font-size: var(--fs-sm);
+    letter-spacing: var(--tr-label);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  strong,
+  b {
+    font-weight: 600;
+    color: var(--bone);
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  small {
+    font-size: var(--fs-xs);
+  }
+
+  /* Numbers are always tabular — SPEC 7.1 */
+  input[type="number"],
+  input[type="text"],
+  td,
+  th,
+  time,
+  output,
+  data {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::placeholder {
+    color: var(--dim);
+    opacity: 1;
+  }
+}
+
+/* ────────────────────────────────────────────────────────── utilities ───── */
+@layer utilities {
+  /* ── the signature notch ─────────────────────────────────────────────── */
+  .notch {
+    clip-path: var(--path-notch);
+  }
+  .notch-tr {
+    clip-path: var(--path-notch-tr);
+  }
+  .notch-br {
+    clip-path: var(--path-notch-br);
+  }
+  .notch-bl {
+    clip-path: var(--path-notch-bl);
+  }
+  .notch-tl {
+    clip-path: var(--path-notch-tl);
+  }
+
+  /* Shape modifiers. Components read `--shape` / `--shape-in`, so one class
+     re-points both the outer clip and the 1px-inset fill clip. */
+  .sh-diag {
+    --shape: var(--path-notch);
+    --shape-in: var(--path-notch-in);
+  }
+  .sh-tr {
+    --shape: var(--path-notch-tr);
+    --shape-in: var(--path-notch-tr-in);
+  }
+  .sh-br {
+    --shape: var(--path-notch-br);
+    --shape-in: var(--path-notch-br-in);
+  }
+  .sh-bl {
+    --shape: var(--path-notch-bl);
+    --shape-in: var(--path-notch-bl-in);
+  }
+  .sh-tl {
+    --shape: var(--path-notch-tl);
+    --shape-in: var(--path-notch-tl-in);
+  }
+  .sh-none {
+    --shape: none;
+    --shape-in: none;
+  }
+
+  /* A hairline frame that survives the notch: the wrapper *is* the 1px line,
+     the child (inset 1px) carries the fill. */
+  .hairFrame {
+    padding: var(--hair);
+    background: var(--line-2);
+    clip-path: var(--path-notch);
+  }
+  .hairFrame > :first-child {
+    clip-path: var(--path-notch-in);
+  }
+
+  /* ── hairlines ───────────────────────────────────────────────────────── */
+  .hair {
+    border: var(--hair) solid var(--line);
+  }
+  .hair-strong {
+    border: var(--hair) solid var(--line-2);
+  }
+  .hair-t {
+    border-top: var(--hair) solid var(--line);
+  }
+  .hair-b {
+    border-bottom: var(--hair) solid var(--line);
+  }
+  .hair-l {
+    border-left: var(--hair) solid var(--line);
+  }
+  .hair-r {
+    border-right: var(--hair) solid var(--line);
+  }
+  /* Hairline between siblings only — no doubled lines at the ends. */
+  .hair-rows > * + * {
+    border-top: var(--hair) solid var(--line);
+  }
+  .hair-cols > * + * {
+    border-left: var(--hair) solid var(--line);
+  }
+  /* The one permitted "shadow": a 1px top highlight. */
+  .highlight-t {
+    box-shadow: inset 0 1px 0 0 var(--highlight);
+  }
+
+  /* ── type ────────────────────────────────────────────────────────────── */
+  .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--fs-eyebrow);
+    font-weight: 500;
+    letter-spacing: var(--tr-eyebrow);
+    line-height: var(--lh-mono);
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "zero" 1;
+  }
+  .truncate {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dim {
+    color: var(--dim);
+  }
+  .muted {
+    color: var(--muted);
+  }
+
+  /* ── layout ──────────────────────────────────────────────────────────── */
+  .wrap {
+    width: 100%;
+    max-width: var(--wrap);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+  /* Never a bare 1fr — SPEC 7.5 */
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
+    gap: var(--gap, var(--sp-4));
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: var(--gap, var(--sp-3));
+    min-width: 0;
+  }
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap, var(--sp-3));
+    min-width: 0;
+  }
+  .scroll-x {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* ───────────────────────────────────────────── app shell + grain ───────── */
+
+/* Fixed 3% grain. Sits *behind* content so it never lands on fine text. */
+.grain {
+  position: fixed;
+  /* inset:0, NOT a negative bleed. The tile is generated with feTurbulence
+     stitchTiles="stitch" and repeats seamlessly, so no bleed is needed to hide
+     an edge seam. A negative inset made this the only permanent failure in
+     `make fit` — and a check that is always red is a check everyone learns to
+     ignore, which is exactly how a real overflow ships later. */
+  inset: 0;
+  z-index: var(--z-grain);
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: var(--grain);
+  background-repeat: repeat;
+  will-change: transform;
+}
+
+.shell {
+  position: relative;
+  z-index: var(--z-base);
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  min-width: 0;
+}
+
+.shell > main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.skip {
+  position: absolute;
+  top: var(--sp-2);
+  left: var(--sp-2);
+  z-index: calc(var(--z-header) + 1);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--panel-2);
+  border: var(--hair) solid var(--line-2);
+  clip-path: var(--path-notch);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  transform: translateY(-200%);
+}
+
+.skip:focus-visible {
+  transform: none;
+}
+
+/* Lenis smooth-scroll requirements, inlined so no stylesheet is imported from
+   node_modules. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Scroll reveal contract shared with GSAP ScrollTrigger.
+   Elements marked [data-reveal] start hidden; the motion layer adds
+   [data-revealed] (or reduced motion reveals them immediately). */
+[data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  transition:
+    opacity var(--dur-4) var(--ease),
+    transform var(--dur-4) var(--ease);
+  will-change: opacity, transform;
+}
+
+[data-reveal][data-revealed] {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* ─────────────────────────────────────────── reduced motion ────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+
+  .grain {
+    /* Static texture is fine; guarantee it never animates. */
+    animation: none !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --line: rgba(255, 255, 255, 0.16);
+    --line-2: rgba(255, 255, 255, 0.28);
+    --muted: #9aa2a8;
+    --dim: #6b7378;
+  }
+}
+
+@media print {
+  .grain {
+    display: none;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+}

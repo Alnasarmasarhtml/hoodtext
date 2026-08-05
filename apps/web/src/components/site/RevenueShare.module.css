@@ -1,0 +1,364 @@
+/* The token section. The 50/50 bar is drawn in bone and dim — green stays on
+   the $THOOD wordmark, where the system reserves it. */
+
+.code {
+  color: var(--bone);
+  background-color: var(--panel-2);
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+/* ── the split ──────────────────────────────────────────────────────────── */
+
+.headline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(var(--sp-5), 3vw, var(--sp-7));
+  align-items: end;
+  min-width: 0;
+  padding-bottom: clamp(var(--sp-5), 3vw, var(--sp-6));
+  border-bottom: var(--hair) solid var(--line-2);
+}
+
+.split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.splitBar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-width: 0;
+  height: 34px;
+  background-color: var(--line);
+  padding: var(--hair);
+  gap: var(--hair);
+  clip-path: var(--path-notch-tr);
+}
+
+.splitHolders {
+  background-color: var(--bone);
+  min-width: 0;
+}
+
+.splitTreasury {
+  background-color: var(--panel-2);
+  min-width: 0;
+  /* Hatched, so the treasury half reads as "held", not "paid". */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 4px,
+    rgba(255, 255, 255, 0.07) 4px,
+    rgba(255, 255, 255, 0.07) 5px
+  );
+}
+
+.splitLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-5);
+  min-width: 0;
+}
+
+.splitLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.swatchHolders,
+.swatchTreasury {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  clip-path: var(--path-notch-br);
+}
+
+.swatchHolders {
+  background-color: var(--bone);
+}
+
+.swatchTreasury {
+  background-color: var(--dim);
+}
+
+.claim {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  line-height: 1.25;
+  color: var(--bone);
+  text-wrap: balance;
+}
+
+/* ── body ───────────────────────────────────────────────────────────────── */
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(var(--sp-5), 3vw, var(--sp-7));
+  align-items: start;
+  min-width: 0;
+  padding-top: clamp(var(--sp-5), 3vw, var(--sp-6));
+}
+
+.mechanism {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  min-width: 0;
+}
+
+.mechanismTitle {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.sentences {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-top: var(--hair) solid var(--line);
+}
+
+.sentence {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: var(--sp-3);
+  align-items: baseline;
+  min-width: 0;
+  padding-block: var(--sp-4);
+  border-bottom: var(--hair) solid var(--line);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  color: var(--bone);
+}
+
+.sentenceIndex {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--dim);
+}
+
+/* One grid item for the whole sentence, so an inline <code> inside it stays
+   inline instead of being blockified into a cell of its own. */
+.sentenceText {
+  min-width: 0;
+  text-wrap: pretty;
+}
+
+.recurring {
+  max-width: 62ch;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.recurringKey {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--bone);
+  margin-right: 6px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
+  min-width: 0;
+}
+
+.actionNote {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  min-width: 0;
+}
+
+/* ── aside ──────────────────────────────────────────────────────────────── */
+
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(var(--sp-5), 2.4vw, var(--sp-6));
+  min-width: 0;
+}
+
+.requirements {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-top: var(--hair) solid var(--line-2);
+}
+
+.requirement,
+.requirementYes {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: var(--sp-3);
+  align-items: center;
+  min-width: 0;
+  padding-block: var(--sp-3);
+  border-bottom: var(--hair) solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+}
+
+.requirement {
+  color: var(--dim);
+}
+
+.requirementYes {
+  color: var(--bone);
+}
+
+.requirementMark {
+  width: 10px;
+  height: var(--hair);
+  background-color: var(--dim);
+}
+
+.requirementYes .requirementMark {
+  height: 8px;
+  background-color: var(--bone);
+  clip-path: var(--path-notch-br);
+}
+
+.requirementLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.requirementValue {
+  flex: none;
+  font-size: var(--fs-micro);
+  color: inherit;
+  opacity: 0.72;
+  white-space: nowrap;
+}
+
+/* ── figures ────────────────────────────────────────────────────────────── */
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  min-width: 0;
+  border-top: var(--hair) solid var(--line);
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: var(--sp-4) var(--sp-4) var(--sp-4) 0;
+  border-bottom: var(--hair) solid var(--line);
+}
+
+.figure:nth-child(even) {
+  padding-right: 0;
+  padding-left: var(--sp-4);
+  border-left: var(--hair) solid var(--line);
+}
+
+.figureLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.figureValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-display);
+  line-height: 1.1;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.figureNote {
+  font-size: var(--fs-micro);
+  line-height: 1.45;
+  color: var(--dim);
+  min-width: 0;
+}
+
+/* ── breakpoints ────────────────────────────────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .headline,
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+@media (max-width: 560px) {
+  .claim {
+    font-size: var(--fs-md);
+  }
+
+  .sentence {
+    font-size: var(--fs-base);
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: var(--sp-2);
+  }
+
+  .figures {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .figure,
+  .figure:nth-child(even) {
+    padding: var(--sp-4) 0;
+    border-left: 0;
+  }
+
+  .figureValue {
+    font-size: var(--fs-md);
+  }
+}

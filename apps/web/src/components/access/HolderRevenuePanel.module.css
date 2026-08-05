@@ -1,0 +1,318 @@
+.panel {
+  min-width: 0;
+}
+
+.solvency {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--crimson);
+  white-space: nowrap;
+}
+
+/* ── hero ───────────────────────────────────────────────────────────────── */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: var(--sp-6);
+  align-items: center;
+  min-width: 0;
+  padding: clamp(var(--sp-4), 3vw, var(--sp-6));
+  border-bottom: 1px solid var(--line);
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-5);
+  }
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.heroTitle {
+  font-size: var(--fs-2xl);
+  line-height: 1.12;
+  min-width: 0;
+}
+
+/* The $THOOD wordmark — one of the five permitted green surfaces. */
+.wordmark {
+  color: var(--green);
+  white-space: nowrap;
+}
+
+.heroBody {
+  max-width: 62ch;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding-inline: 10px;
+  border: 1px solid var(--line-2);
+  clip-path: var(--path-notch-br);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--bone);
+  white-space: nowrap;
+}
+
+/* ── the 50/50 split, drawn ─────────────────────────────────────────────── */
+
+.split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.splitBar {
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  height: 56px;
+  min-width: 0;
+  padding: 1px;
+  background-color: var(--line-2);
+  clip-path: var(--path-notch-tr);
+}
+
+.splitHolders,
+.splitTreasury {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.splitHolders {
+  background-color: var(--bone);
+}
+
+.splitTreasury {
+  background-color: var(--panel-2);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 5px,
+    rgba(255, 255, 255, 0.09) 5px 6px
+  );
+}
+
+.splitLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.splitItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.splitMark {
+  width: 8px;
+  height: 8px;
+  flex: none;
+}
+
+.splitMarkHolders {
+  background-color: var(--bone);
+}
+
+.splitMarkTreasury {
+  background-color: var(--dim);
+}
+
+/* ── body grid ──────────────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+  min-width: 0;
+}
+
+@media (max-width: 1000px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.figures {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: clamp(var(--sp-4), 3vw, var(--sp-5));
+}
+
+.claimColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: clamp(var(--sp-4), 3vw, var(--sp-5));
+  border-left: 1px solid var(--line);
+  background-color: rgba(255, 255, 255, 0.012);
+}
+
+@media (max-width: 1000px) {
+  .claimColumn {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* ── figures ────────────────────────────────────────────────────────────── */
+
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .statRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.subRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+@media (max-width: 520px) {
+  .subRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.subItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+
+.subItem:nth-child(-n + 2) {
+  border-top: 0;
+}
+
+@media (max-width: 520px) {
+  .subItem:nth-child(2) {
+    border-top: 1px solid var(--line);
+  }
+}
+
+.subItem:nth-child(even) {
+  border-left: 1px solid var(--line);
+}
+
+@media (max-width: 520px) {
+  .subItem:nth-child(even) {
+    border-left: 0;
+  }
+}
+
+.subLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── claim ──────────────────────────────────────────────────────────────── */
+
+.claim {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.claimStat {
+  min-width: 0;
+}
+
+.claimNote {
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--dim);
+  min-width: 0;
+}
+
+.txLink {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding-inline: 12px;
+  border: 1px solid var(--green-edge);
+  clip-path: var(--path-notch-br);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--green);
+  white-space: nowrap;
+  transition: border-color var(--dur-1) var(--ease);
+}
+
+.txLink:hover {
+  border-color: var(--green);
+}

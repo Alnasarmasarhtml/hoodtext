@@ -1,0 +1,286 @@
+/* The create-room pane. Left-anchored editorial column like the placeholder
+   and locked states — never a centred card. */
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(var(--sp-5), 3.5vw, var(--sp-7));
+  background-color: var(--void);
+}
+
+.lockedNote {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--dim);
+  max-width: 60ch;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  min-width: 0;
+  width: 100%;
+  max-width: 640px;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.back {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.back:hover,
+.back:focus-visible {
+  color: var(--bone);
+}
+
+.backIcon {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: square;
+}
+
+.title {
+  font-size: var(--fs-xl);
+  color: var(--bone);
+}
+
+.lede {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.nameField {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ── months ─────────────────────────────────────────────────────────────── */
+
+.monthsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  width: 100%;
+}
+
+.monthsLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── figures ────────────────────────────────────────────────────────────── */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  gap: 1px;
+  width: 100%;
+  min-width: 0;
+  background-color: var(--line);
+  border: 1px solid var(--line);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background-color: var(--panel-2);
+}
+
+.factKey {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.factValue {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+  overflow-wrap: anywhere;
+}
+
+.factUnit {
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.factSmall {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.factPending {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--dim);
+}
+
+/* ── call to action ─────────────────────────────────────────────────────── */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4);
+  min-width: 0;
+  width: 100%;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+
+.actionNote {
+  flex: 1 1 240px;
+  min-width: 0;
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--dim);
+}
+
+/* ── the three steps ────────────────────────────────────────────────────── */
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  width: 100%;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--sp-3);
+  min-width: 0;
+  color: var(--muted);
+}
+
+.stepActive {
+  color: var(--bone);
+}
+
+.stepIndex {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--dim);
+}
+
+.stepActive .stepIndex {
+  color: var(--steel);
+}
+
+.stepText {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  min-width: 0;
+}
+
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  color: var(--bone);
+}
+
+/* ── inline failure ─────────────────────────────────────────────────────── */
+
+.error {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  min-width: 0;
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--crimson);
+}
+
+.errorMark {
+  align-self: center;
+  flex: none;
+  width: 5px;
+  height: 5px;
+  background-color: var(--crimson);
+}
+
+.errorText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.errorAction {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-2);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.errorAction:hover,
+.errorAction:focus-visible {
+  color: var(--bone);
+}
+
+@media (max-width: 1023px) {
+  .back {
+    display: inline-flex;
+  }
+
+  .pane {
+    padding: var(--sp-5) var(--sp-4);
+  }
+}

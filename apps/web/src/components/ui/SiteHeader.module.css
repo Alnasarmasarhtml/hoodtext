@@ -1,0 +1,238 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  min-width: 0;
+  background-color: var(--void);
+  border-bottom: 1px solid var(--line);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  min-width: 0;
+  height: var(--header-h);
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ── wordmark ───────────────────────────────────────────────────────────── */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  flex: none;
+  outline: none;
+}
+
+.mark {
+  flex: none;
+  color: var(--green);
+  transition: color var(--dur-2) var(--ease);
+}
+
+.brand:hover .mark,
+.brand:focus-visible .mark {
+  background-color: var(--muted);
+}
+
+.wordmark {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--bone);
+  white-space: nowrap;
+}
+
+.chainChip {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding-inline: 8px;
+  flex: none;
+  min-width: 0;
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-br);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.chainDot {
+  width: 4px;
+  height: 4px;
+  background-color: var(--steel);
+  flex: none;
+}
+
+/* ── nav ────────────────────────────────────────────────────────────────── */
+
+.nav {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.navMobile {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.navMobile::-webkit-scrollbar {
+  display: none;
+}
+
+.navMobile .link {
+  flex: 1 0 auto;
+  justify-content: center;
+  height: 40px;
+}
+
+.navMobile .link + .link {
+  border-left: 1px solid var(--line);
+}
+
+.link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 34px;
+  padding-inline: var(--sp-4);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  outline: none;
+  transition: color var(--dur-1) var(--ease);
+}
+
+.link:hover {
+  color: var(--bone);
+}
+
+.link:focus-visible {
+  color: var(--bone);
+  background-color: var(--bone-wash);
+}
+
+/* the active nav state — one of the permitted green surfaces */
+.active {
+  color: var(--green);
+}
+
+.active::after {
+  content: '';
+  position: absolute;
+  inset: auto var(--sp-4) -1px;
+  height: 1px;
+  background-color: var(--green);
+}
+
+.navMobile .active::after {
+  inset: auto 0 0;
+}
+
+/* ── right cluster ──────────────────────────────────────────────────────── */
+
+.side {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-left: auto;
+  min-width: 0;
+  flex: none;
+}
+
+.account {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 30px;
+  padding-inline: 10px;
+  max-width: 190px;
+  min-width: 0;
+  background-color: var(--line-2);
+  clip-path: var(--path-notch-br);
+  position: relative;
+  isolation: isolate;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.01em;
+  color: var(--bone);
+  outline: none;
+  transition: color var(--dur-1) var(--ease);
+}
+
+.account::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background-color: var(--void);
+  clip-path: var(--path-notch-br-in);
+  transition: background-color var(--dur-1) var(--ease);
+}
+
+.account:hover::before {
+  background-color: var(--panel);
+}
+
+.account:focus-visible {
+  background-color: var(--green);
+}
+
+.accountText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* live connection state — permitted green */
+.statusDot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  background-color: var(--green);
+}
+
+.statusWrong {
+  background-color: var(--crimson);
+}
+
+@media (min-width: 760px) {
+  .nav {
+    display: flex;
+  }
+
+  .navMobile {
+    display: none;
+  }
+
+  .chainChip {
+    display: inline-flex;
+  }
+}

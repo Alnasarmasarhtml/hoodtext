@@ -1,0 +1,212 @@
+/* 1–24 months on a segmented track. Not a range input, not a number spinner:
+   each month is a discrete tick you can hit directly, and the head tick is the
+   only green element (it is the control's active state). */
+
+.stepper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+/* ── ± keys ─────────────────────────────────────────────────────────────── */
+
+.key {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background-color: var(--line-2);
+  clip-path: var(--path-notch-br);
+  color: var(--bone);
+  outline: none;
+  transition: color var(--dur-1) var(--ease);
+  position: relative;
+  isolation: isolate;
+}
+
+.key::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background-color: var(--panel-2);
+  clip-path: var(--path-notch-br-in);
+  transition: background-color var(--dur-1) var(--ease);
+}
+
+.key:hover:not(:disabled)::before {
+  background-color: #1b1f23;
+}
+
+.key:focus-visible {
+  background-color: var(--green);
+}
+
+.key:disabled {
+  background-color: var(--line);
+  color: var(--dim);
+  cursor: not-allowed;
+}
+
+.glyph {
+  width: 11px;
+  height: 11px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: square;
+}
+
+/* ── track ──────────────────────────────────────────────────────────────── */
+
+.track {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3px;
+  min-width: 0;
+  height: 34px;
+  padding: 0 1px;
+  outline: none;
+  touch-action: none;
+  cursor: ew-resize;
+}
+
+/* Ticks stay instrument-thin; surplus width spreads between them instead of
+   inflating each month into a bar. */
+.tick {
+  flex: 1 1 0;
+  min-width: 2px;
+  max-width: 14px;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  background: none;
+  padding: 0;
+}
+
+.tickInner {
+  width: 100%;
+  height: 38%;
+  background-color: var(--line-2);
+  transition:
+    height var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+
+.filled .tickInner {
+  height: 62%;
+  background-color: rgba(232, 234, 235, 0.55);
+}
+
+/* the head tick — the control's active state */
+.head .tickInner {
+  height: 100%;
+  background-color: var(--green);
+}
+
+.track:focus-visible .tick:not(.filled) .tickInner {
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
+.disabled .tickInner,
+.disabled.filled .tickInner,
+.disabled.head .tickInner {
+  background-color: var(--line);
+}
+
+.trackDisabled {
+  cursor: not-allowed;
+}
+
+/* every 6th tick gets a quiet baseline notch, so 6/12/18/24 are findable */
+.marker .tickInner {
+  box-shadow: inset 0 -1px 0 0 var(--void);
+}
+
+/* ── readout ────────────────────────────────────────────────────────────── */
+
+.readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--fs-lg);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-display);
+  color: var(--bone);
+}
+
+.valueUnit {
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.preset {
+  flex: none;
+  height: 22px;
+  padding-inline: 9px;
+  background-color: transparent;
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-br);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  outline: none;
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.preset:hover:not(:disabled) {
+  color: var(--bone);
+  border-color: var(--line-2);
+}
+
+.preset:focus-visible {
+  border-color: var(--green);
+  color: var(--bone);
+}
+
+.presetOn {
+  color: var(--green);
+  border-color: var(--green-edge);
+}
+
+.preset:disabled {
+  color: var(--dim);
+  cursor: not-allowed;
+}

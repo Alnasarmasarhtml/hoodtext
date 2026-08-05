@@ -1,0 +1,192 @@
+.panel {
+  min-width: 0;
+}
+
+.headTotal {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-display);
+  color: var(--bone);
+  white-space: nowrap;
+}
+
+.pad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-4);
+}
+
+/* ── the plot ───────────────────────────────────────────────────────────── */
+
+.plot {
+  min-width: 0;
+  padding: var(--sp-4) var(--sp-4) 0;
+  overflow: hidden;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.axis {
+  stroke: var(--line-2);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.tick {
+  stroke: var(--dim);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+/* The one line. Hairline, bone, no fill, no glow. */
+.line {
+  fill: none;
+  stroke: var(--bone);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 0;
+  animation: draw var(--dur-4) var(--ease) both;
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Confirmed-on-chain peak — the only green on this panel. */
+.peak {
+  fill: var(--green);
+  stroke: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ── legend ─────────────────────────────────────────────────────────────── */
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-width: 0;
+  margin-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 760px) {
+  .legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .legend {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.legendItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.legendItem + .legendItem {
+  border-left: 1px solid var(--line);
+}
+
+@media (max-width: 760px) {
+  .legendItem:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+
+  .legendItem:nth-child(odd) {
+    border-left: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .legendItem + .legendItem {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+.legendValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legendStrong {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+}
+
+.legendNote {
+  font-size: var(--fs-micro);
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── skeleton ───────────────────────────────────────────────────────────── */
+
+.skeleton {
+  display: flex;
+  align-items: flex-end;
+  height: 96px;
+  min-width: 0;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.skeletonLine {
+  width: 100%;
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    var(--line) 0 12px,
+    transparent 12px 20px
+  );
+  background-size: 20px 1px;
+  background-repeat: repeat-x;
+  margin-bottom: 24px;
+}
+
+.skeletonNote {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}

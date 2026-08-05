@@ -1,0 +1,133 @@
+/* The quiet, always-present account readout. Green only while the account is
+   activated — one of the permitted live-state surfaces; the rent warning is
+   crimson-washed and links out, it never blocks. */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  max-width: 100%;
+  height: 28px;
+  padding-inline: var(--sp-3);
+  background-color: var(--panel-2);
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-br);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.label {
+  color: var(--muted);
+  flex: none;
+}
+
+.value {
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  background-color: var(--dim);
+}
+
+.action {
+  flex: none;
+  padding-left: var(--sp-3);
+  margin-left: var(--sp-1);
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+  letter-spacing: var(--tr-eyebrow);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.action:hover,
+.action:focus-visible {
+  color: var(--bone);
+}
+
+/* The quote-bearing label above 640px, the bare verb below it — the strip has
+   to hold two live readouts on a 390px phone without either being clipped. */
+.actionShort {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .actionLong {
+    display: none;
+  }
+
+  .actionShort {
+    display: inline;
+  }
+}
+
+/* ── states ─────────────────────────────────────────────────────────────── */
+
+.idle .label {
+  color: var(--dim);
+}
+
+.idle .value {
+  color: var(--muted);
+}
+
+/* activated — permitted green: the live account state */
+.active .dot {
+  background-color: var(--green);
+}
+
+.active .value {
+  color: var(--bone);
+}
+
+.locked .dot {
+  background-color: var(--crimson);
+}
+
+.locked .value {
+  color: var(--crimson);
+}
+
+.locked .action {
+  color: var(--green);
+}
+
+/* An admin room inside its 3-day rent window: quiet, but visible. */
+.warn {
+  border-color: var(--crimson-edge);
+  background-color: var(--crimson-wash);
+}
+
+.warn .dot {
+  background-color: var(--crimson);
+  animation: pulse 1.8s var(--ease-in-out) infinite;
+}
+
+.warn .action {
+  color: var(--crimson);
+  border-left-color: var(--crimson-edge);
+}
+
+.warn .action:hover,
+.warn .action:focus-visible {
+  color: var(--bone);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}

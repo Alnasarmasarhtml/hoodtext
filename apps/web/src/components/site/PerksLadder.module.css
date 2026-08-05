@@ -1,0 +1,177 @@
+/* Four rungs, drawn as numbered files on one hairline shelf — the same
+   material as HowItWorks, because a rank is information, not a jewel. */
+
+.rungs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.rung {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-4);
+  background-color: var(--panel);
+  border: var(--hair) solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.rungHead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.rungIndex {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--dim);
+}
+
+.rungRule {
+  flex: 1 1 auto;
+  min-width: 8px;
+  height: var(--hair);
+  background-color: var(--line);
+}
+
+.rungName {
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  line-height: 1.15;
+  color: var(--bone);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rungThreshold {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-bottom: var(--sp-3);
+  border-bottom: var(--hair) solid var(--line);
+}
+
+.rungPct {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-display);
+  line-height: 1;
+  color: var(--bone);
+}
+
+.rungAmount {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unlocks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.unlock {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.unlockMark {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  background-color: var(--dim);
+  transform: translateY(-2px);
+}
+
+/* ── the honest mechanics ───────────────────────────────────────────────── */
+
+.mechanics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, auto);
+  gap: clamp(var(--sp-4), 3vw, var(--sp-6));
+  align-items: center;
+  min-width: 0;
+  margin-top: clamp(var(--sp-5), 3vw, var(--sp-6));
+  padding: var(--sp-4) 0 0;
+  border-top: var(--hair) solid var(--line-2);
+}
+
+.mechanic {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.mechanicLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mechanicBody {
+  max-width: 46ch;
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.mechanicAction {
+  flex: none;
+  min-width: 0;
+}
+
+/* ── breakpoints ────────────────────────────────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .rungs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mechanics {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+@media (max-width: 560px) {
+  .rungs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mechanicAction > a {
+    width: 100%;
+  }
+}

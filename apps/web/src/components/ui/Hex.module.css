@@ -1,0 +1,86 @@
+.hex {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 100%;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-sm);
+  color: var(--bone);
+}
+
+.sm {
+  font-size: var(--fs-eyebrow);
+  gap: 6px;
+}
+
+.value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.dim {
+  color: var(--dim);
+}
+
+.steel {
+  color: var(--steel);
+}
+
+/* ── copy button ────────────────────────────────────────────────────────── */
+
+.action {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--dim);
+  outline: none;
+  clip-path: var(--path-notch-br);
+  transition:
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+
+.action:hover {
+  color: var(--bone);
+  background-color: var(--bone-wash);
+}
+
+.action:focus-visible {
+  color: var(--green);
+  background-color: var(--green-wash);
+}
+
+.icon {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.copied {
+  flex: none;
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--steel);
+  white-space: nowrap;
+}
+
+.failed {
+  color: var(--crimson);
+}

@@ -1,0 +1,179 @@
+/* The desk.
+
+   Two columns on wide screens — a fixed rail and a fluid pane — and one column
+   below 1024px, where the route decides which of the two is on screen. Both
+   grid tracks are `minmax(0, …)` and every descendant is `min-width: 0`, so a
+   64-character hex can never widen a column (SPEC §7.5).
+
+   The shell is exactly the height of the viewport minus the site header, so the
+   page itself never scrolls: the rail, the log and the default pane each scroll
+   inside themselves and the composer stays on the floor. */
+
+.shell {
+  /* The site header is 60px, plus a 41px compact nav strip below 760px. */
+  --chrome-offset: calc(var(--header-h) + 41px);
+
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: calc(100dvh - var(--chrome-offset));
+  min-height: 460px;
+  background-color: var(--void);
+}
+
+@media (min-width: 760px) {
+  .shell {
+    --chrome-offset: var(--header-h);
+  }
+}
+
+/* ── chrome strip ───────────────────────────────────────────────────────── */
+
+.chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex: none;
+  min-width: 0;
+  height: 40px;
+  padding-inline: var(--sp-5);
+  border-bottom: 1px solid var(--line);
+  background-color: var(--panel);
+}
+
+.chromeLeft,
+.chromeRight {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.chromeLeft {
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.chromeRight {
+  flex: 0 1 auto;
+  justify-content: flex-end;
+}
+
+.deskMark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background-color: var(--bone);
+  clip-path: var(--path-notch-br);
+}
+
+.deskName {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.chromeRule {
+  flex: none;
+  width: 1px;
+  height: 12px;
+  background-color: var(--line-2);
+}
+
+/* ── full-width strips ──────────────────────────────────────────────────── */
+
+.strip {
+  flex: none;
+  border-inline: 0;
+  border-top: 0;
+}
+
+/* ── gate ───────────────────────────────────────────────────────────────── */
+
+.gate {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ── desk grid ──────────────────────────────────────────────────────────── */
+
+.desk {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.rail,
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Whatever a route renders fills its column and owns its own scrolling. */
+.rail > *,
+.pane > * {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.rail {
+  border-right: 1px solid var(--line);
+}
+
+/* Below 1024px the two panes take turns: the rail is the list route, the pane
+   is the thread route. Nothing hides behind a drawer. */
+@media (max-width: 1023px) {
+  .desk[data-view='thread'] .rail {
+    display: none;
+  }
+
+  .desk[data-view='list'] .pane {
+    display: none;
+  }
+
+  .rail {
+    border-right: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .desk {
+    grid-template-columns: minmax(0, 318px) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1440px) {
+  .desk {
+    grid-template-columns: minmax(0, 352px) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 759px) {
+  .chrome {
+    padding-inline: var(--sp-4);
+  }
+}
+
+/* On a phone the "DESK" wordmark is redundant — the header's active tab
+   already says Messenger — and the strip needs every pixel for the two live
+   readouts. */
+@media (max-width: 639px) {
+  .deskName,
+  .chromeRule {
+    display: none;
+  }
+}

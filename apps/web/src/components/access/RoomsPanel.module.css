@@ -1,0 +1,533 @@
+.panel {
+  min-width: 0;
+}
+
+.count {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.pad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-4);
+}
+
+.code {
+  padding: 1px 5px;
+  background-color: var(--panel-2);
+  color: var(--bone);
+  white-space: nowrap;
+}
+
+/* ── loading skeleton ───────────────────────────────────────────────────── */
+
+.skeleton {
+  height: 64px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeletonLine {
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line-2), transparent);
+  animation: sweep 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.skeletonNote {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* ── the list ───────────────────────────────────────────────────────────── */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-4);
+}
+
+.room {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-4);
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.room[data-lapsed] {
+  border-color: var(--crimson-edge);
+}
+
+/* ── head: identity + clock ─────────────────────────────────────────────── */
+
+.roomHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.roomId {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.roomIdValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-display);
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roomCreated {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roomClock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  min-width: 0;
+  flex: none;
+  max-width: 60%;
+}
+
+.roomUntilValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roomUntilNote {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.lapsedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding-inline: 8px;
+  flex: none;
+  clip-path: var(--path-notch-br);
+  background-color: var(--crimson-wash);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--crimson);
+  white-space: nowrap;
+}
+
+.lapsedDot {
+  width: 5px;
+  height: 5px;
+  flex: none;
+  background-color: currentColor;
+}
+
+@media (max-width: 560px) {
+  .roomHead {
+    flex-direction: column;
+  }
+
+  .roomClock {
+    align-items: flex-start;
+    max-width: 100%;
+  }
+
+  .roomUntilNote {
+    text-align: left;
+  }
+}
+
+/* ── pay rent ───────────────────────────────────────────────────────────── */
+
+.pay {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-4);
+  background-color: var(--panel-2);
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.payControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 200px);
+  gap: var(--sp-4);
+  align-items: start;
+  min-width: 0;
+}
+
+.stepper {
+  min-width: 0;
+}
+
+.payQuote {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.payQuoteLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payQuoteValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-display);
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity var(--dur-1) var(--ease);
+}
+
+.payQuoteStale {
+  opacity: 0.45;
+}
+
+.payQuoteNote {
+  font-size: var(--fs-xs);
+  color: var(--dim);
+  min-width: 0;
+}
+
+.payActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .payControls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .payActions > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* ── auto-renew ─────────────────────────────────────────────────────────── */
+
+.auto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.autoText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.autoLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.autoNote {
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--dim);
+  min-width: 0;
+}
+
+.autoNote code {
+  font-size: 0.95em;
+  color: var(--muted);
+  background: none;
+  padding: 0;
+}
+
+/* Bespoke switch: a hairline track and a square knob. No pill, no gradient. */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: none;
+  outline: none;
+}
+
+.switchTrack {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 22px;
+  flex: none;
+  border: 1px solid var(--line-2);
+  background-color: var(--void);
+  clip-path: var(--path-notch-br);
+  transition: border-color var(--dur-2) var(--ease);
+}
+
+.switchKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  background-color: var(--dim);
+  transition:
+    transform var(--dur-2) var(--ease),
+    background-color var(--dur-2) var(--ease);
+}
+
+.switchOn .switchTrack {
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: var(--bone-wash);
+}
+
+.switchOn .switchKnob {
+  transform: translateX(22px);
+  background-color: var(--bone);
+}
+
+.switchLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--muted);
+  width: 3ch;
+  text-align: left;
+}
+
+.switchOn .switchLabel {
+  color: var(--bone);
+}
+
+.switch:focus-visible .switchTrack {
+  border-color: var(--green);
+}
+
+.switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 560px) {
+  .auto {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-3);
+  }
+}
+
+/* ── the shared allowance block ─────────────────────────────────────────── */
+
+.allowance {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  margin-inline: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-4);
+  background-color: var(--panel-2);
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.allowanceText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.allowanceCopy {
+  max-width: 76ch;
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.allowanceGrid {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+  background-color: var(--void);
+}
+
+.allowanceRow {
+  display: grid;
+  grid-template-columns: minmax(0, 120px) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.allowanceRow + .allowanceRow {
+  border-top: 1px solid var(--line);
+}
+
+.allowanceLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.allowanceValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.allowanceActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 420px) {
+  .allowanceRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
+
+/* ── foot ───────────────────────────────────────────────────────────────── */
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: 0 var(--sp-4) var(--sp-4);
+}
+
+.footText {
+  max-width: 88ch;
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  color: var(--dim);
+  min-width: 0;
+}
+
+/* ── outcome link ───────────────────────────────────────────────────────── */
+
+.txLink {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding-inline: 12px;
+  border: 1px solid var(--green-edge);
+  clip-path: var(--path-notch-br);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--green);
+  white-space: nowrap;
+  transition: border-color var(--dur-1) var(--ease);
+}
+
+.txLink:hover {
+  border-color: var(--green);
+}

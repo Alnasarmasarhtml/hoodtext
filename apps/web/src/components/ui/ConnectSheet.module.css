@@ -1,0 +1,420 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  background-color: var(--void-veil);
+  animation: scrim-in var(--dur-2) var(--ease) both;
+}
+
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sheet {
+  position: fixed;
+  z-index: calc(var(--z-sheet) + 1);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 100vw);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--line-2);
+  padding-left: 1px;
+  animation: sheet-in var(--dur-3) var(--ease) both;
+}
+
+.inner {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background-color: var(--panel);
+  background-image: linear-gradient(
+    to bottom,
+    var(--highlight) 0,
+    var(--highlight) 1px,
+    transparent 1px
+  );
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translate3d(16px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── head ───────────────────────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-5) var(--sp-5) var(--sp-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  color: var(--bone);
+  min-width: 0;
+}
+
+.reason {
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--muted);
+  clip-path: var(--path-notch-br);
+  outline: none;
+  transition:
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+
+.close:hover {
+  color: var(--bone);
+  background-color: var(--bone-wash);
+}
+
+.close:focus-visible {
+  color: var(--green);
+  background-color: var(--green-wash);
+}
+
+.closeIcon {
+  width: 11px;
+  height: 11px;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: square;
+}
+
+/* ── scroll body ────────────────────────────────────────────────────────── */
+
+.scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-5);
+}
+
+.sectionTight {
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--line);
+}
+
+/* ── connector rows ─────────────────────────────────────────────────────── */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-width: 0;
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  outline: none;
+  background-color: transparent;
+  transition: background-color var(--dur-1) var(--ease);
+}
+
+.row:hover:not(:disabled) {
+  background-color: var(--bone-wash);
+}
+
+.row:focus-visible {
+  background-color: var(--green-wash);
+}
+
+.row:disabled {
+  cursor: not-allowed;
+  color: var(--dim);
+}
+
+.rowIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background-color: var(--panel-2);
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-br);
+  overflow: hidden;
+}
+
+.rowIcon img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.rowInitial {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.rowBody {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowName {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: var(--tr-label);
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowNote {
+  font-size: var(--fs-micro);
+  font-family: var(--font-mono);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.rowMark {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  stroke: var(--dim);
+  stroke-width: 1.3;
+  stroke-linecap: square;
+  transition: stroke var(--dur-1) var(--ease);
+}
+
+.row:hover .rowMark {
+  stroke: var(--bone);
+}
+
+/* ── connected state ────────────────────────────────────────────────────── */
+
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.accountRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.accountLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  flex: none;
+}
+
+.chainChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding-inline: 9px;
+  clip-path: var(--path-notch-br);
+  background-color: var(--steel-wash);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--steel);
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.chainChip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chainWrong {
+  background-color: var(--crimson-wash);
+  color: var(--crimson);
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  background-color: currentColor;
+  flex: none;
+}
+
+/* ── messages ───────────────────────────────────────────────────────────── */
+
+.note {
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.error {
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  background-color: var(--crimson-wash);
+  border-left: 1px solid var(--crimson);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--crimson);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-5);
+  min-width: 0;
+}
+
+.emptyTitle {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: var(--tr-label);
+  color: var(--bone);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.link {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-2);
+  padding-bottom: 1px;
+  transition: color var(--dur-1) var(--ease);
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--bone);
+  border-color: var(--green);
+  outline: none;
+}
+
+.foot {
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+/* ── mobile: dock to the bottom ─────────────────────────────────────────── */
+
+@media (max-width: 560px) {
+  .sheet {
+    top: auto;
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: 86dvh;
+    padding-left: 0;
+    padding-top: 1px;
+    animation-name: sheet-up;
+  }
+
+  @keyframes sheet-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 16px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .head,
+  .section,
+  .row,
+  .sectionTight,
+  .empty,
+  .foot {
+    padding-inline: var(--sp-4);
+  }
+}

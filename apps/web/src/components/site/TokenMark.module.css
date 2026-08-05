@@ -1,0 +1,11 @@
+.mark {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--green);
+  white-space: nowrap;
+}
+
+.quiet {
+  color: var(--bone);
+}

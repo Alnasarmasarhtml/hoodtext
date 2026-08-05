@@ -1,0 +1,159 @@
+/* Inline strip. The tone lives in a 2px left rule and the title colour — never
+   in a filled panel, which would read as decoration. */
+
+.notice {
+  --tone: var(--steel);
+  --tone-wash: var(--steel-wash);
+
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background-color: var(--tone-wash);
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.rule {
+  flex: none;
+  width: 2px;
+  align-self: stretch;
+  min-height: 18px;
+  background-color: var(--tone);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--tone);
+  min-width: 0;
+}
+
+.text {
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-label);
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  align-self: center;
+}
+
+/* ── tones ──────────────────────────────────────────────────────────────── */
+
+.info {
+  --tone: var(--steel);
+  --tone-wash: var(--steel-wash);
+}
+
+.warn {
+  --tone: var(--bone);
+  --tone-wash: var(--bone-wash);
+}
+
+.error {
+  --tone: var(--crimson);
+  --tone-wash: var(--crimson-wash);
+}
+
+/* Confirmed-on-chain — one of the five places green is permitted. */
+.ok {
+  --tone: var(--green);
+  --tone-wash: var(--green-wash);
+}
+
+@media (max-width: 640px) {
+  .notice {
+    flex-wrap: wrap;
+  }
+
+  .action {
+    width: 100%;
+    align-self: stretch;
+  }
+}
+
+/* ── empty state ────────────────────────────────────────────────────────── */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-6) var(--sp-4);
+}
+
+.mark {
+  width: 44px;
+  height: 30px;
+  margin-bottom: var(--sp-2);
+  color: var(--dim);
+  stroke-width: 1;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  opacity: 0.7;
+}
+
+.emptyEyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.emptyTitle {
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  line-height: 1.2;
+  color: var(--bone);
+  min-width: 0;
+}
+
+.emptyBody {
+  max-width: 54ch;
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.emptyAction {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  min-width: 0;
+}

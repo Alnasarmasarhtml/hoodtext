@@ -1,0 +1,108 @@
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  /* Lets the figure size itself against the column it sits in, so a wide
+     number is never ellipsized in a narrow panel. A truncated number is a
+     data-integrity failure, not a layout compromise. */
+  container-type: inline-size;
+}
+
+.end {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--sp-2);
+  row-gap: var(--sp-1);
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
+  letter-spacing: var(--tr-display);
+  line-height: 1.05;
+  color: var(--bone);
+}
+
+/* `0 1 auto`: the figure takes only the width it needs, so the unit sits
+   against it. When the line is tight the unit wraps below rather than the
+   number shrinking. */
+.number {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unit {
+  flex: none;
+  font-size: 0.5em;
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hint {
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--dim);
+  min-width: 0;
+}
+
+/* ── sizes ──────────────────────────────────────────────────────────────── */
+
+.sm .value {
+  font-size: min(var(--fs-lg), 9cqi);
+}
+
+.md .value {
+  font-size: min(var(--fs-2xl), 10cqi);
+}
+
+.lg .value {
+  font-size: min(var(--fs-3xl), 11cqi);
+}
+
+/* ── tones ──────────────────────────────────────────────────────────────── */
+
+.bone .value {
+  color: var(--bone);
+}
+
+.muted .value {
+  color: var(--muted);
+}
+
+.steel .value {
+  color: var(--steel);
+}
+
+.crimson .value {
+  color: var(--crimson);
+}
+
+/* Permitted: confirmed-on-chain figures and the live subscription badge. */
+.green .value {
+  color: var(--green);
+}

@@ -1,0 +1,130 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-2) 2px calc(var(--sp-2) + 1px);
+}
+
+/* resting hairline */
+.control::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background-color: var(--line-2);
+}
+
+/* focus hairline — wipes in from the left, green */
+.control::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  height: 1px;
+  background-color: var(--green);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-2) var(--ease);
+}
+
+.control:focus-within::before {
+  transform: scaleX(1);
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  outline: none;
+  color: var(--bone);
+  caret-color: var(--green);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.input::placeholder {
+  color: var(--dim);
+}
+
+.input:disabled {
+  color: var(--dim);
+  cursor: not-allowed;
+}
+
+.input[type='number']::-webkit-outer-spin-button,
+.input[type='number']::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.mono .input {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.01em;
+}
+
+.affix {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.footnote {
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--dim);
+  min-width: 0;
+}
+
+/* ── error ──────────────────────────────────────────────────────────────── */
+
+.invalid .control::after {
+  background-color: var(--crimson);
+}
+
+.invalid .control::before {
+  background-color: var(--crimson);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--crimson);
+  min-width: 0;
+}
+
+.errorMark {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  margin-top: 6px;
+  background-color: var(--crimson);
+}

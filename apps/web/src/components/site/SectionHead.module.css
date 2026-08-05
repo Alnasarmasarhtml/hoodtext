@@ -1,0 +1,90 @@
+/* Numbered masthead. Slug over a hairline, headline, lede in a narrow measure. */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  margin-bottom: clamp(var(--sp-6), 3.4vw, var(--sp-7));
+}
+
+.slug {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding-bottom: var(--sp-3);
+  border-bottom: var(--hair) solid var(--line);
+}
+
+.index {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--bone);
+}
+
+.rule {
+  flex: none;
+  width: 22px;
+  height: var(--hair);
+  background-color: var(--line-2);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  line-height: var(--lh-mono);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aside {
+  margin-left: auto;
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.title {
+  font-size: var(--fs-2xl);
+  max-width: 22ch;
+  min-width: 0;
+}
+
+.lede {
+  max-width: 62ch;
+  min-width: 0;
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.lede strong {
+  color: var(--bone);
+  font-weight: 600;
+}
+
+@media (max-width: 620px) {
+  .aside {
+    display: none;
+  }
+
+  .lede {
+    font-size: var(--fs-base);
+  }
+}

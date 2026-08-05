@@ -1,0 +1,39 @@
+/* The holder-rank chip. Hairline, mono, uppercase — never green: the accent
+   budget is spent on live/anchored state, and a rank is neither. */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  height: 14px;
+  padding-inline: 5px;
+  border: 1px solid var(--line-2);
+  clip-path: var(--path-notch-br);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--dim);
+}
+
+.tier1 {
+  color: var(--dim);
+}
+
+.tier2 {
+  color: var(--muted);
+}
+
+.tier3 {
+  color: var(--steel);
+  border-color: rgba(143, 163, 176, 0.3);
+}
+
+/* The top of the ladder earns bone, nothing brighter. */
+.tier4 {
+  color: var(--bone);
+  border-color: var(--line-2);
+  background-color: var(--bone-wash);
+}

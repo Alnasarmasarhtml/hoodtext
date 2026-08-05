@@ -1,0 +1,165 @@
+/* An encrypted attachment. Images render inside a hairline frame with a mono
+   caption; other files are a ruled row with a download action. No thumbnails
+   grid, no rounded cards. */
+
+.frame {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  max-width: 420px;
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  background-color: var(--panel);
+  clip-path: var(--path-notch-br);
+}
+
+.loading {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+
+.bar {
+  position: relative;
+  width: 64px;
+  height: 2px;
+  background-color: var(--line-2);
+  overflow: hidden;
+}
+
+.bar::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background-color: var(--steel);
+  animation: sweep 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+.note {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.failed {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  border-color: var(--crimson-edge);
+}
+
+.errorText {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--crimson);
+  min-width: 0;
+}
+
+/* ── images ─────────────────────────────────────────────────────────────── */
+
+.imageFrame {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  max-width: min(420px, 100%);
+  border: 1px solid var(--line);
+  background-color: var(--panel);
+  clip-path: var(--path-notch-br);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  background-color: var(--void);
+}
+
+.caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-top: 1px solid var(--line);
+}
+
+/* ── files ──────────────────────────────────────────────────────────────── */
+
+.fileGlyph {
+  flex: none;
+  width: 8px;
+  height: 10px;
+  border: 1px solid var(--muted);
+  clip-path: var(--path-notch-tr);
+}
+
+.fileBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.fileName {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileMeta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.download {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--bone);
+  border-bottom: 1px solid var(--line-2);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.download:hover,
+.download:focus-visible {
+  color: var(--green);
+  border-bottom-color: var(--green-edge);
+}

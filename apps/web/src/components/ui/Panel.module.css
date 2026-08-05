@@ -1,0 +1,134 @@
+/* Matte raised surface. Same edge/fill technique as Button so the hairline
+   survives the notch. The optional top highlight is painted into the fill as a
+   gradient stop, which means it is clipped by the notch for free. */
+
+.panel {
+  --edge: var(--line);
+  --fill: var(--panel);
+
+  position: relative;
+  isolation: isolate;
+  display: block;
+  min-width: 0;
+  background-color: var(--edge);
+  color: var(--bone);
+  clip-path: var(--shape, none);
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background-color: var(--fill);
+  clip-path: var(--shape-in, none);
+}
+
+/* ── tone ───────────────────────────────────────────────────────────────── */
+
+.raised {
+  --fill: var(--panel);
+}
+
+.inset {
+  --fill: var(--panel-2);
+  --edge: var(--line);
+}
+
+.void {
+  --fill: var(--void);
+}
+
+.strong {
+  --edge: var(--line-2);
+}
+
+/* ── the only permitted shadow: a 1px top highlight ─────────────────────── */
+
+.highlight::before {
+  background-image: linear-gradient(
+    to bottom,
+    var(--highlight) 0,
+    var(--highlight) 1px,
+    transparent 1px
+  );
+}
+
+/* ── padding ────────────────────────────────────────────────────────────── */
+
+.pad-none {
+  padding: 0;
+}
+
+.pad-sm {
+  padding: var(--sp-3);
+}
+
+.pad-md {
+  padding: var(--sp-5);
+}
+
+.pad-lg {
+  padding: clamp(var(--sp-5), 3vw, var(--sp-7));
+}
+
+/* ── interactive panels ─────────────────────────────────────────────────── */
+
+.interactive {
+  cursor: pointer;
+  transition: background-color var(--dur-2) var(--ease);
+}
+
+.interactive:hover {
+  --edge: var(--line-2);
+}
+
+.interactive:focus-visible {
+  --edge: var(--green);
+  outline: none;
+}
+
+/* ── header row ─────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.headerTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.headerLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerNote {
+  font-size: var(--fs-xs);
+  color: var(--dim);
+  min-width: 0;
+}
+
+.headerAside {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: none;
+}

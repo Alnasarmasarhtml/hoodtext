@@ -1,0 +1,371 @@
+/* The thread. Three bands: a ruled header, a scrolling log, and the composer
+   pinned to the floor. Nothing here is centred and nothing is a card. */
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background-color: var(--void);
+}
+
+/* ── header ─────────────────────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex: none;
+  min-width: 0;
+  min-height: 46px;
+  padding: var(--sp-2) var(--sp-5);
+  border-bottom: 1px solid var(--line);
+  background-color: var(--panel);
+}
+
+.back {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.back:hover,
+.back:focus-visible {
+  color: var(--bone);
+}
+
+.backIcon {
+  width: 10px;
+  height: 10px;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: square;
+}
+
+.headMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.headEyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.headName {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headHex {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.headStats {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex: none;
+  min-width: 0;
+}
+
+.stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.statKey {
+  color: var(--dim);
+}
+
+/* The members count doubles as the roster toggle in rooms. */
+.membersToggle {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line-2);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.membersToggle:hover,
+.membersToggle:focus-visible {
+  color: var(--bone);
+}
+
+.membersToggleOn {
+  color: var(--bone);
+}
+
+.rentClock {
+  font-size: var(--fs-micro);
+  gap: 4px;
+}
+
+/* confirmed on chain — permitted green */
+.statAnchored {
+  color: var(--green);
+}
+
+.statPending {
+  color: var(--steel);
+}
+
+.statFailed {
+  color: var(--crimson);
+}
+
+/* ── log ────────────────────────────────────────────────────────────────── */
+
+.scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-bottom: var(--sp-4);
+}
+
+.rowItem {
+  min-width: 0;
+}
+
+/* ── empty thread ───────────────────────────────────────────────────────── */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: clamp(var(--sp-5), 4vw, var(--sp-7)) var(--sp-5);
+  max-width: 640px;
+}
+
+.emptyRule {
+  width: 52px;
+  height: 1px;
+  background-color: var(--line-2);
+  margin-bottom: var(--sp-2);
+}
+
+.emptyText {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  min-width: 0;
+}
+
+.emptyFacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+  gap: 1px;
+  width: 100%;
+  min-width: 0;
+  margin-top: var(--sp-2);
+  background-color: var(--line);
+  border: 1px solid var(--line);
+}
+
+.emptyFact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: var(--sp-3);
+  background-color: var(--panel);
+}
+
+.emptyFactKey {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.emptyFactValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── floor ──────────────────────────────────────────────────────────────── */
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  min-width: 0;
+}
+
+.footNotice {
+  border-inline: 0;
+  border-bottom: 0;
+}
+
+/* ── unknown / malformed thread ─────────────────────────────────────────── */
+
+.missing {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(var(--sp-5), 5vw, var(--sp-8)) var(--gutter);
+  background-color: var(--void);
+}
+
+.missingBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
+  max-width: 560px;
+}
+
+.missingTitle {
+  font-size: var(--fs-lg);
+  color: var(--bone);
+}
+
+.missingText {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  min-width: 0;
+}
+
+.missingMeta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--dim);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.missingBar {
+  position: relative;
+  width: 72px;
+  height: 2px;
+  margin-top: var(--sp-2);
+  background-color: var(--line-2);
+  overflow: hidden;
+}
+
+.missingBar::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background-color: var(--steel);
+  animation: sweep 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+.missingLink {
+  margin-top: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--bone);
+  border-bottom: 1px solid var(--line-2);
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.missingLink:hover,
+.missingLink:focus-visible {
+  color: var(--green);
+  border-bottom-color: var(--green-edge);
+}
+
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  color: var(--bone);
+}
+
+/* ── narrow ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .back {
+    display: inline-flex;
+  }
+
+  .head {
+    padding-inline: var(--sp-4);
+  }
+
+  .empty {
+    padding-inline: var(--sp-4);
+  }
+}
+
+/* On a phone the metadata stats yield, but the members toggle is navigation
+   and stays. */
+@media (max-width: 639px) {
+  .headStats .stat {
+    display: none;
+  }
+}

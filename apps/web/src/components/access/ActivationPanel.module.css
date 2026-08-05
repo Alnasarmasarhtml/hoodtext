@@ -1,0 +1,433 @@
+.panel {
+  min-width: 0;
+}
+
+.headTotal {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-display);
+  color: var(--bone);
+  white-space: nowrap;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-4);
+}
+
+.wordmark {
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.code {
+  padding: 1px 5px;
+  background-color: var(--panel-2);
+  color: var(--bone);
+  white-space: nowrap;
+}
+
+/* ── the pitch ──────────────────────────────────────────────────────────── */
+
+.pitch {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: var(--sp-5);
+  align-items: start;
+  min-width: 0;
+}
+
+.price {
+  font-family: var(--font-mono);
+  font-size: var(--fs-display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-display);
+  line-height: 0.9;
+  color: var(--bone);
+}
+
+.pitchText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding-top: var(--sp-1);
+}
+
+.pitchLead {
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  color: var(--bone);
+}
+
+.pitchCopy {
+  max-width: 56ch;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--muted);
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .pitch {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-3);
+  }
+}
+
+/* ── ledger ─────────────────────────────────────────────────────────────── */
+
+.ledger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 120px) minmax(0, 1fr);
+  grid-template-areas: 'label value' 'label note';
+  align-items: baseline;
+  column-gap: var(--sp-4);
+  row-gap: 2px;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+
+.rowLabel {
+  grid-area: label;
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowValue {
+  grid-area: value;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowStrong {
+  background-color: rgba(255, 255, 255, 0.015);
+}
+
+.rowStrong .rowValue {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+}
+
+.rowNote {
+  grid-area: note;
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--dim);
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'label' 'value' 'note';
+    row-gap: 3px;
+  }
+}
+
+/* ── steps ──────────────────────────────────────────────────────────────── */
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-4);
+}
+
+.step + .step {
+  border-top: 1px solid var(--line);
+}
+
+.stepIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border: 1px solid var(--line-2);
+  clip-path: var(--path-notch-br);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  color: var(--dim);
+}
+
+.step[data-state='current'] .stepIndex,
+.step[data-state='busy'] .stepIndex {
+  border-color: var(--line-2);
+  color: var(--bone);
+}
+
+/* Confirmed-on-chain — green is permitted. */
+.step[data-state='done'] .stepIndex {
+  border-color: var(--green-edge);
+  background-color: var(--green-wash);
+  color: var(--green);
+}
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stepTitle {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--bone);
+  min-width: 0;
+}
+
+.step[data-state='todo'] .stepTitle {
+  color: var(--muted);
+}
+
+.stepNote {
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--dim);
+  min-width: 0;
+}
+
+.stepAction {
+  flex: none;
+  justify-self: end;
+}
+
+@media (max-width: 600px) {
+  .step {
+    grid-template-columns: 26px minmax(0, 1fr);
+    grid-template-areas: 'index body' 'action action';
+    row-gap: var(--sp-3);
+  }
+
+  .stepIndex {
+    grid-area: index;
+  }
+
+  .stepBody {
+    grid-area: body;
+  }
+
+  .stepAction {
+    grid-area: action;
+    justify-self: stretch;
+    width: 100%;
+  }
+}
+
+/* ── activated forever ──────────────────────────────────────────────────── */
+
+/* The activated badge — confirmed-on-chain state, green is permitted. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding-inline: 8px;
+  flex: none;
+  clip-path: var(--path-notch-br);
+  background-color: var(--green-wash);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--green);
+  white-space: nowrap;
+}
+
+.badgeDot {
+  width: 5px;
+  height: 5px;
+  flex: none;
+  background-color: currentColor;
+}
+
+.done {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-4);
+  background-color: var(--panel-2);
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.doneTitle {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  line-height: 1.15;
+  color: var(--green);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.doneDate {
+  color: var(--bone);
+}
+
+.doneForever {
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  color: var(--bone);
+}
+
+.doneCopy {
+  max-width: 60ch;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--muted);
+  min-width: 0;
+}
+
+/* ── sponsor a friend ───────────────────────────────────────────────────── */
+
+.sponsor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-4);
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.sponsorHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.sponsorPrice {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+}
+
+.sponsorCopy {
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.sponsorRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  gap: var(--sp-3);
+  align-items: start;
+  min-width: 0;
+}
+
+.sponsorField {
+  min-width: 0;
+}
+
+.sponsorActions {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  /* Sit level with the input, under the field label. */
+  padding-top: 21px;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .sponsorRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sponsorActions {
+    padding-top: 0;
+  }
+
+  .sponsorActions > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* ── outcome link ───────────────────────────────────────────────────────── */
+
+.txLink {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding-inline: 12px;
+  border: 1px solid var(--green-edge);
+  clip-path: var(--path-notch-br);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--green);
+  white-space: nowrap;
+  transition: border-color var(--dur-1) var(--ease);
+}
+
+.txLink:hover {
+  border-color: var(--green);
+}

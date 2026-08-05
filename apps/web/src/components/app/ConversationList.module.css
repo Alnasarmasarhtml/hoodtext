@@ -1,0 +1,436 @@
+/* The rail. Single column, always — every child is min-width:0 and every hex is
+   truncated before it renders, so long values can never widen this element
+   (SPEC §7.5). */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background-color: var(--panel);
+}
+
+/* ── head ───────────────────────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex: none;
+  min-width: 0;
+  height: 38px;
+  padding-inline: var(--sp-4);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+}
+
+.headLabel {
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headCount {
+  flex: none;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── opener ─────────────────────────────────────────────────────────────── */
+
+.opener {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  flex: none;
+  min-width: 0;
+  padding: var(--sp-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.openerField {
+  min-width: 0;
+}
+
+.openerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.openerSubmit {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.newRoom {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-2);
+  white-space: nowrap;
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.newRoom:hover,
+.newRoom:focus-visible {
+  color: var(--bone);
+  border-bottom-color: var(--bone);
+}
+
+/* ── list ───────────────────────────────────────────────────────────────── */
+
+.list {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.item {
+  min-width: 0;
+}
+
+.item + .item {
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  outline: none;
+  transition: background-color var(--dur-1) var(--ease);
+}
+
+.row::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background-color: transparent;
+  transition: background-color var(--dur-1) var(--ease);
+}
+
+.row:hover {
+  background-color: var(--panel-2);
+}
+
+.row:focus-visible {
+  background-color: var(--panel-2);
+  outline: 1px solid var(--green);
+  outline-offset: -1px;
+}
+
+/* the active tab state — one of the permitted green surfaces */
+.rowActive {
+  background-color: var(--panel-2);
+}
+
+.rowActive::before {
+  background-color: var(--green);
+}
+
+.rowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+/* Rooms wear a rent dot before the name: green while current, crimson once
+   lapsed, hollow while the chain read is still out. */
+.roomDot {
+  align-self: center;
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--dim);
+  clip-path: var(--path-notch-br);
+}
+
+.roomDotLive {
+  border-color: var(--green);
+  background-color: var(--green);
+}
+
+.roomDotLapsed {
+  border-color: var(--crimson);
+  background-color: var(--crimson);
+}
+
+.name {
+  flex: 1 1 auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nameQuiet {
+  color: var(--muted);
+}
+
+.rowActive .name {
+  color: var(--bone);
+}
+
+.time {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--dim);
+}
+
+.preview {
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--sp-3);
+  min-width: 0;
+  margin-top: 1px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.tagKey {
+  color: var(--dim);
+}
+
+.tagDot {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  background-color: currentColor;
+}
+
+/* confirmed-on-chain — permitted green */
+.tagAnchored {
+  color: var(--green);
+}
+
+.tagPending {
+  color: var(--steel);
+}
+
+.tagFailed {
+  color: var(--crimson);
+}
+
+.tagQuiet {
+  color: var(--dim);
+}
+
+/* ── skeleton ───────────────────────────────────────────────────────────── */
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.skeletonRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: var(--sp-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.skeletonName,
+.skeletonLine {
+  height: 8px;
+  background-color: var(--line);
+  animation: shimmer 1.6s var(--ease-in-out) infinite;
+}
+
+.skeletonName {
+  width: 42%;
+}
+
+.skeletonLine {
+  width: 78%;
+  opacity: 0.6;
+}
+
+.skeletonRow:nth-child(2) .skeletonName {
+  width: 36%;
+}
+
+.skeletonRow:nth-child(3) .skeletonLine {
+  width: 60%;
+}
+
+.skeletonRow:nth-child(4) .skeletonName {
+  width: 48%;
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* ── empty ──────────────────────────────────────────────────────────────── */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-6) var(--sp-4);
+}
+
+.emptyMark {
+  width: 44px;
+  height: 24px;
+  stroke: var(--dim);
+  stroke-width: 1;
+  stroke-linecap: square;
+}
+
+.emptyTitle {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.emptyText {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  min-width: 0;
+}
+
+/* ── foot ───────────────────────────────────────────────────────────────── */
+
+.railNotice {
+  flex: none;
+  border-inline: 0;
+  border-bottom: 0;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex: none;
+  min-width: 0;
+  height: 34px;
+  padding-inline: var(--sp-4);
+  border-top: 1px solid var(--line);
+  background-color: var(--void);
+}
+
+.counters {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.counterKey {
+  color: var(--dim);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+}
+
+/* Between 1024 and 1279 the rail is a fixed 318px and three six-figure
+   counters plus the rescan control no longer fit on one 34px line. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .counterOptional {
+    display: none;
+  }
+}
+
+.rescan {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.rescan:hover:not(:disabled),
+.rescan:focus-visible:not(:disabled) {
+  color: var(--bone);
+}
+
+.rescan:disabled {
+  color: var(--dim);
+}

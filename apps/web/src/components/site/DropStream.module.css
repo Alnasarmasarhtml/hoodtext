@@ -1,0 +1,298 @@
+/* The drop stream. A tabular readout, not an illustration: every column is a
+   field the chain actually stores. Rows arrive at the top, flash green for
+   200ms (confirmed-on-chain status — one of the permitted uses), then settle to
+   bone and drift out through a masked bottom edge. */
+
+.stream {
+  --row-h: 26px;
+  --col-seq: 46px;
+  --col-tag: 40px;
+  --col-bytes: 58px;
+  --col-block: 86px;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+/* ── head ───────────────────────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badgeLive {
+  color: var(--green);
+}
+
+.badgeDemo {
+  color: var(--muted);
+}
+
+.dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  background-color: currentColor;
+  clip-path: var(--path-notch-br);
+}
+
+.badgeLive .dot {
+  animation: pulse 2.4s var(--ease-in-out) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.32;
+  }
+}
+
+.note {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.disclaimer {
+  min-width: 0;
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--dim);
+}
+
+/* ── frame ──────────────────────────────────────────────────────────────── */
+
+.frame {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  background-color: var(--line);
+  clip-path: var(--path-notch-tr);
+  padding: var(--hair);
+}
+
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: var(--hair);
+  z-index: -1;
+  background-color: var(--panel);
+  clip-path: var(--path-notch-tr-in);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns:
+    var(--col-seq) minmax(0, 1fr) var(--col-tag) var(--col-bytes)
+    var(--col-block);
+  gap: var(--sp-2);
+  align-items: center;
+  min-width: 0;
+  height: 28px;
+  padding-inline: var(--sp-3);
+  border-bottom: var(--hair) solid var(--line);
+  background-color: rgba(255, 255, 255, 0.014);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.columns > * {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: clamp(300px, 42vh, 460px);
+  overflow: hidden;
+  /* Rows dissolve rather than being cut off — the log continues past the frame. */
+  mask-image: linear-gradient(to bottom, #000 0, #000 62%, transparent 100%);
+}
+
+.row {
+  display: grid;
+  grid-template-columns:
+    var(--col-seq) minmax(0, 1fr) var(--col-tag) var(--col-bytes)
+    var(--col-block);
+  gap: var(--sp-2);
+  align-items: center;
+  flex: none;
+  min-width: 0;
+  height: var(--row-h);
+  padding-inline: var(--sp-3);
+  border-bottom: var(--hair) solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.cell {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ref {
+  color: var(--bone);
+  letter-spacing: -0.01em;
+}
+
+.colSeq {
+  color: var(--dim);
+}
+
+.colTag,
+.colBytes {
+  text-align: right;
+}
+
+.colBlock {
+  text-align: right;
+  color: var(--dim);
+}
+
+/* The arrival flash. Runs once, on insert — the row settles to bone and stays
+   there. `fill-mode: none` is deliberate: nothing keeps a colour it earned. */
+.fresh {
+  animation: arrive 200ms var(--ease) 1;
+}
+
+.fresh .ref,
+.fresh .colSeq,
+.fresh .colTag,
+.fresh .colBytes,
+.fresh .colBlock {
+  animation: arriveInk 200ms var(--ease) 1;
+}
+
+@keyframes arrive {
+  from {
+    background-color: var(--green-wash);
+    border-bottom-color: var(--green-edge);
+  }
+  to {
+    background-color: transparent;
+    border-bottom-color: var(--line);
+  }
+}
+
+@keyframes arriveInk {
+  from {
+    color: var(--green);
+  }
+  to {
+    color: inherit;
+  }
+}
+
+.fade {
+  position: absolute;
+  right: var(--hair);
+  bottom: var(--hair);
+  left: var(--hair);
+  height: 1px;
+  background-color: var(--line);
+}
+
+/* ── foot ───────────────────────────────────────────────────────────────── */
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.foot > span:first-child,
+.foot > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footRule {
+  flex: 1 1 auto;
+  min-width: 8px;
+  height: var(--hair);
+  background-color: var(--line);
+}
+
+/* ── narrow ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 560px) {
+  .stream {
+    --col-tag: 36px;
+    --col-bytes: 52px;
+    --col-block: 78px;
+  }
+
+  .columns,
+  .row {
+    grid-template-columns:
+      minmax(0, 1fr) var(--col-tag) var(--col-bytes) var(--col-block);
+    gap: 6px;
+    padding-inline: var(--sp-2);
+  }
+
+  .colSeq {
+    display: none;
+  }
+
+  .rows {
+    height: clamp(260px, 38vh, 360px);
+  }
+
+  .foot > span:last-child {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badgeLive .dot {
+    animation: none;
+  }
+}

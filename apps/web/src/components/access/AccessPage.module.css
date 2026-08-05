@@ -1,0 +1,198 @@
+/* Page rhythm for `/access`.
+
+   The panels own their own hairlines, so this file owns only the column: a
+   single centred measure, the vertical rhythm between blocks, and the one
+   two-column split (buy on the left, status on the right) that collapses to a
+   single column early — a side rail is never allowed to become a second grid
+   (SPEC §7.5).
+
+   Every grid here is `minmax(0, 1fr)`; every child carries `min-width: 0`.
+   Nothing may widen its container at 1440 / 1024 / 760 / 390. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-x: clip;
+  padding-bottom: clamp(var(--sp-7), 6vw, var(--sp-9));
+}
+
+/* The shared measure. Applied to every top-level region so the hairlines and
+   the text column agree at every width. */
+.mastheadInner,
+.banner,
+.split,
+.block,
+.foot {
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  min-width: 0;
+}
+
+/* ── masthead ───────────────────────────────────────────────────────────── */
+
+.masthead {
+  min-width: 0;
+  padding-block: clamp(var(--sp-6), 5vw, var(--sp-8));
+  border-bottom: var(--hair) solid var(--line);
+}
+
+.mastheadInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  gap: clamp(var(--sp-5), 4vw, var(--sp-7));
+  align-items: end;
+}
+
+@media (max-width: 940px) {
+  .mastheadInner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-5);
+  }
+}
+
+.mastheadText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--fs-3xl);
+  line-height: var(--lh-tight);
+  max-width: 20ch;
+  min-width: 0;
+}
+
+.lede {
+  max-width: 66ch;
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+  color: var(--muted);
+  min-width: 0;
+}
+
+/* The $THOOD wordmark — one of the five surfaces green is reserved for. */
+.wordmark {
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Three figures, hairline-separated. A column beside the lede on wide screens,
+   a row underneath it once the masthead collapses. */
+.summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-self: end;
+  min-width: 0;
+  background-color: var(--panel);
+  border: var(--hair) solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.summary > * {
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.summary > * + * {
+  border-top: var(--hair) solid var(--line);
+}
+
+@media (max-width: 940px) {
+  .summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-self: stretch;
+  }
+
+  .summary > * + * {
+    border-top: 0;
+    border-left: var(--hair) solid var(--line);
+  }
+}
+
+@media (max-width: 620px) {
+  .summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .summary > * + * {
+    border-left: 0;
+    border-top: var(--hair) solid var(--line);
+  }
+}
+
+/* ── environment banner ─────────────────────────────────────────────────── */
+
+.banner {
+  padding-top: var(--sp-5);
+}
+
+/* ── buy + status ───────────────────────────────────────────────────────── */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
+  gap: clamp(var(--sp-5), 3vw, var(--sp-6));
+  align-items: start;
+  padding-top: clamp(var(--sp-6), 4vw, var(--sp-7));
+  /* `goToTiers()` scrolls this into view; keep it clear of the sticky header. */
+  scroll-margin-top: calc(var(--header-h) + var(--sp-4));
+}
+
+@media (max-width: 1120px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(var(--sp-5), 3vw, var(--sp-6));
+  min-width: 0;
+}
+
+/* A side rail is always one column — it never becomes a second grid. */
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+/* ── stacked blocks ─────────────────────────────────────────────────────── */
+
+.block {
+  padding-top: clamp(var(--sp-6), 4vw, var(--sp-7));
+}
+
+/* ── colophon ───────────────────────────────────────────────────────────── */
+
+.foot {
+  padding-top: clamp(var(--sp-6), 4vw, var(--sp-7));
+}
+
+.footText {
+  max-width: 88ch;
+  padding-top: var(--sp-5);
+  border-top: var(--hair) solid var(--line);
+  font-size: var(--fs-xs);
+  line-height: 1.7;
+  color: var(--dim);
+  min-width: 0;
+}
+
+.code {
+  padding: 1px 5px;
+  margin-inline: 3px;
+  background-color: var(--panel-2);
+  color: var(--muted);
+  white-space: nowrap;
+}

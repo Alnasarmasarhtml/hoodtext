@@ -1,0 +1,170 @@
+/* The default pane. A readout, not a shrug — it tells you what the scanner is
+   doing while you have nothing open. */
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(var(--sp-5), 3vw, var(--sp-6));
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(var(--sp-5), 4vw, var(--sp-7)) clamp(var(--sp-4), 3.4vw, var(--sp-7));
+  background-color: var(--void);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  max-width: 660px;
+}
+
+.title {
+  font-size: var(--fs-xl);
+  color: var(--bone);
+}
+
+.lede {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  min-width: 0;
+}
+
+/* ── live readout ───────────────────────────────────────────────────────── */
+
+.readout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(168px, 100%), 1fr));
+  gap: 1px;
+  min-width: 0;
+  background-color: var(--line);
+  border: 1px solid var(--line);
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background-color: var(--panel);
+}
+
+.metricKey {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.metricValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metricNote {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── the four steps ─────────────────────────────────────────────────────── */
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.stepsLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stepList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 1px;
+  min-width: 0;
+  background-color: var(--line);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: var(--sp-4);
+  background-color: var(--void);
+}
+
+.stepIndex {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--dim);
+}
+
+.stepLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.stepNote {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  min-width: 0;
+}
+
+/* ── footnote ───────────────────────────────────────────────────────────── */
+
+.footnote {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--dim);
+  max-width: 78ch;
+  min-width: 0;
+}
+
+/* ── locked ─────────────────────────────────────────────────────────────── */
+
+.locked {
+  max-width: 720px;
+}
+
+.lockedNote {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--dim);
+  max-width: 78ch;
+  min-width: 0;
+}

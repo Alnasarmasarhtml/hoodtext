@@ -1,0 +1,189 @@
+.panel {
+  min-width: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-4);
+}
+
+/* ── the rank ───────────────────────────────────────────────────────────── */
+
+.rank {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.rankName {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  line-height: 1;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rankNone {
+  color: var(--dim);
+}
+
+.rankBalance {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── the ladder ─────────────────────────────────────────────────────────── */
+
+.ladder {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.rung {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.rung + .rung {
+  border-top: 1px solid var(--line);
+}
+
+.rungCurrent {
+  background-color: rgba(255, 255, 255, 0.015);
+}
+
+.rungHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.rungTier {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--dim);
+}
+
+.rungHeld .rungTier {
+  color: var(--bone);
+}
+
+.rungName {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: var(--tr-label);
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rungHeld .rungName {
+  color: var(--bone);
+}
+
+.rungThreshold {
+  margin-left: auto;
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-label);
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+/* Progress toward the rung: a hairline track, a bone fill. Held rungs fill
+   solid — reaching a threshold is state, not a confirmation, so no green. */
+.rungBar {
+  height: 4px;
+  min-width: 0;
+  background-color: var(--line);
+  overflow: hidden;
+}
+
+.rungFill {
+  display: block;
+  height: 100%;
+  background-color: var(--dim);
+  transition: width var(--dur-3) var(--ease);
+}
+
+.rungHeld .rungFill {
+  background-color: var(--bone);
+}
+
+.rungUnlocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-4);
+  min-width: 0;
+}
+
+.rungUnlock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--dim);
+  min-width: 0;
+}
+
+.rungHeld .rungUnlock {
+  color: var(--muted);
+}
+
+.rungUnlockMark {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  background-color: currentColor;
+  opacity: 0.7;
+}
+
+/* ── the honest mechanic ────────────────────────────────────────────────── */
+
+.mechanic {
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  color: var(--muted);
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .rungHead {
+    flex-wrap: wrap;
+  }
+
+  .rungThreshold {
+    margin-left: 0;
+    width: 100%;
+  }
+}

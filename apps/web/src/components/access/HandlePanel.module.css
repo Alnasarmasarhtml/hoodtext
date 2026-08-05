@@ -1,0 +1,202 @@
+.panel {
+  min-width: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-4);
+}
+
+.current {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── held handle ────────────────────────────────────────────────────────── */
+
+.held {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-4);
+  background-color: var(--panel-2);
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.heldText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.heldName {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  letter-spacing: var(--tr-display);
+  line-height: 1.1;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.heldNote {
+  font-size: var(--fs-xs);
+  color: var(--dim);
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .held {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ── claim row ──────────────────────────────────────────────────────────── */
+
+.claimRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  gap: var(--sp-3);
+  align-items: start;
+  min-width: 0;
+}
+
+.claimField {
+  min-width: 0;
+}
+
+.claimAction {
+  /* Sit level with the input, under the field label. */
+  padding-top: 21px;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .claimRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .claimAction {
+    padding-top: 0;
+  }
+
+  .claimAction > * {
+    width: 100%;
+  }
+}
+
+/* ── the length ladder ──────────────────────────────────────────────────── */
+
+.lengths {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-width: 0;
+  border: 1px solid var(--line);
+  clip-path: var(--path-notch-tr);
+}
+
+.length {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.length + .length {
+  border-left: 1px solid var(--line);
+}
+
+.lengthChars {
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-display);
+  color: var(--bone);
+}
+
+.lengthTier {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The requirement this wallet already meets. Not green — meeting a threshold
+   is state, not a confirmation. */
+.lengthMet {
+  color: var(--bone);
+}
+
+@media (max-width: 560px) {
+  .lengths {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .length + .length {
+    border-left: 0;
+  }
+
+  .length:nth-child(even) {
+    border-left: 1px solid var(--line);
+  }
+
+  .length:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+}
+
+.foot {
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+  color: var(--dim);
+  min-width: 0;
+}
+
+/* ── outcome link ───────────────────────────────────────────────────────── */
+
+.txLink {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding-inline: 12px;
+  border: 1px solid var(--green-edge);
+  clip-path: var(--path-notch-br);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--green);
+  white-space: nowrap;
+  transition: border-color var(--dur-1) var(--ease);
+}
+
+.txLink:hover {
+  border-color: var(--green);
+}

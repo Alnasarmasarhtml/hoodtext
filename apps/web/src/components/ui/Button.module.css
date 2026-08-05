@@ -1,0 +1,231 @@
+/* Bespoke control: the element itself paints the 1px edge, a ::before inset by
+   1px paints the interior. Both are clipped by the notch, so the hairline
+   follows the diagonal instead of being sliced off by it. */
+
+.btn {
+  --edge: var(--line-2);
+  --fill: transparent;
+  --ink: var(--bone);
+  --h: 38px;
+  --px: 18px;
+  --fs: var(--fs-xs);
+
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  gap: var(--sp-2);
+  height: var(--h);
+  padding-inline: var(--px);
+  background-color: var(--edge);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--fs);
+  font-weight: 500;
+  letter-spacing: var(--tr-label);
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-align: center;
+  user-select: none;
+  outline: none;
+  clip-path: var(--shape, var(--path-notch-br));
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    transform var(--dur-1) var(--ease);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background-color: var(--fill);
+  clip-path: var(--shape-in, var(--path-notch-br-in));
+  transition: background-color var(--dur-1) var(--ease);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── sizes ──────────────────────────────────────────────────────────────── */
+
+.sm {
+  --h: 30px;
+  --px: 12px;
+  --fs: var(--fs-eyebrow);
+  gap: var(--sp-1);
+}
+
+.md {
+  --h: 38px;
+  --px: 18px;
+  --fs: var(--fs-xs);
+}
+
+.lg {
+  --h: 48px;
+  --px: 28px;
+  --fs: var(--fs-sm);
+  letter-spacing: var(--tr-eyebrow);
+}
+
+.block {
+  display: flex;
+  width: 100%;
+}
+
+/* ── primary — the one place green fills a surface ──────────────────────── */
+
+.primary {
+  --edge: var(--green);
+  --fill: var(--green);
+  --ink: var(--void);
+  font-weight: 600;
+}
+
+.primary:hover:not(:disabled) {
+  --edge: #ffb544;
+  --fill: #ffb544;
+}
+
+.primary:active:not(:disabled) {
+  --edge: #e5900d;
+  --fill: #e5900d;
+  transform: translateY(1px);
+}
+
+/* clip-path also clips `outline`, so focus is drawn as a contrasting edge. */
+.primary:focus-visible {
+  --edge: var(--bone);
+}
+
+/* ── ghost — hairline outline, matte interior ───────────────────────────── */
+
+.ghost {
+  --edge: var(--line-2);
+  --fill: transparent;
+  --ink: var(--bone);
+}
+
+.ghost:hover:not(:disabled) {
+  --edge: rgba(255, 255, 255, 0.22);
+  --fill: var(--bone-wash);
+}
+
+.ghost:active:not(:disabled) {
+  --fill: rgba(232, 234, 235, 0.09);
+  transform: translateY(1px);
+}
+
+.ghost:focus-visible {
+  --edge: var(--green);
+  --fill: var(--green-wash);
+}
+
+/* ── danger — crimson hairline, never a crimson fill ────────────────────── */
+
+.danger {
+  --edge: var(--crimson-edge);
+  --fill: transparent;
+  --ink: var(--crimson);
+}
+
+.danger:hover:not(:disabled) {
+  --edge: var(--crimson);
+  --fill: var(--crimson-wash);
+}
+
+.danger:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.danger:focus-visible {
+  --edge: var(--crimson);
+  --fill: var(--crimson-wash);
+}
+
+/* ── states ─────────────────────────────────────────────────────────────── */
+
+.btn:disabled {
+  --edge: var(--line);
+  --fill: transparent;
+  --ink: var(--dim);
+  transform: none;
+}
+
+/* Working is not disabled: a loading button must still read as the action it
+   is, so it keeps its variant colour instead of greying out. */
+.loading {
+  cursor: progress;
+}
+
+.ghost.loading:disabled,
+.danger.loading:disabled {
+  --edge: var(--line-2);
+  --ink: var(--muted);
+}
+
+.danger.loading:disabled {
+  --ink: var(--crimson);
+}
+
+.primary.loading:disabled {
+  --edge: var(--green-dim);
+  --fill: var(--green-dim);
+  --ink: var(--bone);
+}
+
+/* ── the 3-bar indicator — a signal meter, not a spinner ────────────────── */
+
+.bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+  flex: none;
+}
+
+.bar {
+  width: 2px;
+  background-color: currentColor;
+  transform-origin: bottom center;
+  animation: bar-pulse 900ms var(--ease-in-out) infinite;
+}
+
+.bar:nth-child(1) {
+  height: 60%;
+}
+
+.bar:nth-child(2) {
+  height: 100%;
+  animation-delay: 130ms;
+}
+
+.bar:nth-child(3) {
+  height: 78%;
+  animation-delay: 260ms;
+}
+
+@keyframes bar-pulse {
+  0%,
+  100% {
+    transform: scaleY(0.34);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+    transform: none;
+  }
+}

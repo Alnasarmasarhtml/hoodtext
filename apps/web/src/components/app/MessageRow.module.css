@@ -1,0 +1,503 @@
+/* A message row, not a bubble. Hairline-separated, mono metadata beside the
+   body on wide screens and beneath it on narrow ones. Green appears once, on
+   confirmed-on-chain status. */
+
+.row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) minmax(0, 186px);
+  align-items: start;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-4) var(--sp-5);
+  border-top: 1px solid var(--line);
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+/* ── direction mark ─────────────────────────────────────────────────────── */
+
+.mark {
+  margin-top: 6px;
+  width: 8px;
+  height: 8px;
+  flex: none;
+}
+
+.out .mark {
+  background-color: var(--bone);
+  clip-path: var(--path-notch-br);
+}
+
+.in .mark {
+  border: 1px solid var(--muted);
+  clip-path: var(--path-notch-br);
+}
+
+.failed .mark {
+  background-color: var(--crimson);
+  border-color: var(--crimson);
+}
+
+/* ── body column ────────────────────────────────────────────────────────── */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.who {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.author {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--bone);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.out .author {
+  color: var(--muted);
+}
+
+.time {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--dim);
+  flex: none;
+}
+
+.unverified {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--crimson);
+  flex: none;
+}
+
+.body {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--bone);
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 68ch;
+}
+
+.working .body {
+  color: var(--muted);
+}
+
+.failed .body {
+  color: var(--muted);
+}
+
+.bodyDim {
+  color: var(--dim);
+}
+
+.media {
+  margin-top: 2px;
+}
+
+/* ── system rows: one quiet ruled line ──────────────────────────────────── */
+
+.systemRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-2) var(--sp-5);
+  border-top: 1px solid var(--line);
+}
+
+.systemRow:first-child {
+  border-top: 0;
+}
+
+.systemRule {
+  align-self: center;
+  flex: none;
+  width: 12px;
+  height: 1px;
+  background-color: var(--line-2);
+}
+
+.systemText {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.systemTime {
+  margin-left: auto;
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--dim);
+}
+
+/* ── reply quote ────────────────────────────────────────────────────────── */
+
+.quote {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  min-width: 0;
+  max-width: 68ch;
+  padding: 3px 0;
+}
+
+.quoteRule {
+  align-self: stretch;
+  flex: none;
+  width: 2px;
+  background-color: var(--line-2);
+}
+
+.quoteWho {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.quoteText {
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── reactions ──────────────────────────────────────────────────────────── */
+
+.reactions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding-inline: 7px;
+  border: 1px solid var(--line);
+  background-color: var(--panel);
+  clip-path: var(--path-notch-br);
+  white-space: nowrap;
+}
+
+.reactionMine {
+  border-color: var(--line-2);
+  background-color: var(--bone-wash);
+}
+
+.reactionEmoji {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.reactionCount {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.reactionMine .reactionCount {
+  color: var(--bone);
+}
+
+/* ── row affordances: reply + react, revealed on hover ──────────────────── */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  margin-top: 2px;
+  opacity: 0;
+  transition: opacity var(--dur-1) var(--ease);
+}
+
+.row:hover .actions,
+.row:focus-within .actions {
+  opacity: 1;
+}
+
+/* No hover on touch: the affordances stay visible, quietly. */
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+  }
+}
+
+.actionKey {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  border-bottom: 1px solid transparent;
+  transition: color var(--dur-1) var(--ease);
+}
+
+.actionKey:hover,
+.actionKey:focus-visible {
+  color: var(--bone);
+  border-bottom-color: var(--line-2);
+}
+
+.reactKey {
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 3px;
+  filter: grayscale(1) opacity(0.55);
+  transition: filter var(--dur-1) var(--ease);
+}
+
+.reactKey:hover,
+.reactKey:focus-visible {
+  filter: none;
+}
+
+/* ── inline failure ─────────────────────────────────────────────────────── */
+
+.error {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  min-width: 0;
+  margin-top: 2px;
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--crimson);
+}
+
+.errorMark {
+  align-self: center;
+  flex: none;
+  width: 5px;
+  height: 5px;
+  background-color: var(--crimson);
+}
+
+.errorText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.retry {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--bone);
+  border-bottom: 1px solid var(--line-2);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.retry:hover:not(:disabled),
+.retry:focus-visible:not(:disabled) {
+  color: var(--green);
+  border-bottom-color: var(--green-edge);
+}
+
+.retry:disabled {
+  color: var(--dim);
+}
+
+/* ── metadata column ────────────────────────────────────────────────────── */
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 0;
+  padding-top: 2px;
+  text-align: right;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.statusDot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  background-color: var(--dim);
+}
+
+.status-anchored {
+  color: var(--green);
+}
+
+.status-anchored .statusDot {
+  background-color: var(--green);
+}
+
+.status-working {
+  color: var(--steel);
+}
+
+.status-working .statusDot {
+  background-color: var(--steel);
+  animation: tick 1.1s var(--ease-in-out) infinite;
+}
+
+.status-failed {
+  color: var(--crimson);
+}
+
+.status-failed .statusDot {
+  background-color: var(--crimson);
+}
+
+.status-received .statusDot {
+  background-color: var(--muted);
+}
+
+.metaLine {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metaKey {
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: var(--tr-eyebrow);
+}
+
+.metaSep {
+  color: var(--dim);
+}
+
+.metaDim {
+  color: var(--dim);
+}
+
+.metaLink {
+  color: var(--muted);
+  border-bottom: 1px solid transparent;
+  transition: color var(--dur-1) var(--ease);
+}
+
+.metaLink:hover,
+.metaLink:focus-visible {
+  color: var(--bone);
+  border-bottom-color: var(--line-2);
+}
+
+.metaHex {
+  max-width: 100%;
+}
+
+.metaTx {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.metaTx:hover,
+.metaTx:focus-visible {
+  color: var(--muted);
+}
+
+@keyframes tick {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* ── narrow: metadata drops under the body ──────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .row {
+    grid-template-columns: 10px minmax(0, 1fr);
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+  }
+
+  .systemRow {
+    padding-inline: var(--sp-4);
+  }
+
+  .meta {
+    grid-column: 2;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--sp-2) var(--sp-3);
+    text-align: left;
+    padding-top: 2px;
+  }
+
+  .metaTx {
+    display: none;
+  }
+}

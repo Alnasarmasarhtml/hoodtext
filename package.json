@@ -1,0 +1,26 @@
+{
+  "name": "telehood",
+  "private": true,
+  "version": "1.0.0",
+  "description": "TeleHood — encrypted messaging anchored on Robinhood Chain. Monthly subscription in $THOOD. 50% of every payment to holders, pro-rata by holdings, no staking.",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @telehood/relay --filter @telehood/web dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "contracts:build": "cd contracts && forge build",
+    "contracts:test": "cd contracts && forge test -vv",
+    "chain": "anvil --chain-id 31337 --block-time 1",
+    "deploy:local": "node infra/scripts/deploy-local.mjs",
+    "sync-abis": "node infra/scripts/sync-abis.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.0",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}
