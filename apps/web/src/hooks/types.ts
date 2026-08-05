@@ -242,6 +242,12 @@ export interface MediaPayload {
   readonly bytes: number;
   readonly ref: Hex;
   readonly key: Hex;
+  /**
+   * Locally resolvable source (an asset path or object URL). Only demo-mode
+   * fixtures and demo-mode attachments carry it — real descriptors never do,
+   * and the renderer skips the fetch-and-decrypt round trip when present.
+   */
+  readonly src?: string;
 }
 
 /** Parse a media descriptor out of a `media` body. `null` when malformed. */
@@ -253,17 +259,18 @@ export function parseMediaPayload(body: string): MediaPayload | null {
     return null;
   }
   if (!isRecord(raw)) return null;
-  const { mime, name, bytes, ref, key } = raw as Record<string, unknown>;
+  const { mime, name, bytes, ref, key, src } = raw as Record<string, unknown>;
   if (typeof mime !== 'string' || mime === '') return null;
   if (typeof name !== 'string') return null;
   if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) return null;
   if (typeof ref !== 'string' || !HEX32_RE.test(ref)) return null;
   if (typeof key !== 'string' || !HEX_RE.test(key)) return null;
-  return {
+  const parsed: MediaPayload = {
     mime,
     name,
     bytes,
     ref: ref.toLowerCase() as Hex,
     key: key.toLowerCase() as Hex,
   };
+  return typeof src === 'string' && src !== '' ? { ...parsed, src } : parsed;
 }

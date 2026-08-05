@@ -1,0 +1,61 @@
+/* The demo strip. Steel on panel, one hairline down — quiet, permanent,
+   impossible to mistake for live chrome. Green never appears here. */
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: none;
+  min-width: 0;
+  min-height: 30px;
+  padding: var(--sp-1) var(--sp-5);
+  background-color: var(--steel-wash);
+  border-bottom: 1px solid var(--line);
+}
+
+.mark {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  background-color: var(--steel);
+  clip-path: var(--path-notch-br);
+}
+
+.copy {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--steel);
+}
+
+.exit {
+  flex: none;
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--bone);
+  border-bottom: 1px solid var(--line-2);
+  white-space: nowrap;
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.exit:hover,
+.exit:focus-visible {
+  color: var(--steel);
+  border-bottom-color: var(--steel);
+}
+
+@media (max-width: 759px) {
+  .banner {
+    padding-inline: var(--sp-4);
+  }
+}

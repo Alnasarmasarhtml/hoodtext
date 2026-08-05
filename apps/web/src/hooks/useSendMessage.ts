@@ -17,6 +17,7 @@ import { waitForTransactionReceipt } from 'wagmi/actions';
 
 import { anchorsAbi } from '@/lib/abi';
 import { ACTIVE_CHAIN_ID, tryGetContracts } from '@/lib/chain';
+import { DEMO_ME, isDemoActive } from '@/lib/demo';
 import {
   RelaySendError,
   postBlob,
@@ -24,6 +25,7 @@ import {
   type SendRejectionCode,
 } from '@/lib/relay';
 import { useSendPrefs } from '@/lib/ui-store';
+import { nextDemoBlock, nextDemoSeq } from './demo-world';
 import { describeChainError } from './errors';
 import { messageId } from './message-store';
 import {
@@ -144,6 +146,16 @@ function localId(owner: Address): string {
   return `${owner.toLowerCase()}:draft:${random}`;
 }
 
+/** Random 32-byte hex — the fake content address of a simulated demo drop. */
+function randomHex32(): Hex {
+  const bytes = new Uint8Array(32);
+  globalThis.crypto.getRandomValues(bytes);
+  return `0x${[...bytes].map((b) => b.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** How long a simulated demo drop sits `queued` before "anchoring". */
+const DEMO_ANCHOR_MS = 700;
+
 /** Human copy for every relay rejection slug, each one an action. */
 const REJECTION_COPY: Readonly<Record<SendRejectionCode, string>> = {
   send_disabled:
@@ -247,6 +259,47 @@ export function useSendMessage({ owner, keys }: UseSendMessageParams): UseSendMe
     async ({ convoId, kind, body, re }: DispatchInput): Promise<boolean> => {
       setError(null);
       setCanFallbackToWallet(false);
+
+      /* Demo: the gasless feel, simulated — a local row queues, then
+         "anchors" after a beat. Nothing touches the relay or the chain. */
+      if (isDemoActive()) {
+        const me = owner ?? DEMO_ME.address;
+        const now = Math.floor(Date.now() / 1000);
+        const blobRef = randomHex32();
+        const rowId = messageId(me, blobRef);
+        setPendingId(rowId);
+        setStage('queued');
+        await addMessage({
+          id: rowId,
+          owner: me,
+          convoId,
+          direction: 'out',
+          body,
+          kind,
+          re,
+          sentAt: now,
+          status: 'queued',
+          integrity: 'local',
+          blobRef,
+          ephPub: randomHex32(),
+          viewTag: Math.floor(Math.random() * 256),
+          size: encoder.encode(body).length + 4 <= 256 ? 256 : 1024,
+          seq: null,
+          blockNumber: null,
+          txHash: null,
+          poster: me,
+          error: null,
+        });
+        setTimeout(() => {
+          void patchMessage(rowId, {
+            status: 'anchored',
+            seq: nextDemoSeq(),
+            blockNumber: nextDemoBlock(),
+            error: null,
+          });
+        }, DEMO_ANCHOR_MS);
+        return true;
+      }
 
       if (owner === null || keys === null) {
         return fail(null, 'Unlock your identity before sending.');
@@ -493,6 +546,23 @@ export function useSendMessage({ owner, keys }: UseSendMessageParams): UseSendMe
       if (data.byteLength === 0) return fail(null, 'That file is empty.');
       if (data.byteLength > MAX_ATTACHMENT_BYTES) {
         return fail(null, 'Attachments are capped at 4 MB. Compress it or send a smaller file.');
+      }
+
+      /* Demo: no sealing round-trip — the bytes become an object URL the
+         descriptor points at directly, and the send is simulated locally. */
+      if (isDemoActive()) {
+        const copy = new Uint8Array(data.byteLength);
+        copy.set(data);
+        const url = URL.createObjectURL(new Blob([copy], { type: mime }));
+        const descriptor = JSON.stringify({
+          mime,
+          name,
+          bytes: data.byteLength,
+          ref: randomHex32(),
+          key: randomHex32(),
+          src: url,
+        });
+        return dispatch({ convoId, kind: 'media', body: descriptor, re: re ?? null });
       }
 
       /* Encrypt the file under its own random key and upload it first, so the

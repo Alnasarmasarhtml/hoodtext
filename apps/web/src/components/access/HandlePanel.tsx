@@ -19,6 +19,7 @@ import type { ContractAddresses } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import { useConnectSheet } from '@/lib/ui-store';
 import { Button, Eyebrow, Field, Panel, PanelHeader, useToast } from '@/components/ui';
+import { DemoNote } from './Demo';
 import { EmptyState, Notice } from './Notice';
 import { useTxState } from './use-tx';
 import {
@@ -42,6 +43,8 @@ export interface HandlePanelProps {
   readonly handle: HandleState;
   readonly perks: PerksState;
   readonly onRefresh: () => void;
+  /** Demo mode: fixture state, and claim/release print a simulated note instead of transacting. */
+  readonly demo?: boolean;
 }
 
 const PROBLEM_COPY: Readonly<Record<Exclude<HandleProblem, null>, string>> = {
@@ -61,10 +64,12 @@ export function HandlePanel({
   handle,
   perks,
   onRefresh,
+  demo = false,
 }: HandlePanelProps): ReactNode {
   const toast = useToast();
   const openWallet = useConnectSheet((state) => state.open);
   const { writeContractAsync } = useWriteContract();
+  const [simulated, setSimulated] = useState(false);
 
   const claimTx = useTxState();
   const releaseTx = useTxState();
@@ -97,15 +102,20 @@ export function HandlePanel({
   const canWrite =
     contracts !== null && address !== null && isConnected && !wrongNetwork;
 
-  const canClaim =
-    canWrite &&
-    activation.isActivated &&
-    valid &&
-    availabilityCurrent &&
-    availability.available === true &&
-    !tierShort &&
-    !claimTx.busy &&
-    !releaseTx.busy;
+  /* Demo: the field stays live and the tier rules still gate, but there is no
+     availability read — a valid, tier-covered name is claimable (simulated). */
+  const interactive = demo || canWrite;
+
+  const canClaim = demo
+    ? valid && !tierShort
+    : canWrite &&
+      activation.isActivated &&
+      valid &&
+      availabilityCurrent &&
+      availability.available === true &&
+      !tierShort &&
+      !claimTx.busy &&
+      !releaseTx.busy;
 
   const onClaim = useCallback(async (): Promise<void> => {
     if (contracts === null || !valid) return;
@@ -182,7 +192,7 @@ export function HandlePanel({
 
   /* ── unconnected states ──────────────────────────────────────────────── */
 
-  if (!isConnected || wrongNetwork || contracts === null) {
+  if (!demo && (!isConnected || wrongNetwork || contracts === null)) {
     return (
       <Panel as="section" tone="raised" notch="tr" className={s.panel}>
         <PanelHeader label="Handle" note="@names, free with activation" />
@@ -247,8 +257,14 @@ export function HandlePanel({
               size="sm"
               loading={releaseTx.busy}
               loadingLabel={releaseTx.phase === 'confirming' ? 'Confirming' : 'Confirm in wallet'}
-              disabled={!canWrite || claimTx.busy}
-              onClick={() => void onRelease()}
+              disabled={demo ? false : !canWrite || claimTx.busy}
+              onClick={() => {
+                if (demo) {
+                  setSimulated(true);
+                  return;
+                }
+                void onRelease();
+              }}
             >
               Release
             </Button>
@@ -275,7 +291,7 @@ export function HandlePanel({
             onChange={(event) => setRaw(event.target.value)}
             error={fieldError}
             hint={fieldHint}
-            disabled={!canWrite || claimTx.busy || releaseTx.busy}
+            disabled={!interactive || claimTx.busy || releaseTx.busy}
             spellCheck={false}
             autoComplete="off"
             maxLength={CONTRACT_CONSTANTS.handleMaxLength + 2}
@@ -287,12 +303,22 @@ export function HandlePanel({
               loading={claimTx.busy}
               loadingLabel={claimTx.phase === 'confirming' ? 'Confirming' : 'Confirm in wallet'}
               disabled={!canClaim || (handle.handle !== null && name === handle.handle)}
-              onClick={() => void onClaim()}
+              onClick={() => {
+                if (demo) {
+                  setSimulated(true);
+                  return;
+                }
+                void onClaim();
+              }}
             >
               Claim
             </Button>
           </div>
         </div>
+
+        {demo && simulated && (
+          <DemoNote>Simulated — in the live app this is an on-chain claim.</DemoNote>
+        )}
 
         {/* The length ladder, stated once — short names are the scarce flex. */}
         <div className={s.lengths} role="list" aria-label="Handle length requirements">

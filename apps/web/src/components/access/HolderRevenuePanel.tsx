@@ -24,7 +24,7 @@ import { EmptyState, Notice } from './Notice';
 import { useTxState } from './use-tx';
 import type {
   EpochsState,
-  RevenueHistoryResult,
+  RevenueHistoryView,
   TokenState,
   VaultState,
 } from './use-access-data';
@@ -46,8 +46,12 @@ export interface HolderRevenuePanelProps {
   readonly vault: VaultState;
   readonly epochs: EpochsState;
   readonly token: TokenState;
-  readonly history: RevenueHistoryResult;
+  readonly history: RevenueHistoryView;
   readonly onRefresh: () => void;
+  /** Demo mode: fixture figures; "claim all" flips the fixtures locally. */
+  readonly demo?: boolean;
+  /** Demo only — flips the unclaimed epochs to claimed and zeroes claimable. */
+  readonly onDemoClaimAll?: () => void;
 }
 
 function toDisplayNumber(value: bigint): number {
@@ -64,6 +68,8 @@ export function HolderRevenuePanel({
   token,
   history,
   onRefresh,
+  demo = false,
+  onDemoClaimAll,
 }: HolderRevenuePanelProps): ReactNode {
   const toast = useToast();
   const openWallet = useConnectSheet((state) => state.open);
@@ -81,15 +87,28 @@ export function HolderRevenuePanel({
   );
   const remainder = epochs.claimableIds.length - batch.length;
 
-  const canClaim =
-    contracts !== null &&
-    address !== null &&
-    isConnected &&
-    !wrongNetwork &&
-    batch.length > 0 &&
-    !claimTx.busy;
+  const canClaim = demo
+    ? batch.length > 0
+    : contracts !== null &&
+      address !== null &&
+      isConnected &&
+      !wrongNetwork &&
+      batch.length > 0 &&
+      !claimTx.busy;
 
   const onClaim = useCallback(async (): Promise<void> => {
+    if (demo) {
+      /* No transaction: the fixture epochs flip to claimed and the claimable
+         figure lands in lifetime — the same read-back a confirmed claimMany
+         would produce. */
+      onDemoClaimAll?.();
+      toast.push({
+        kind: 'success',
+        title: 'Claimed — simulated',
+        body: `${formatToken(claimable, { digits: 2, symbol: 'THOOD' })} across ${formatCount(batch.length)} ${batch.length === 1 ? 'epoch' : 'epochs'}. In the live app this is one claimMany() transaction, straight to your wallet.`,
+      });
+      return;
+    }
     if (contracts === null || batch.length === 0) return;
     const ok = await claimTx.run(
       () =>
@@ -109,7 +128,7 @@ export function HolderRevenuePanel({
         body: `${formatToken(claimable, { digits: 2, symbol: 'THOOD' })} from ${formatCount(batch.length)} ${batch.length === 1 ? 'epoch' : 'epochs'} is in your wallet.`,
       });
     }
-  }, [batch, claimTx, claimable, contracts, onRefresh, toast, writeContractAsync]);
+  }, [batch, claimTx, claimable, contracts, demo, onDemoClaimAll, onRefresh, toast, writeContractAsync]);
 
   /* ── the claim column ────────────────────────────────────────────────── */
 
@@ -132,7 +151,7 @@ export function HolderRevenuePanel({
         mark={false}
       />
     );
-  } else if (wrongNetwork || contracts === null) {
+  } else if (!demo && (wrongNetwork || contracts === null)) {
     claimBody = (
       <EmptyState
         eyebrow={wrongNetwork ? 'Wrong network' : 'Not deployed'}

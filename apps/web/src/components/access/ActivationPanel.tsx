@@ -26,6 +26,7 @@ import { cx } from '@/lib/cx';
 import { formatDate, formatToken, formatUsd18, truncateAddress } from '@/lib/format';
 import { useConnectSheet } from '@/lib/ui-store';
 import { Button, Eyebrow, Field, Panel, PanelHeader, useToast } from '@/components/ui';
+import { DemoNote } from './Demo';
 import { Notice } from './Notice';
 import { useTxState } from './use-tx';
 import { useDebounced, type ActivationState, type PricingState, type TokenState } from './use-access-data';
@@ -40,6 +41,8 @@ export interface ActivationPanelProps {
   readonly activation: ActivationState;
   readonly token: TokenState;
   readonly onRefresh: () => void;
+  /** Demo mode: fixture state, and actions print a simulated note instead of transacting. */
+  readonly demo?: boolean;
 }
 
 type StepState = 'todo' | 'current' | 'busy' | 'done';
@@ -70,10 +73,12 @@ export function ActivationPanel({
   activation,
   token,
   onRefresh,
+  demo = false,
 }: ActivationPanelProps): ReactNode {
   const toast = useToast();
   const openWallet = useConnectSheet((state) => state.open);
   const { writeContractAsync } = useWriteContract();
+  const [simulated, setSimulated] = useState(false);
 
   const approveTx = useTxState();
   const activateTx = useTxState();
@@ -239,8 +244,9 @@ export function ActivationPanel({
   /* ── the sponsor block (shared by both states) ───────────────────────── */
 
   const sponsorNeedsApproval = needsApproval;
-  const canSponsor =
-    canWrite && friend !== null && !friendActivated && !friendIsSelf && !blocked;
+  const canSponsor = demo
+    ? friend !== null && !friendIsSelf
+    : canWrite && friend !== null && !friendActivated && !friendIsSelf && !blocked;
 
   const sponsor = (
     <div className={s.sponsor}>
@@ -294,12 +300,20 @@ export function ActivationPanel({
             loading={sponsorTx.busy}
             loadingLabel={sponsorTx.phase === 'confirming' ? 'Confirming' : 'Confirm in wallet'}
             disabled={!canSponsor || sponsorNeedsApproval || shortOnBalance}
-            onClick={() => void onActivateFriend()}
+            onClick={() => {
+              if (demo) {
+                setSimulated(true);
+                return;
+              }
+              void onActivateFriend();
+            }}
           >
             Activate them
           </Button>
         </div>
       </div>
+
+      {demo && simulated && <DemoNote />}
 
       {sponsorTx.error !== null && (
         <Notice

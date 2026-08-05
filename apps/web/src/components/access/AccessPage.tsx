@@ -14,13 +14,16 @@
  */
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useSwitchChain } from 'wagmi';
 
 import { ACTIVE_CHAIN_ID, activeChain } from '@/lib/chain';
+import { DEMO_ME, isDemoActive } from '@/lib/demo';
 import { formatToken } from '@/lib/format';
 import { Button, Eyebrow, Stat } from '@/components/ui';
 import { ActivationPanel } from './ActivationPanel';
+import { DemoBanner } from './Demo';
+import { buildDemoAccessWorld, type DemoAccessWorld } from './demo-state';
 import { EpochTable } from './EpochTable';
 import { HandlePanel } from './HandlePanel';
 import { HolderRevenuePanel } from './HolderRevenuePanel';
@@ -40,6 +43,7 @@ import {
   useRevenueHistory,
   useTokenState,
   useVaultState,
+  type RevenueHistoryView,
 } from './use-access-data';
 import s from './AccessPage.module.css';
 
@@ -49,15 +53,52 @@ export function AccessPage(): ReactNode {
   const { switchChainAsync, isPending: switching } = useSwitchChain();
   const nowSeconds = useNowSeconds();
 
-  const pricing = usePricing(env.contracts);
-  const activation = useActivationState(env.contracts, env.address);
-  const handle = useHandleState(env.contracts, env.address);
-  const perks = usePerksState(env.contracts, env.address);
-  const token = useTokenState(env.contracts, env.address);
-  const rooms = useMyRooms(env.contracts, env.address);
-  const vault = useVaultState(env.contracts, env.address);
-  const epochs = useEpochs(env.contracts, env.address, vault.epochCount);
-  const history = useRevenueHistory(env.contracts);
+  /* Demo mode resolves AFTER mount, so the prerendered markup is byte-for-byte
+     the live not-connected page and hydration can never mismatch. */
+  const [demo, setDemo] = useState(false);
+  const [demoClaimedAll, setDemoClaimedAll] = useState(false);
+  useEffect(() => {
+    setDemo(isDemoActive());
+  }, []);
+
+  /* In demo the chain is out of the loop entirely: every read hook is driven
+     with `null`, which each hook's `enabled` gate treats as "do not fetch" —
+     the hooks still run (rules of hooks) but never touch an RPC. */
+  const readContracts = demo ? null : env.contracts;
+  const readAddress = demo ? null : env.address;
+
+  const livePricing = usePricing(readContracts);
+  const liveActivation = useActivationState(readContracts, readAddress);
+  const liveHandle = useHandleState(readContracts, readAddress);
+  const livePerks = usePerksState(readContracts, readAddress);
+  const liveToken = useTokenState(readContracts, readAddress);
+  const liveRooms = useMyRooms(readContracts, readAddress);
+  const liveVault = useVaultState(readContracts, readAddress);
+  const liveEpochs = useEpochs(readContracts, readAddress, liveVault.epochCount);
+  const liveHistory = useRevenueHistory(readContracts);
+
+  const world = useMemo<DemoAccessWorld | null>(
+    () => (demo ? buildDemoAccessWorld(demoClaimedAll) : null),
+    [demo, demoClaimedAll],
+  );
+
+  const pricing = world?.pricing ?? livePricing;
+  const activation = world?.activation ?? liveActivation;
+  const handle = world?.handle ?? liveHandle;
+  const perks = world?.perks ?? livePerks;
+  const token = world?.token ?? liveToken;
+  const rooms = world?.rooms ?? liveRooms;
+  const vault = world?.vault ?? liveVault;
+  const epochs = world?.epochs ?? liveEpochs;
+  const history: RevenueHistoryView = world?.history ?? liveHistory;
+
+  /* What the panels believe about the visitor. In demo they see the fixture
+     identity as connected on the right network — but with NO contracts, so no
+     panel-internal read or write can ever reach a chain. */
+  const contracts = demo ? null : env.contracts;
+  const address = demo ? DEMO_ME.address : env.address;
+  const isConnected = demo || env.isConnected;
+  const wrongNetwork = demo ? false : env.wrongNetwork;
 
   const refresh = useCallback((): void => {
     void queryClient.invalidateQueries();
@@ -70,8 +111,15 @@ export function AccessPage(): ReactNode {
     });
   }, [switchChainAsync]);
 
+  const onDemoClaimAll = useCallback((): void => {
+    setDemoClaimedAll(true);
+  }, []);
+
   return (
     <div className={s.page}>
+      {/* ── demo strip — the honest frame around everything below ────────── */}
+      {demo && <DemoBanner />}
+
       {/* ── masthead ─────────────────────────────────────────────────────── */}
       <header className={s.masthead}>
         <div className={s.mastheadInner}>
@@ -91,14 +139,14 @@ export function AccessPage(): ReactNode {
             <Stat
               label="Your account"
               value={
-                activation.isActivated ? 'Activated' : env.isConnected ? 'Not activated' : '—'
+                activation.isActivated ? 'Activated' : isConnected ? 'Not activated' : '—'
               }
               size="sm"
               tone={activation.isActivated ? 'green' : 'muted'}
               hint={
                 activation.isActivated
                   ? 'forever — nothing renews'
-                  : env.isConnected
+                  : isConnected
                     ? '$5, once, below'
                     : 'connect to read'
               }
@@ -109,7 +157,7 @@ export function AccessPage(): ReactNode {
               unit="THOOD"
               size="sm"
               hint={
-                env.isConnected
+                isConnected
                   ? `${epochs.claimableIds.length} epoch${epochs.claimableIds.length === 1 ? '' : 's'} waiting`
                   : 'connect to compute'
               }
@@ -129,8 +177,8 @@ export function AccessPage(): ReactNode {
         </div>
       </header>
 
-      {/* ── environment banners ──────────────────────────────────────────── */}
-      {(env.wrongNetwork || env.contracts === null) && (
+      {/* ── environment banners — never shown over the fixture world ─────── */}
+      {!demo && (env.wrongNetwork || env.contracts === null) && (
         <div className={s.banner}>
           {env.wrongNetwork ? (
             <Notice
@@ -157,35 +205,38 @@ export function AccessPage(): ReactNode {
       <div className={s.split}>
         <div className={s.main}>
           <ActivationPanel
-            contracts={env.contracts}
-            address={env.address}
-            isConnected={env.isConnected}
-            wrongNetwork={env.wrongNetwork}
+            contracts={contracts}
+            address={address}
+            isConnected={isConnected}
+            wrongNetwork={wrongNetwork}
             pricing={pricing}
             activation={activation}
             token={token}
             onRefresh={refresh}
+            demo={demo}
           />
 
           <HandlePanel
-            contracts={env.contracts}
-            address={env.address}
-            isConnected={env.isConnected}
-            wrongNetwork={env.wrongNetwork}
+            contracts={contracts}
+            address={address}
+            isConnected={isConnected}
+            wrongNetwork={wrongNetwork}
             activation={activation}
             handle={handle}
             perks={perks}
             onRefresh={refresh}
+            demo={demo}
           />
         </div>
 
         <aside className={s.rail} aria-label="Holder status ladder">
           <LadderPanel
-            contracts={env.contracts}
-            address={env.address}
-            isConnected={env.isConnected}
-            wrongNetwork={env.wrongNetwork}
+            contracts={contracts}
+            address={address}
+            isConnected={isConnected}
+            wrongNetwork={wrongNetwork}
             perks={perks}
+            demo={demo}
           />
         </aside>
       </div>
@@ -193,44 +244,48 @@ export function AccessPage(): ReactNode {
       {/* ── 4 — the rooms you run ────────────────────────────────────────── */}
       <div className={s.block}>
         <RoomsPanel
-          contracts={env.contracts}
-          address={env.address}
-          isConnected={env.isConnected}
-          wrongNetwork={env.wrongNetwork}
+          contracts={contracts}
+          address={address}
+          isConnected={isConnected}
+          wrongNetwork={wrongNetwork}
           pricing={pricing}
           rooms={rooms}
           token={token}
           nowSeconds={nowSeconds}
           onRefresh={refresh}
+          demo={demo}
         />
       </div>
 
       {/* ── 5 — the headline ─────────────────────────────────────────────── */}
       <div className={s.block}>
         <HolderRevenuePanel
-          contracts={env.contracts}
-          address={env.address}
-          isConnected={env.isConnected}
-          wrongNetwork={env.wrongNetwork}
+          contracts={contracts}
+          address={address}
+          isConnected={isConnected}
+          wrongNetwork={wrongNetwork}
           vault={vault}
           epochs={epochs}
           token={token}
           history={history}
           onRefresh={refresh}
+          demo={demo}
+          onDemoClaimAll={onDemoClaimAll}
         />
       </div>
 
       {/* ── 6 — the ledger ───────────────────────────────────────────────── */}
       <div className={s.block}>
         <EpochTable
-          contracts={env.contracts}
-          address={env.address}
-          isConnected={env.isConnected}
-          wrongNetwork={env.wrongNetwork}
+          contracts={contracts}
+          address={address}
+          isConnected={isConnected}
+          wrongNetwork={wrongNetwork}
           vault={vault}
           epochs={epochs}
           nowSeconds={nowSeconds}
           onRefresh={refresh}
+          demo={demo}
         />
       </div>
 

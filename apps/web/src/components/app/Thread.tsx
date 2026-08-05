@@ -19,6 +19,7 @@ import {
   parseReactionPayload,
   useConversation,
   useConversationMessages,
+  useDemoActive,
   useHandle,
   usePayRent,
   useRentQuote,
@@ -71,15 +72,22 @@ interface RentLapsedNoticeProps {
 
 function RentLapsedNotice({ room, chain }: RentLapsedNoticeProps): ReactNode {
   const session = useAppSession();
+  const demo = useDemoActive();
   const rent = usePayRent(room.groupId, session.address);
   const quote = useRentQuote(1);
+  const [demoNote, setDemoNote] = useState<string | null>(null);
 
   const onPay = useCallback((): void => {
+    if (demo) {
+      /* Simulated: the payment path is real in the live app, not here. */
+      setDemoNote('Simulated — rent is paid on chain in the live app.');
+      return;
+    }
     void (async (): Promise<void> => {
       const ok = await rent.pay(1);
       if (ok) chain.refetch();
     })();
-  }, [chain, rent]);
+  }, [chain, demo, rent]);
 
   return (
     <AppNotice
@@ -87,7 +95,7 @@ function RentLapsedNotice({ room, chain }: RentLapsedNoticeProps): ReactNode {
       tone="warn"
       title="Rent lapsed — anyone can pay"
       body="New messages are blocked until the rent is current. History, keys and membership are untouched, and paying grants no control — a member keeping a room alive is a feature."
-      meta={rent.error ?? undefined}
+      meta={demoNote ?? rent.error ?? undefined}
       action={
         <Button
           size="sm"

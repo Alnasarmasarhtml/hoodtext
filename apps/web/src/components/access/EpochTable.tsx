@@ -41,6 +41,8 @@ export interface EpochTableProps {
   readonly epochs: EpochsState;
   readonly nowSeconds: bigint | null;
   readonly onRefresh: () => void;
+  /** Demo mode: fixture epochs — snapshot heights are synthetic, so no explorer links. */
+  readonly demo?: boolean;
 }
 
 type RowStatus = 'claimed' | 'claimable' | 'swept' | 'none';
@@ -86,6 +88,7 @@ export function EpochTable({
   epochs,
   nowSeconds,
   onRefresh,
+  demo = false,
 }: EpochTableProps): ReactNode {
   const toast = useToast();
   const { writeContractAsync } = useWriteContract();
@@ -225,7 +228,8 @@ export function EpochTable({
 
             {epochs.rows.map((row) => {
               const status = statusOf(row, isConnected);
-              const blockUrl = explorerBlockUrl(row.snapshot);
+              /* A demo snapshot height points at no real block — never link it. */
+              const blockUrl = demo ? null : explorerBlockUrl(row.snapshot);
 
               return (
                 <div key={row.id} className={s.row} role="row" data-status={status}>

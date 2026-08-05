@@ -181,6 +181,32 @@
   overflow-wrap: anywhere;
 }
 
+/* ── simulated-action note (demo mode) ──────────────────────────────────── */
+
+.simNote {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  min-width: 0;
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+  color: var(--steel);
+}
+
+.simMark {
+  align-self: center;
+  flex: none;
+  width: 5px;
+  height: 5px;
+  background-color: var(--steel);
+}
+
+.simText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 /* ── inline failure ─────────────────────────────────────────────────────── */
 
 .error {

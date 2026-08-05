@@ -6,7 +6,23 @@ import { useAccount, useReadContract } from 'wagmi';
 
 import { activationAbi } from '@/lib/abi';
 import { ACTIVE_CHAIN_ID, tryGetContracts } from '@/lib/chain';
+import { DEMO_ACCESS } from '@/lib/demo';
 import { describeChainError } from './errors';
+import { useDemoActive } from './useDemoMode';
+
+const noop = (): void => undefined;
+
+/** The fixture activation the demo session presents: paid 19 days ago. */
+const DEMO_ACTIVATION: UseActivationResult = {
+  isActivated: true,
+  activatedAt: Math.floor(DEMO_ACCESS.activatedAt / 1000),
+  quote: DEMO_ACCESS.activationQuote,
+  priceUsd: 5n * 10n ** 18n,
+  isLoading: false,
+  isDeployed: true,
+  error: null,
+  refetch: noop,
+};
 
 /** How often activation is re-read; it only ever flips false → true. */
 const REFRESH_MS = 30_000;
@@ -36,11 +52,12 @@ export interface UseActivationResult {
  * ability to receive; only sending waits for the $5.
  */
 export function useActivation(user?: Address | null): UseActivationResult {
+  const demo = useDemoActive();
   const { address, chainId } = useAccount();
   const target = user ?? address ?? null;
   const contracts = tryGetContracts(ACTIVE_CHAIN_ID);
   const onActiveChain = chainId === undefined || chainId === ACTIVE_CHAIN_ID;
-  const enabled = contracts !== null && target !== null && onActiveChain;
+  const enabled = contracts !== null && target !== null && onActiveChain && !demo;
 
   const base = {
     chainId: ACTIVE_CHAIN_ID,
@@ -65,13 +82,13 @@ export function useActivation(user?: Address | null): UseActivationResult {
   const quoteRead = useReadContract({
     ...base,
     functionName: 'quote',
-    query: { enabled: contracts !== null && onActiveChain, staleTime: 60_000 },
+    query: { enabled: contracts !== null && onActiveChain && !demo, staleTime: 60_000 },
   });
 
   const priceRead = useReadContract({
     ...base,
     functionName: 'priceUsd',
-    query: { enabled: contracts !== null && onActiveChain, staleTime: 5 * 60_000 },
+    query: { enabled: contracts !== null && onActiveChain && !demo, staleTime: 5 * 60_000 },
   });
 
   const refetch = useCallback((): void => {
@@ -84,6 +101,9 @@ export function useActivation(user?: Address | null): UseActivationResult {
     activatedRead.error !== null
       ? describeChainError(activatedRead.error, 'Your activation could not be read.')
       : null;
+
+  /* Demo: the account was "activated 19 days ago" and every read is inert. */
+  if (demo) return DEMO_ACTIVATION;
 
   return {
     isActivated: activatedRead.data ?? false,

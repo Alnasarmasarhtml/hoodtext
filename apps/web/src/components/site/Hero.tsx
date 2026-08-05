@@ -93,6 +93,13 @@ export function Hero(): ReactNode {
             >
               Open the app
             </Link>
+            {/* The whole product on simulated data — no wallet, no chain. */}
+            <Link
+              href="/app?demo=1"
+              className={buttonClassName({ variant: 'ghost', size: 'lg' })}
+            >
+              View demo
+            </Link>
             <AnchorLink
               href="#pricing"
               className={buttonClassName({ variant: 'ghost', size: 'lg' })}

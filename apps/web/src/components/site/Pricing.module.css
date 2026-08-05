@@ -88,6 +88,27 @@
   min-width: 0;
 }
 
+/* The one-line demo pointer under the $5 CTA — mono caption, steel on hover,
+   never green (green is reserved for live/confirmed surfaces). */
+.demoLink {
+  width: fit-content;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+}
+
+.demoLink:hover,
+.demoLink:focus-visible {
+  color: var(--steel);
+  text-decoration-color: var(--steel);
+}
+
 /* ── rules ──────────────────────────────────────────────────────────────── */
 
 .rules {

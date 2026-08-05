@@ -8,6 +8,8 @@ import { readContract } from 'wagmi/actions';
 
 import { keyRegistryAbi } from '@/lib/abi';
 import { ACTIVE_CHAIN_ID, tryGetContracts } from '@/lib/chain';
+import { isDemoActive } from '@/lib/demo';
+import { demoConvoIdFor } from './demo-world';
 import { describeChainError } from './errors';
 import { peerId } from './message-store';
 import { upsertPeer, useMessengerStore } from './messenger-store';
@@ -208,7 +210,7 @@ export function useStartConversation({
         setError('Unlock your identity first — the conversation id is derived from your key.');
         return null;
       }
-      if (contracts === null) {
+      if (contracts === null && !isDemoActive()) {
         setStatus('error');
         setError('TeleHood is not configured for this chain, so the key registry cannot be read.');
         return null;
@@ -227,6 +229,29 @@ export function useStartConversation({
       if (target.toLowerCase() === owner.toLowerCase()) {
         setStatus('error');
         setError('That is your own address.');
+        return null;
+      }
+
+      /* Demo: the fixture world is the registry — reuse the seeded thread for
+         a cast member, or open a fresh local one. No chain read. */
+      if (isDemoActive()) {
+        const convoId = demoConvoIdFor(target);
+        const now = Math.floor(Date.now() / 1000);
+        await upsertPeer({
+          id: peerId(owner, convoId),
+          owner,
+          convoId,
+          address: target,
+          x25519Pub: `0x${'11'.repeat(32)}`,
+          createdAt: now,
+          lastSeenAt: now,
+        });
+        setStatus('done');
+        return convoId;
+      }
+      if (contracts === null) {
+        setStatus('error');
+        setError('TeleHood is not configured for this chain, so the key registry cannot be read.');
         return null;
       }
 

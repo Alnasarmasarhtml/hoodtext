@@ -33,9 +33,12 @@ import { readContract, waitForTransactionReceipt } from 'wagmi/actions';
 
 import { anchorsAbi, groupRegistryAbi, keyRegistryAbi, teleHoodTokenAbi } from '@/lib/abi';
 import { ACTIVE_CHAIN_ID, tryGetContracts } from '@/lib/chain';
+import { DEMO_ACCESS, isDemoActive } from '@/lib/demo';
 import { RelayError, postBlob, sendDrop } from '@/lib/relay';
+import { demoGroupIdFor, demoRoomChain, registerDemoRoom } from './demo-world';
 import { describeChainError } from './errors';
 import { roomId } from './message-store';
+import { useDemoActive } from './useDemoMode';
 import {
   addMessage,
   findRoom,
@@ -89,10 +92,13 @@ export interface RoomChainState {
   refetch: () => void;
 }
 
+const noopRefetch = (): void => undefined;
+
 /** Live `GroupRegistry` state for one room. Rent is never cached locally. */
 export function useRoomChain(groupId: Hex | null): RoomChainState {
+  const demo = useDemoActive();
   const contracts = tryGetContracts(ACTIVE_CHAIN_ID);
-  const enabled = contracts !== null && groupId !== null;
+  const enabled = contracts !== null && groupId !== null && !demo;
 
   const base = {
     chainId: ACTIVE_CHAIN_ID,
@@ -119,6 +125,26 @@ export function useRoomChain(groupId: Hex | null): RoomChainState {
     void activeRead.refetch();
   }, [activeRead, groupRead]);
 
+  /* Demo: the fixture world answers instead of the chain. */
+  if (demo && groupId !== null) {
+    const fixture = demoRoomChain(groupId);
+    if (fixture !== null) {
+      return { ...fixture, isLoading: false, error: null, refetch: noopRefetch };
+    }
+    return {
+      exists: false,
+      admin: null,
+      epoch: 0,
+      memberRoot: null,
+      paidUntil: 0,
+      autoRenew: false,
+      isActive: false,
+      isLoading: false,
+      error: null,
+      refetch: noopRefetch,
+    };
+  }
+
   const data = groupRead.data;
   return {
     exists: data?.[6] ?? false,
@@ -139,6 +165,7 @@ export function useRoomChain(groupId: Hex | null): RoomChainState {
 
 /** Live `quoteRent(months)` — the $10/month priced in $THOOD right now. */
 export function useRentQuote(months: number): bigint | null {
+  const demo = useDemoActive();
   const contracts = tryGetContracts(ACTIVE_CHAIN_ID);
   const clamped = Math.min(24, Math.max(1, Math.round(months)));
   const quoteRead = useReadContract({
@@ -147,8 +174,9 @@ export function useRentQuote(months: number): bigint | null {
     ...(contracts === null ? {} : { address: contracts.groupRegistry }),
     functionName: 'quoteRent',
     args: [clamped],
-    query: { enabled: contracts !== null, staleTime: 60_000 },
+    query: { enabled: contracts !== null && !demo, staleTime: 60_000 },
   });
+  if (demo) return DEMO_ACCESS.rentPerMonth * BigInt(clamped);
   return quoteRead.data ?? null;
 }
 
@@ -293,13 +321,59 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
 
       const trimmed = name.trim();
       if (owner === null) return failWith('Connect and unlock before creating a room.');
-      if (contracts === null) {
-        return failWith('TeleHood is not configured for this chain.');
-      }
       if (trimmed === '' || trimmed.length > 40) {
         return failWith('Give the room a name — 1 to 40 characters.');
       }
       const boundedMonths = Math.min(24, Math.max(1, Math.round(months)));
+
+      /* Demo: the room comes to exist locally — no approval, no transaction.
+         The fixture chain map answers rent reads so the thread is coherent. */
+      if (isDemoActive()) {
+        setPhase('creating');
+        const groupId = demoGroupIdFor(trimmed);
+        registerDemoRoom({ groupId, name: trimmed, months: boundedMonths });
+        const now = Math.floor(Date.now() / 1000);
+        await upsertRoom({
+          id: roomId(owner, groupId),
+          owner,
+          groupId,
+          name: trimmed,
+          admin: owner,
+          members: [owner.toLowerCase() as Address],
+          epoch: 0,
+          createdAt: now,
+          lastSeenAt: now,
+        });
+        await addMessage({
+          id: `${roomId(owner, groupId)}:created`,
+          owner,
+          convoId: groupId,
+          direction: 'out',
+          body: `Room “${trimmed}” created — simulated. In the live app this is one approve + createGroup, ${String(
+            boundedMonths,
+          )} ${boundedMonths === 1 ? 'month' : 'months'} of rent up front.`,
+          kind: 'system',
+          re: null,
+          sentAt: now,
+          status: 'anchored',
+          integrity: 'local',
+          blobRef: null,
+          ephPub: null,
+          viewTag: null,
+          size: null,
+          seq: null,
+          blockNumber: null,
+          txHash: null,
+          poster: owner,
+          error: null,
+        });
+        setPhase('done');
+        return groupId;
+      }
+
+      if (contracts === null) {
+        return failWith('TeleHood is not configured for this chain.');
+      }
 
       try {
         /* Price the rent and clear the allowance if it falls short. */
@@ -820,6 +894,7 @@ const RENT_WARN_SECONDS = 3 * 86_400;
  * in the account badge — never a blocker.
  */
 export function useAdminRentAlert(owner: Address | null): AdminRentAlert | null {
+  const demo = useDemoActive();
   const rooms = useMessengerStore((state) => state.rooms);
   const contracts = tryGetContracts(ACTIVE_CHAIN_ID);
 
@@ -838,18 +913,32 @@ export function useAdminRentAlert(owner: Address | null): AdminRentAlert | null 
       args: [room.groupId] as const,
     })),
     query: {
-      enabled: contracts !== null && candidates.length > 0,
+      enabled: contracts !== null && candidates.length > 0 && !demo,
       refetchInterval: 60_000,
     },
   });
 
   return useMemo(() => {
-    if (contracts === null || candidates.length === 0) return null;
-    const rows = reads.data;
-    if (rows === undefined) return null;
-
+    if (candidates.length === 0) return null;
     const now = Math.floor(Date.now() / 1000);
     let alert: AdminRentAlert | null = null;
+
+    /* Demo: the fixture chain map stands in for the batched read. */
+    if (demo) {
+      for (const room of candidates) {
+        const fixture = demoRoomChain(room.groupId);
+        if (fixture === null || !fixture.exists) continue;
+        if (fixture.paidUntil - now > RENT_WARN_SECONDS) continue;
+        if (alert === null || fixture.paidUntil < alert.paidUntil) {
+          alert = { room, paidUntil: fixture.paidUntil, lapsed: fixture.paidUntil <= now };
+        }
+      }
+      return alert;
+    }
+
+    if (contracts === null) return null;
+    const rows = reads.data;
+    if (rows === undefined) return null;
 
     for (let i = 0; i < candidates.length; i += 1) {
       const room = candidates[i];
@@ -864,7 +953,7 @@ export function useAdminRentAlert(owner: Address | null): AdminRentAlert | null 
       }
     }
     return alert;
-  }, [candidates, contracts, reads.data]);
+  }, [candidates, contracts, demo, reads.data]);
 }
 
 /* Re-exported store helpers so components import rooms from one place. */

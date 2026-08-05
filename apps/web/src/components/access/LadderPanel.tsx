@@ -35,6 +35,8 @@ export interface LadderPanelProps {
   readonly isConnected: boolean;
   readonly wrongNetwork: boolean;
   readonly perks: PerksState;
+  /** Demo mode: render the held ladder from fixture perks with no chain reads. */
+  readonly demo?: boolean;
 }
 
 /** Progress toward `threshold`, clamped to [0, 1], computed in bigint. */
@@ -99,10 +101,11 @@ export function LadderPanel({
   isConnected,
   wrongNetwork,
   perks,
+  demo = false,
 }: LadderPanelProps): ReactNode {
   const openWallet = useConnectSheet((state) => state.open);
 
-  if (!isConnected || wrongNetwork || contracts === null) {
+  if (!demo && (!isConnected || wrongNetwork || contracts === null)) {
     return (
       <Panel as="section" tone="raised" notch="tr" className={s.panel}>
         <PanelHeader label="Status ladder" note="Status and capacity — never money" />

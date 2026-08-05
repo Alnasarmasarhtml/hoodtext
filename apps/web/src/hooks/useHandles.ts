@@ -18,6 +18,8 @@ import type { Config } from 'wagmi';
 
 import { handlesAbi, perksAbi } from '@/lib/abi';
 import { ACTIVE_CHAIN_ID, tryGetContracts } from '@/lib/chain';
+import { DEMO_PEOPLE, demoPerson, isDemoActive } from '@/lib/demo';
+import { useDemoActive } from './useDemoMode';
 
 /** How long a resolved handle / tier is trusted before re-reading. */
 const TTL_MS = 5 * 60_000;
@@ -139,15 +141,29 @@ function useResolved<T>(
  * The `@handle` registered for an address, or `null`.
  *
  * Cached and shared across every caller; a missing handle is itself cached so
- * bare addresses do not re-query on every row.
+ * bare addresses do not re-query on every row. In demo mode the fixture cast
+ * answers instead — no chain read ever fires.
  */
 export function useHandle(address: Address | null | undefined): string | null {
-  return useResolved(handleCache, address, fetchHandle, null);
+  const demo = useDemoActive();
+  const resolved = useResolved(handleCache, demo ? null : address, fetchHandle, null);
+  if (demo) {
+    if (address === null || address === undefined) return null;
+    const person = demoPerson(address);
+    return person === null || person.handle === '' ? null : person.handle;
+  }
+  return resolved;
 }
 
 /** `Perks.tierOf(address)` — 0 (none) to 4 (KINGPIN). Cached like handles. */
 export function usePerkTier(address: Address | null | undefined): number {
-  return useResolved(tierCache, address, fetchTier, 0);
+  const demo = useDemoActive();
+  const resolved = useResolved(tierCache, demo ? null : address, fetchTier, 0);
+  if (demo) {
+    if (address === null || address === undefined) return 0;
+    return demoPerson(address)?.tier ?? 0;
+  }
+  return resolved;
 }
 
 /**
@@ -192,6 +208,35 @@ export async function resolveRecipient(
   raw: string,
 ): Promise<RecipientResult> {
   const trimmed = raw.trim();
+
+  /* Demo: the fixture cast is the whole registry — no chain read. */
+  if (isDemoActive()) {
+    if (isAddress(trimmed, { strict: false })) {
+      const known = demoPerson(trimmed);
+      return {
+        ok: true,
+        recipient: {
+          address: trimmed as Address,
+          handle: known === null || known.handle === '' ? null : known.handle,
+        },
+      };
+    }
+    const wanted = (trimmed.startsWith('@') ? trimmed.slice(1) : trimmed).toLowerCase();
+    const person = DEMO_PEOPLE.find((entry) => entry.handle === wanted) ?? null;
+    if (person === null) {
+      const cast = DEMO_PEOPLE.filter((entry) => entry.handle !== '')
+        .map((entry) => `@${entry.handle}`)
+        .join(', ');
+      return {
+        ok: false,
+        failure: {
+          reason: 'unclaimed',
+          message: `Nobody in the demo cast answers to that. Try ${cast}, or any 0x address.`,
+        },
+      };
+    }
+    return { ok: true, recipient: { address: person.address, handle: person.handle } };
+  }
 
   if (isAddress(trimmed, { strict: false })) {
     return { ok: true, recipient: { address: trimmed as Address, handle: null } };

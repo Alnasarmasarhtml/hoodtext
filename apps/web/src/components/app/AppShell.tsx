@@ -21,13 +21,25 @@
  */
 
 import { usePathname } from 'next/navigation';
-import { useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useAccount } from 'wagmi';
 
-import { useActivation, useDrops, useIdentity, useRelayStatus } from '@/hooks';
+import {
+  DEMO_X25519_PUB,
+  demoDropsSnapshot,
+  demoRelaySnapshot,
+  seedDemoWorld,
+  useActivation,
+  useDemoActive,
+  useDrops,
+  useIdentity,
+  useRelayStatus,
+} from '@/hooks';
+import { DEMO_ME } from '@/lib/demo';
 import { AccountBadge } from './AccountBadge';
 import { AppNotice } from './AppNotice';
 import { ConversationList } from './ConversationList';
+import { DemoBanner } from './DemoBanner';
 import { IdentityGate } from './IdentityGate';
 import { RelayStatus } from './RelayStatus';
 import { TamperBanner } from './TamperBanner';
@@ -56,42 +68,81 @@ export function AppShell({ children }: AppShellProps): ReactNode {
   const pathname = usePathname();
   const { isConnected } = useAccount();
 
+  /* Demo resolves to true only in the browser, after hydration — every
+     prerendered byte is the real interface. */
+  const demo = useDemoActive();
+  const [demoSeeded, setDemoSeeded] = useState(false);
+  useEffect(() => {
+    if (!demo) return;
+    seedDemoWorld();
+    setDemoSeeded(true);
+  }, [demo]);
+
   const identity = useIdentity();
   const activation = useActivation();
-  const drops = useDrops({ owner: identity.address, keys: identity.keys });
-  const relay = useRelayStatus();
+  /* In demo the engine never attaches: null owner and keys hold it off, so
+     no relay backfill, no WebSocket, no chain reads. */
+  const drops = useDrops({
+    owner: demo ? null : identity.address,
+    keys: demo ? null : identity.keys,
+  });
+  const relay = useRelayStatus(!demo);
 
   const activeConvoId = activeConvoIdFrom(pathname);
 
   const session = useMemo<AppSession>(
-    () => ({
-      address: identity.address,
-      x25519Pub: identity.x25519Pub,
-      keys: identity.keys,
-      identityStatus: identity.status,
+    () =>
+      demo
+        ? {
+            address: DEMO_ME.address,
+            x25519Pub: DEMO_X25519_PUB,
+            keys: null,
+            identityStatus: 'ready',
+            activation,
+            drops: demoDropsSnapshot(),
+          }
+        : {
+            address: identity.address,
+            x25519Pub: identity.x25519Pub,
+            keys: identity.keys,
+            identityStatus: identity.status,
+            activation,
+            drops,
+          },
+    [
       activation,
+      demo,
+      // The snapshot's numbers change once the world seeds.
+      demoSeeded,
       drops,
-    }),
-    [activation, drops, identity.address, identity.keys, identity.status, identity.x25519Pub],
+      identity.address,
+      identity.keys,
+      identity.status,
+      identity.x25519Pub,
+    ],
   );
 
-  const ready = identity.status === 'ready';
+  const chromeDrops = demo ? session.drops : drops;
+  const chromeRelay = demo ? demoRelaySnapshot() : relay;
+  const ready = demo ? demoSeeded : identity.status === 'ready';
 
   return (
     <div className={s.shell}>
+      {demo && <DemoBanner />}
+
       <div className={s.chrome}>
         <div className={s.chromeLeft}>
           <span className={s.deskMark} aria-hidden="true" />
           <span className={s.deskName}>Desk</span>
           <span className={s.chromeRule} aria-hidden="true" />
-          <RelayStatus relay={relay} drops={drops} />
+          <RelayStatus relay={chromeRelay} drops={chromeDrops} />
         </div>
 
         <div className={s.chromeRight}>
           <AccountBadge
             activation={activation}
-            address={identity.address}
-            connected={isConnected}
+            address={demo ? DEMO_ME.address : identity.address}
+            connected={demo ? true : isConnected}
           />
         </div>
       </div>
@@ -117,9 +168,15 @@ export function AppShell({ children }: AppShellProps): ReactNode {
       )}
 
       {!ready ? (
-        <div className={s.gate}>
-          <IdentityGate identity={identity} />
-        </div>
+        /* Demo skips the ceremony entirely; the seed lands one effect tick
+           after mount, so the gate must not flash in between. */
+        demo ? (
+          <div className={s.gate} aria-hidden="true" />
+        ) : (
+          <div className={s.gate}>
+            <IdentityGate identity={identity} />
+          </div>
+        )
       ) : (
         <AppSessionProvider value={session}>
           <div className={s.desk} data-view={activeConvoId === null ? 'list' : 'thread'}>

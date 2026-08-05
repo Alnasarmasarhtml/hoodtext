@@ -89,6 +89,9 @@ export function Pricing(): ReactNode {
               Activate — $5, once
             </Link>
             <span className={s.cardNote}>Live $THOOD quote on /access</span>
+            <Link className={s.demoLink} href="/app?demo=1">
+              or view the demo first — no wallet needed
+            </Link>
           </div>
         </article>
 
@@ -111,8 +114,10 @@ export function Pricing(): ReactNode {
           </p>
 
           <div className={s.cardFoot}>
+            {/* Until the contracts are live this lands in the demo, where the
+                rooms panel is populated — never a dead end. */}
             <Link
-              href="/access"
+              href="/access?demo=1"
               className={buttonClassName({ variant: 'ghost', size: 'md', block: true })}
             >
               Manage your rooms

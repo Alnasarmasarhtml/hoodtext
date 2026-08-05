@@ -23,7 +23,7 @@ import { cx } from '@/lib/cx';
 import { formatBlock, formatCount, formatDate, formatToken } from '@/lib/format';
 import { Eyebrow, Panel, PanelHeader } from '@/components/ui';
 import { EmptyState, Notice } from './Notice';
-import type { RevenueEntry, RevenueHistoryResult } from './use-access-data';
+import type { RevenueEntry, RevenueHistoryView } from './use-access-data';
 import s from './RevenueHistory.module.css';
 
 const HEIGHT = 96;
@@ -32,7 +32,7 @@ const PAD_BOTTOM = 16;
 const TICK = 5;
 
 export interface RevenueHistoryProps {
-  readonly history: RevenueHistoryResult;
+  readonly history: RevenueHistoryView;
 }
 
 function px(value: string): number {

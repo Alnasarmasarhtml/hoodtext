@@ -24,6 +24,7 @@ import { useConfig } from 'wagmi';
 import { Button, Field } from '@/components/ui';
 import {
   resolveRecipient,
+  useDemoActive,
   useHandle,
   usePerkTier,
   useRoomRoster,
@@ -95,8 +96,10 @@ export function RoomMembers({ room, chain, className }: RoomMembersProps): React
     chainEpoch: chain.epoch,
   });
 
+  const demo = useDemoActive();
   const [input, setInput] = useState('');
   const [resolveError, setResolveError] = useState<string | null>(null);
+  const [demoNote, setDemoNote] = useState<string | null>(null);
 
   const isAdmin =
     session.address !== null &&
@@ -107,6 +110,7 @@ export function RoomMembers({ room, chain, className }: RoomMembersProps): React
     (event: ChangeEvent<HTMLInputElement>): void => {
       setInput(event.target.value);
       setResolveError(null);
+      setDemoNote(null);
       if (roster.phase === 'error' || roster.phase === 'done') roster.reset();
     },
     [roster],
@@ -119,6 +123,14 @@ export function RoomMembers({ room, chain, className }: RoomMembersProps): React
       if (raw === '' || roster.isBusy) return;
       setResolveError(null);
 
+      if (demo) {
+        /* Simulated: adding wraps + delivers the room key in the live app. */
+        setDemoNote(
+          'Simulated — in the live app this wraps the room key to their registered key and delivers it inside an encrypted drop.',
+        );
+        return;
+      }
+
       void (async (): Promise<void> => {
         const resolved = await resolveRecipient(config, raw);
         if (!resolved.ok) {
@@ -129,14 +141,21 @@ export function RoomMembers({ room, chain, className }: RoomMembersProps): React
         if (ok) setInput('');
       })();
     },
-    [config, input, roster],
+    [config, demo, input, roster],
   );
 
   const onKick = useCallback(
     (address: Address): void => {
+      if (demo) {
+        /* Simulated: removal rotates the epoch on chain in the live app. */
+        setDemoNote(
+          'Simulated — in the live app removing a member mints a fresh key and rotates the epoch on chain.',
+        );
+        return;
+      }
       void roster.removeMember(address);
     },
-    [roster],
+    [demo, roster],
   );
 
   const error = resolveError ?? roster.error;
@@ -223,6 +242,16 @@ export function RoomMembers({ room, chain, className }: RoomMembersProps): React
           </span>
         )}
       </div>
+
+      {demoNote !== null && (
+        <p className={s.simNote} role="note">
+          <span className={s.simMark} aria-hidden="true" />
+          <span className={s.simText}>{demoNote}</span>
+          <button type="button" className={s.errorAction} onClick={() => setDemoNote(null)}>
+            Dismiss
+          </button>
+        </p>
+      )}
 
       {error !== null && (
         <p className={s.error} role="alert">

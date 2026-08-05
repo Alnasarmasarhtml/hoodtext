@@ -34,7 +34,12 @@ type MediaState =
 export function MediaAttachment({ payload, className }: MediaAttachmentProps): ReactNode {
   const [state, setState] = useState<MediaState>({ phase: 'loading' });
 
+  /* A locally resolvable source (demo fixtures, demo attachments) skips the
+     fetch-and-decrypt round trip entirely — the src is already the image. */
+  const plainSrc = payload.src ?? null;
+
   useEffect(() => {
+    if (plainSrc !== null) return;
     let cancelled = false;
     let objectUrl: string | null = null;
     setState({ phase: 'loading' });
@@ -88,7 +93,43 @@ export function MediaAttachment({ payload, className }: MediaAttachmentProps): R
       cancelled = true;
       if (objectUrl !== null) URL.revokeObjectURL(objectUrl);
     };
-  }, [payload.key, payload.mime, payload.ref]);
+  }, [payload.key, payload.mime, payload.ref, plainSrc]);
+
+  if (plainSrc !== null) {
+    if (payload.mime.startsWith('image/')) {
+      return (
+        <figure className={cx(s.imageFrame, className)}>
+          <img
+            className={s.image}
+            src={plainSrc}
+            alt={payload.name === '' ? 'Image attachment' : payload.name}
+          />
+          <figcaption className={s.caption}>
+            <span className={s.fileName}>{payload.name}</span>
+            <span className={s.fileMeta}>{formatBytes(payload.bytes)}</span>
+          </figcaption>
+        </figure>
+      );
+    }
+    return (
+      <div className={cx(s.frame, className)}>
+        <span className={s.fileGlyph} aria-hidden="true" />
+        <span className={s.fileBody}>
+          <span className={s.fileName}>{payload.name === '' ? 'Attachment' : payload.name}</span>
+          <span className={s.fileMeta}>
+            {payload.mime} · {formatBytes(payload.bytes)}
+          </span>
+        </span>
+        <a
+          className={s.download}
+          href={plainSrc}
+          download={payload.name === '' ? 'attachment' : payload.name}
+        >
+          Download
+        </a>
+      </div>
+    );
+  }
 
   if (state.phase === 'loading') {
     return (

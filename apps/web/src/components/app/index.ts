@@ -46,6 +46,9 @@ export { RoomCreate } from './RoomCreate';
 export { RoomMembers } from './RoomMembers';
 export type { RoomMembersProps } from './RoomMembers';
 
+export { DemoBanner } from './DemoBanner';
+export type { DemoBannerProps } from './DemoBanner';
+
 export { RelayStatus } from './RelayStatus';
 export type { RelayStatusProps } from './RelayStatus';
 

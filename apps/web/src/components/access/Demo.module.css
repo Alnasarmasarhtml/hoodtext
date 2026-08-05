@@ -1,0 +1,76 @@
+/* Demo-mode chrome for `/access`.
+
+   Steel and muted only — the banner must never read as "live", so the one
+   reserved green stays untouched. Hairlines, Geist Mono, uppercase micro
+   labels: the same voice as every other strip on the desk.
+
+   At 390px the copy truncates with an ellipsis; the exit action never
+   collapses or wraps out of reach. */
+
+.banner {
+  min-width: 0;
+  border-bottom: var(--hair) solid var(--line);
+  background-color: var(--panel);
+  background-image: linear-gradient(0deg, var(--steel-wash), var(--steel-wash));
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding: var(--sp-2) var(--gutter);
+  min-width: 0;
+}
+
+/* 6px steel marker with the product's corner notch. */
+.mark {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  background-color: var(--steel);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
+}
+
+.tag {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border: var(--hair) solid var(--line-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--steel);
+}
+
+.copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.exit {
+  flex: 0 0 auto;
+}
+
+/* ── the simulated-action note ──────────────────────────────────────────── */
+
+.note {
+  min-width: 0;
+  align-self: flex-start;
+  padding-left: var(--sp-2);
+  border-left: 2px solid var(--steel);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  line-height: 1.5;
+  color: var(--muted);
+}

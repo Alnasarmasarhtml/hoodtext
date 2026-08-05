@@ -36,6 +36,8 @@ import {
   PanelHeader,
   useToast,
 } from '@/components/ui';
+import { DemoNote } from './Demo';
+import { demoRoomName } from './demo-state';
 import { EmptyState, Notice } from './Notice';
 import { useTxState } from './use-tx';
 import {
@@ -58,6 +60,8 @@ export interface RoomsPanelProps {
   readonly token: TokenState;
   readonly nowSeconds: bigint | null;
   readonly onRefresh: () => void;
+  /** Demo mode: fixture rooms; pay-rent and the toggles print a simulated note. */
+  readonly demo?: boolean;
 }
 
 /** How many whole months of rent the registry allowance covers. */
@@ -69,13 +73,15 @@ function monthsOfCover(allowance: bigint | null, monthly: bigint | null): number
 /* ═══════════════════════════════════════════════════════════ room card ═══ */
 
 interface RoomCardProps {
-  readonly contracts: ContractAddresses;
+  /** `null` only in demo mode, where nothing is quoted or written on chain. */
+  readonly contracts: ContractAddresses | null;
   readonly room: RoomRow;
   readonly pricing: PricingState;
   readonly token: TokenState;
   readonly nowSeconds: bigint | null;
   readonly canWrite: boolean;
   readonly onRefresh: () => void;
+  readonly demo: boolean;
 }
 
 function RoomCard({
@@ -86,9 +92,11 @@ function RoomCard({
   nowSeconds,
   canWrite,
   onRefresh,
+  demo,
 }: RoomCardProps): ReactNode {
   const toast = useToast();
   const { writeContractAsync } = useWriteContract();
+  const [simulated, setSimulated] = useState(false);
 
   const approveTx = useTxState();
   const payTx = useTxState();
@@ -96,8 +104,15 @@ function RoomCard({
 
   const [months, setMonths] = useState(1);
   const settledMonths = useDebounced(months, 220);
-  const { quote, isLoading: quoting } = useRentQuote(contracts, settledMonths);
-  const quoteStale = months !== settledMonths || quoting;
+  const { quote: liveQuote, isLoading: quoting } = useRentQuote(contracts, settledMonths);
+
+  /* Demo quoting is arithmetic, not a read: rent is linear in months. */
+  const quote = demo
+    ? pricing.rentMonthQuote === null
+      ? null
+      : pricing.rentMonthQuote * BigInt(months)
+    : liveQuote;
+  const quoteStale = demo ? false : months !== settledMonths || quoting;
 
   const active = nowSeconds !== null && room.paidUntil > nowSeconds;
   const lapsed = nowSeconds !== null && room.paidUntil <= nowSeconds;
@@ -112,8 +127,13 @@ function RoomCard({
   const shortOnBalance = quote !== null && balance !== null && balance < quote;
 
   const busy = approveTx.busy || payTx.busy || autoRenewTx.busy;
+  const interactive = demo || canWrite;
 
   const onApprove = useCallback(async (): Promise<void> => {
+    if (demo || contracts === null) {
+      setSimulated(true);
+      return;
+    }
     if (quote === null) return;
     const ok = await approveTx.run(
       () =>
@@ -133,9 +153,13 @@ function RoomCard({
         body: `The room registry may now move ${formatToken(quote, { digits: 2, symbol: 'THOOD' })} — and not a wei more.`,
       });
     }
-  }, [approveTx, contracts, onRefresh, quote, toast, writeContractAsync]);
+  }, [approveTx, contracts, demo, onRefresh, quote, toast, writeContractAsync]);
 
   const onPay = useCallback(async (): Promise<void> => {
+    if (demo || contracts === null) {
+      setSimulated(true);
+      return;
+    }
     const ok = await payTx.run(
       () =>
         writeContractAsync({
@@ -156,9 +180,13 @@ function RoomCard({
         }`,
       });
     }
-  }, [contracts, lapsed, onRefresh, payTx, room.id, settledMonths, toast, writeContractAsync]);
+  }, [contracts, demo, lapsed, onRefresh, payTx, room.id, settledMonths, toast, writeContractAsync]);
 
   const onToggleAutoRenew = useCallback(async (): Promise<void> => {
+    if (demo || contracts === null) {
+      setSimulated(true);
+      return;
+    }
     const next = !room.autoRenew;
     const ok = await autoRenewTx.run(
       () =>
@@ -180,7 +208,7 @@ function RoomCard({
           : 'Nothing else changed. The room keeps whatever time it has.',
       });
     }
-  }, [autoRenewTx, contracts, onRefresh, room.autoRenew, room.id, toast, writeContractAsync]);
+  }, [autoRenewTx, contracts, demo, onRefresh, room.autoRenew, room.id, toast, writeContractAsync]);
 
   const cardError = payTx.error ?? approveTx.error ?? autoRenewTx.error;
 
@@ -189,8 +217,9 @@ function RoomCard({
       {/* ── identity + clock ─────────────────────────────────────────────── */}
       <div className={s.roomHead}>
         <div className={s.roomId}>
+          {/* On chain a room is only its id; the demo world knows its name. */}
           <span className={s.roomIdValue} title={room.id}>
-            {truncateRef(room.id)}
+            {(demo ? demoRoomName(room.id) : null) ?? truncateRef(room.id)}
           </span>
           <span className={s.roomCreated}>
             {`opened ${room.createdAt > 0n ? formatDate(room.createdAt) : '—'}`}
@@ -260,7 +289,7 @@ function RoomCard({
               variant="ghost"
               loading={approveTx.busy}
               loadingLabel={approveTx.phase === 'confirming' ? 'Confirming' : 'Approve in wallet'}
-              disabled={!canWrite || busy || quote === null}
+              disabled={!interactive || busy || quote === null}
               onClick={() => void onApprove()}
             >
               Approve
@@ -271,7 +300,7 @@ function RoomCard({
             loading={payTx.busy}
             loadingLabel={payTx.phase === 'confirming' ? 'Confirming' : 'Confirm in wallet'}
             disabled={
-              !canWrite || busy || quote === null || needsApproval || shortOnBalance || quoteStale
+              !interactive || busy || quote === null || needsApproval || shortOnBalance || quoteStale
             }
             onClick={() => void onPay()}
           >
@@ -296,7 +325,7 @@ function RoomCard({
           aria-checked={room.autoRenew}
           aria-label={`Auto-renew for room ${truncateRef(room.id)}`}
           className={cx(s.switch, room.autoRenew && s.switchOn)}
-          disabled={!canWrite || busy}
+          disabled={!interactive || busy}
           onClick={() => void onToggleAutoRenew()}
         >
           <span className={s.switchTrack} aria-hidden="true">
@@ -307,6 +336,8 @@ function RoomCard({
           </span>
         </button>
       </div>
+
+      {demo && simulated && <DemoNote />}
 
       {shortOnBalance && quote !== null && balance !== null && (
         <Notice
@@ -358,19 +389,25 @@ export function RoomsPanel({
   token,
   nowSeconds,
   onRefresh,
+  demo = false,
 }: RoomsPanelProps): ReactNode {
   const toast = useToast();
   const openWallet = useConnectSheet((state) => state.open);
   const { writeContractAsync } = useWriteContract();
   const allowanceTx = useTxState();
+  const [simulated, setSimulated] = useState(false);
 
   const canWrite = contracts !== null && address !== null && isConnected && !wrongNetwork;
+  const interactive = demo || canWrite;
   const monthly = pricing.rentMonthQuote;
   const cover = monthsOfCover(token.registryAllowance, monthly);
 
   const setAllowance = useCallback(
     async (amount: bigint, label: string): Promise<void> => {
-      if (contracts === null) return;
+      if (demo || contracts === null) {
+        setSimulated(true);
+        return;
+      }
       const ok = await allowanceTx.run(
         () =>
           writeContractAsync({
@@ -393,14 +430,14 @@ export function RoomsPanel({
         });
       }
     },
-    [allowanceTx, contracts, onRefresh, toast, writeContractAsync],
+    [allowanceTx, contracts, demo, onRefresh, toast, writeContractAsync],
   );
 
   const count = rooms.rooms.length;
 
   /* ── states with nothing to show ─────────────────────────────────────── */
 
-  if (!isConnected || wrongNetwork || contracts === null) {
+  if (!demo && (!isConnected || wrongNetwork || contracts === null)) {
     return (
       <Panel as="section" tone="raised" notch="tr" className={s.panel}>
         <PanelHeader label="Your rooms" note="$10/month each, paid by whoever runs the room" />
@@ -484,6 +521,7 @@ export function RoomsPanel({
                 nowSeconds={nowSeconds}
                 canWrite={canWrite}
                 onRefresh={onRefresh}
+                demo={demo}
               />
             ))}
           </ul>
@@ -523,7 +561,7 @@ export function RoomsPanel({
                 <Button
                   size="sm"
                   variant="ghost"
-                  disabled={!canWrite || monthly === null || allowanceTx.busy}
+                  disabled={!interactive || monthly === null || allowanceTx.busy}
                   loading={allowanceTx.busy}
                   onClick={() => {
                     if (monthly === null) return;
@@ -536,7 +574,7 @@ export function RoomsPanel({
                   size="sm"
                   variant="danger"
                   disabled={
-                    !canWrite ||
+                    !interactive ||
                     allowanceTx.busy ||
                     token.registryAllowance === null ||
                     token.registryAllowance === 0n
@@ -547,6 +585,8 @@ export function RoomsPanel({
                 </Button>
               </div>
             </div>
+
+            {demo && simulated && <DemoNote />}
 
             {allowanceTx.error !== null && (
               <Notice

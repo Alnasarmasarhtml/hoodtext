@@ -28,8 +28,10 @@ import { useReadContracts } from 'wagmi';
 
 import { Button, Field } from '@/components/ui';
 import {
+  demoRoomChain,
   parseMediaPayload,
   useConversations,
+  useDemoActive,
   useHandle,
   useStartConversation,
   type ChatMessage,
@@ -200,7 +202,9 @@ export function ConversationList({
 
   const [peer, setPeer] = useState('');
 
-  /* One batched rent read for every room in the rail, refreshed slowly. */
+  /* One batched rent read for every room in the rail, refreshed slowly.
+     In demo the fixture chain map answers instead and the read never fires. */
+  const demo = useDemoActive();
   const contracts = tryGetContracts(ACTIVE_CHAIN_ID);
   const roomIds = useMemo<readonly Hex[]>(
     () =>
@@ -217,10 +221,20 @@ export function ConversationList({
       functionName: 'isActive' as const,
       args: [groupId] as const,
     })),
-    query: { enabled: contracts !== null && roomIds.length > 0, refetchInterval: 60_000 },
+    query: {
+      enabled: contracts !== null && roomIds.length > 0 && !demo,
+      refetchInterval: 60_000,
+    },
   });
   const rentByRoom = useMemo(() => {
     const out = new Map<string, boolean>();
+    if (demo) {
+      for (const id of roomIds) {
+        const fixture = demoRoomChain(id);
+        if (fixture !== null) out.set(id.toLowerCase(), fixture.isActive);
+      }
+      return out;
+    }
     const rows = rentReads.data;
     if (rows === undefined) return out;
     for (let i = 0; i < roomIds.length; i += 1) {
@@ -230,7 +244,7 @@ export function ConversationList({
       out.set(id.toLowerCase(), row.result);
     }
     return out;
-  }, [rentReads.data, roomIds]);
+  }, [demo, rentReads.data, roomIds]);
 
   const onSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>): void => {

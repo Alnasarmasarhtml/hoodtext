@@ -81,6 +81,15 @@ export type {
 export { useRelayStatus } from './useRelayStatus';
 export type { UseRelayStatusResult } from './useRelayStatus';
 
+export { useDemoActive } from './useDemoMode';
+export {
+  DEMO_X25519_PUB,
+  demoDropsSnapshot,
+  demoRelaySnapshot,
+  demoRoomChain,
+  seedDemoWorld,
+} from './demo-world';
+
 export { describeChainError } from './errors';
 
 export {

@@ -1075,6 +1075,17 @@ async function scanRevenue(
 export type RevenueHistoryResult = UseQueryResult<RevenueHistory, Error>;
 
 /**
+ * What the revenue panels actually consume — the three fields of the query
+ * result they read. A structural type so demo mode can hand the same panels a
+ * fixture history without impersonating a whole `UseQueryResult`.
+ */
+export interface RevenueHistoryView {
+  readonly data: RevenueHistory | undefined;
+  readonly isPending: boolean;
+  readonly isError: boolean;
+}
+
+/**
  * `RevenueReceived` history, read straight from the chain with viem `getLogs`.
  *
  * The relay is not involved: this panel must be true even with the indexer
