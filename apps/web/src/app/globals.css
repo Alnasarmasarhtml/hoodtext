@@ -472,6 +472,19 @@
     clip-path: var(--path-notch-in);
   }
 
+  /* ── the house control shape ─────────────────────────────────────────────
+     A parallelogram sheared on the same axis as the display face. Direct
+     children are counter-sheared so their contents stay upright inside a
+     leaning box. <Button> carries its own copy; this is for every control
+     that is not a <Button>. Anything wearing it should drop its clip-path —
+     the shear IS the shape, and stacking a notch on top reads as a mistake. */
+  .tilt {
+    transform: skewX(-9deg);
+  }
+  .tilt > * {
+    transform: skewX(9deg);
+  }
+
   /* ── hairlines ───────────────────────────────────────────────────────── */
   .hair {
     border: var(--hair) solid var(--line);

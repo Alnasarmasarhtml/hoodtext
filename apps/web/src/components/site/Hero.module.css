@@ -14,20 +14,21 @@
   }
 }
 
-/* The procession is a high-key render: a near-white hood fills the frame, and
-   no soft fade can beat white. Dimming the film itself is what makes the fade
-   viable — unlike a grey veil, brightness() pulls the highlights down without
-   lifting the blacks, so the frame gets darker instead of hazier. */
+/* Only a light touch on the film. Dimming it hard made the whole frame flat
+   and the fade stopped reading as a fade — the point is a visible pool of
+   darkness that the copy sits in, with the footage bright around it. */
+/* A middle setting. Dimmed hard the frame went flat and the fade stopped
+   reading as a fade; left bright, green type (mid-luminance) vanishes against
+   a near-white hood. This keeps the footage clearly lit while giving the pool
+   something it can actually win against. */
 .film {
-  filter: brightness(0.46) contrast(1.12);
+  filter: brightness(0.58) contrast(1.08);
 }
 
-/* Light and flat. With the film already dimmed, all the remaining legibility
-   work belongs to the soft fade behind the copy. */
 .veil {
   position: absolute;
   inset: 0;
-  background-color: rgba(8, 9, 10, 0.22);
+  background-color: rgba(8, 9, 10, 0.18);
 }
 
 /* ── the HUD frame ──────────────────────────────────────────────────────── */
@@ -145,17 +146,18 @@
   inset: clamp(-110px, -10vw, -64px) clamp(-300px, -28vw, -170px)
     clamp(-120px, -11vw, -72px) clamp(-170px, -16vw, -100px);
   z-index: -1;
-  /* The core holds near-opaque out to 46% so the copy always sits on solid
-     ground; only past that does it dissolve. A fade that starts falling off
-     immediately looks soft but cannot beat a white hood. */
+  /* Wide and flat-topped: the dense core has to span the full width of the
+     longest line, because green type is mid-luminance and dies the moment the
+     pool thins under it. Past the text it dissolves completely, which is what
+     keeps it reading as a fade and not a panel. */
   background: radial-gradient(
-    ellipse 58% 62% at 33% 50%,
-    rgba(5, 6, 7, 0.97) 0%,
-    rgba(5, 6, 7, 0.95) 46%,
-    rgba(5, 6, 7, 0.84) 62%,
-    rgba(5, 6, 7, 0.5) 78%,
-    rgba(5, 6, 7, 0.16) 91%,
-    rgba(5, 6, 7, 0) 100%
+    ellipse 74% 64% at 38% 50%,
+    rgba(4, 5, 6, 0.99) 0%,
+    rgba(4, 5, 6, 0.98) 56%,
+    rgba(4, 5, 6, 0.9) 70%,
+    rgba(4, 5, 6, 0.56) 83%,
+    rgba(4, 5, 6, 0.18) 93%,
+    rgba(4, 5, 6, 0) 100%
   );
   pointer-events: none;
 }
@@ -221,18 +223,22 @@
     gap: var(--sp-3);
   }
 
-  /* The block spans the full width on a phone, so an ellipse centred a third
-     of the way across leaves the right-hand end of every line in the falloff.
-     Centre it and let it cover the whole block. */
+  /* On a phone the block spans the full width and stacks tall, so the pool has
+     to be centred and cover far more vertically than it does on desktop. */
   .block::before {
-    inset: -90px -64px -70px -64px;
+    inset: -120px -70px -80px -70px;
     background: radial-gradient(
-      ellipse 76% 60% at 50% 52%,
-      rgba(5, 6, 7, 0.96) 0%,
-      rgba(5, 6, 7, 0.94) 50%,
-      rgba(5, 6, 7, 0.8) 68%,
-      rgba(5, 6, 7, 0.42) 84%,
-      rgba(5, 6, 7, 0) 100%
+      ellipse 82% 72% at 50% 54%,
+      rgba(4, 5, 6, 0.99) 0%,
+      rgba(4, 5, 6, 0.98) 62%,
+      rgba(4, 5, 6, 0.86) 76%,
+      rgba(4, 5, 6, 0.46) 89%,
+      rgba(4, 5, 6, 0) 100%
     );
+  }
+
+  /* The footage is decorative at this size; the copy is not. */
+  .film {
+    filter: brightness(0.48) contrast(1.08);
   }
 }

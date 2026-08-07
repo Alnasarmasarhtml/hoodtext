@@ -168,22 +168,26 @@
   flex: none;
 }
 
-/* Same 30px height as the connect control beside it, notched on the same
-   corner, so the pair reads as one cluster rather than a bolted-on icon. */
+/* Same 30px height and the same shear as the connect control beside it, so
+   the pair reads as one cluster rather than a bolted-on icon. */
 .social {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
+  width: 34px;
   height: 30px;
   flex: none;
   color: var(--muted);
   border: 1px solid var(--line-2);
-  clip-path: var(--path-notch-br);
+  transform: skewX(-9deg);
   transition:
     color var(--dur-1) var(--ease),
     background-color var(--dur-1) var(--ease),
     border-color var(--dur-1) var(--ease);
+}
+
+.social > svg {
+  transform: skewX(9deg);
 }
 
 .social:hover {
@@ -203,11 +207,11 @@
   align-items: center;
   gap: var(--sp-2);
   height: 30px;
-  padding-inline: 10px;
+  padding-inline: 14px;
   max-width: 190px;
   min-width: 0;
   background-color: var(--line-2);
-  clip-path: var(--path-notch-br);
+  transform: skewX(-9deg);
   position: relative;
   isolation: isolate;
   font-family: var(--font-mono);
@@ -218,14 +222,19 @@
   transition: color var(--dur-1) var(--ease);
 }
 
+/* The fill only needs to follow the sheared box, so it inherits the parent's
+   transform rather than being counter-sheared like the text is. */
 .account::before {
   content: '';
   position: absolute;
   inset: 1px;
   z-index: -1;
   background-color: var(--void);
-  clip-path: var(--path-notch-br-in);
   transition: background-color var(--dur-1) var(--ease);
+}
+
+.account > * {
+  transform: skewX(9deg);
 }
 
 .account:hover::before {
