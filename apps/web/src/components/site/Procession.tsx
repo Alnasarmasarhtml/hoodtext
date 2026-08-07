@@ -10,16 +10,16 @@ import { MediaLoop } from './MediaLoop';
 import s from './Procession.module.css';
 
 /**
- * SECTION 04 — the procession. One figure marches out as the next one enters, endlessly.
- * The footage carries this; the copy is one line and the CTA, nothing else.
+ * SECTION 04 — the close. Falling symbols behind one line and the CTA.
+ *
+ * The rain and the procession swapped places: the marching figure now opens the
+ * page, and the page ends where the messages live. The footage carries this;
+ * the copy is one line and the CTA, nothing else.
  */
 export function Procession(): ReactNode {
   return (
     <section className={s.section} aria-label="Get access">
-      <MediaLoop
-        src={asset('/media/procession.mp4')}
-        poster={asset('/art/figure-profile.png')}
-      />
+      <MediaLoop src={asset('/media/hero-rain.mp4')} poster={asset('/art/matrix-rain.png')} />
       <div className={s.veil} aria-hidden="true" />
 
       <div className={cx('wrap', s.inner)}>

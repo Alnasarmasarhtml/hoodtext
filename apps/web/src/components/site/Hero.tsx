@@ -11,76 +11,81 @@ import { TokenMark } from './TokenMark';
 import s from './Hero.module.css';
 
 /**
- * SECTION 01 — the full-viewport opener.
+ * SECTION 01 — the viewfinder.
  *
- * Falling symbols under a light veil; the client's logo dead-centre above the promise. The logo
- * PNG has its letter counters knocked out so the rain shows through them — that is intentional,
- * so nothing opaque may ever be placed behind the mark.
+ * A HUD frame inset from the edges with four green corner marks, the mark and a
+ * status line along the top, and everything that matters anchored bottom-left
+ * over a soft falloff. No opaque plate: the procession stays fully visible and
+ * the copy still holds, because the darkening sits only behind the type.
+ *
+ * The corner marks are the same device as the bracket boxes in the section
+ * below, so the page opens and continues in one language.
  */
 export function Hero(): ReactNode {
   return (
     <section className={s.hero} aria-label="HoodGram — pay $5 once, text forever">
-      <MediaLoop src={asset('/media/hero-rain.mp4')} poster={asset('/art/matrix-rain.png')} />
+      <MediaLoop
+        src={asset('/media/procession.mp4')}
+        poster={asset('/art/figure-profile.png')}
+      />
       <div className={s.veil} aria-hidden="true" />
 
-      <div className={cx('wrap', s.inner)}>
-        <img
-          className={s.logo}
-          src={asset('/brand/logo-primary.png')}
-          alt="HOODGRAM"
-          width={3383}
-          height={912}
-          decoding="async"
-          fetchPriority="high"
-          data-reveal
-        />
-
-        {/* SPLIT BAR — the headline rides an opaque lower-third bar, the copy a
-            lighter scrim. Two densities do the hierarchy, and neither ever
-            competes with the rain behind them. */}
-        <div className={s.pitch} data-reveal>
-          <div className={s.bar}>
-            <p className={s.kicker}>Robinhood Chain · 4663</p>
-            <h1 className={s.title}>Pay $5 once. Text forever.</h1>
-          </div>
-
-          <div className={s.body}>
-            <p className={s.claim}>
-              Every message anchored on Robinhood Chain. Half of every payment goes back to the
-              people holding <TokenMark />.
-            </p>
-            <p className={s.sub}>
-              Messages are sealed on your device and free to send, forever: the relay posts them
-              on chain with no gas, no popups, and your address never on chain — or you self-post
-              for about a cent. Rooms cost $10 a month, paid by whoever runs the room; members
-              ride free.
-            </p>
-
-            <div className={s.actions}>
-              <Link
-                href="/access"
-                className={buttonClassName({ variant: 'primary', size: 'lg' })}
-              >
-                Get access — $5
-              </Link>
-              <Link
-                href="/app?demo=1"
-                className={buttonClassName({ variant: 'ghost', size: 'lg' })}
-              >
-                View demo
-              </Link>
-            </div>
-
-            <p className={s.meta}>
-              $5 once · rooms $10/mo · messages free · 50% of revenue to holders
-            </p>
-          </div>
-        </div>
+      <div className={s.frame} aria-hidden="true">
+        <span className={cx(s.brk, s.brkTl)} />
+        <span className={cx(s.brk, s.brkTr)} />
+        <span className={cx(s.brk, s.brkBl)} />
+        <span className={cx(s.brk, s.brkBr)} />
       </div>
 
-      <div className={s.cue} aria-hidden="true">
-        <span className={s.cueLine} />
-        <span className={s.cueText}>Scroll</span>
+      <div className={cx('wrap', s.inner)}>
+        <div className={s.hudTop} data-reveal>
+          <img
+            className={s.logo}
+            src={asset('/brand/logo-primary.png')}
+            alt="HOODGRAM"
+            width={3383}
+            height={912}
+            decoding="async"
+            fetchPriority="high"
+          />
+          <p className={s.hudMeta}>
+            <span className={s.hudDot} aria-hidden="true" />
+            Chain 4663 · Live
+          </p>
+        </div>
+
+        <div className={s.block} data-reveal>
+          <p className={s.kicker}>Encrypted · Anchored · Unremovable</p>
+          <h1 className={s.title}>Pay $5 once. Text forever.</h1>
+          <p className={s.claim}>
+            Every message anchored on Robinhood Chain. Half of every payment goes back to the
+            people holding <TokenMark />.
+          </p>
+          <p className={s.sub}>
+            Messages are sealed on your device and free to send, forever — the relay posts them on
+            chain with no gas and your address never on chain. Rooms are $10 a month, paid by
+            whoever runs them; members ride free.
+          </p>
+
+          <div className={s.actions}>
+            <Link
+              href="/access"
+              className={buttonClassName({ variant: 'primary', size: 'lg' })}
+            >
+              Get access — $5
+            </Link>
+            <Link
+              href="/app?demo=1"
+              className={buttonClassName({ variant: 'ghost', size: 'lg' })}
+            >
+              View demo
+            </Link>
+          </div>
+
+          <p className={s.meta}>
+            $5 once · rooms $10/mo · messages free · 50% of revenue to holders
+          </p>
+        </div>
       </div>
     </section>
   );
