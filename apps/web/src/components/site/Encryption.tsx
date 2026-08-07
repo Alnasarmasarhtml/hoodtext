@@ -91,14 +91,26 @@ export function Encryption(): ReactNode {
               </figcaption>
             </figure>
 
+            {/* A diptych, not one image: the argument is a before/after, and two
+                prints side by side hold far more detail at this size than a
+                single wide frame trying to carry both halves. */}
             <figure className={s.fig} data-reveal>
-              <div className="hairFrame">
+              <div className={s.plates}>
                 <img
-                  className={s.figImg}
-                  src={asset('/art/scan-vs-sealed.png')}
-                  alt="Two conveyor lines: on the left, envelopes sliced open by a scanning beam; on the right, one envelope sealed inside a green lattice that scatters the beam."
-                  width={2560}
-                  height={1440}
+                  className={s.plate}
+                  src={asset('/art/mail-opened.jpg')}
+                  alt="Screenprint: an envelope torn open, the letter inside dragged out and lit by a hard beam."
+                  width={900}
+                  height={1125}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <img
+                  className={s.plate}
+                  src={asset('/art/mail-sealed.jpg')}
+                  alt="Screenprint: a sealed envelope inside a green lattice cage, the same beam shattering against it."
+                  width={900}
+                  height={1125}
                   loading="lazy"
                   decoding="async"
                 />

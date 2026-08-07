@@ -25,6 +25,22 @@ const NAV: readonly NavItem[] = [
   { href: '/access', label: 'Access', match: (p) => p.startsWith('/access') },
 ];
 
+/** The project's account. Change here and it changes everywhere it appears. */
+const X_URL = 'https://x.com/hoodgram';
+
+/** The X glyph, drawn rather than loaded, so the bar needs no icon dependency. */
+function XMark(): ReactNode {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        stroke="none"
+        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"
+      />
+    </svg>
+  );
+}
+
 function NavLinks({ pathname }: { pathname: string }): ReactNode {
   return (
     <>
@@ -77,6 +93,17 @@ export function SiteHeader(): ReactNode {
         </nav>
 
         <div className={s.side}>
+          <a
+            className={s.social}
+            href={X_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="HoodGram on X"
+            title="HoodGram on X"
+          >
+            <XMark />
+          </a>
+
           {isConnected && address !== undefined ? (
             <button
               type="button"

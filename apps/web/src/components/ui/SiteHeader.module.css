@@ -168,6 +168,36 @@
   flex: none;
 }
 
+/* Same 30px height as the connect control beside it, notched on the same
+   corner, so the pair reads as one cluster rather than a bolted-on icon. */
+.social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  color: var(--muted);
+  border: 1px solid var(--line-2);
+  clip-path: var(--path-notch-br);
+  transition:
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.social:hover {
+  color: var(--void);
+  background-color: var(--green);
+  border-color: var(--green);
+}
+
+.social:focus-visible {
+  color: var(--void);
+  background-color: var(--green);
+  border-color: var(--green);
+}
+
 .account {
   display: inline-flex;
   align-items: center;
