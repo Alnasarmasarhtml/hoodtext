@@ -1,5 +1,5 @@
 /**
- * The TeleHood primitive kit — "Signals Desk".
+ * The HoodGram primitive kit — "Signals Desk".
  *
  * Every component here is bespoke: notched via `clip-path`, hairlined at 1px,
  * mono-labelled, tabular. Green only appears on primary CTAs, the active

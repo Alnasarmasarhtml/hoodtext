@@ -20,7 +20,7 @@ import {
 import { isAddress, type Address } from 'viem';
 import { useReadContract, useWriteContract } from 'wagmi';
 
-import { activationAbi, teleHoodTokenAbi, PRICES } from '@/lib/abi';
+import { activationAbi, hoodGramTokenAbi, PRICES } from '@/lib/abi';
 import type { ContractAddresses } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import { formatDate, formatToken, formatUsd18, truncateAddress } from '@/lib/format';
@@ -130,7 +130,7 @@ export function ActivationPanel({
       () =>
         writeContractAsync({
           address: contracts.token,
-          abi: teleHoodTokenAbi,
+          abi: hoodGramTokenAbi,
           functionName: 'approve',
           args: [contracts.activation, quote],
         }),
@@ -227,7 +227,7 @@ export function ActivationPanel({
         action={
           <Button
             variant="primary"
-            onClick={() => openWallet('TeleHood reads your activation status and $THOOD balance from the chain.')}
+            onClick={() => openWallet('HoodGram reads your activation status and $THOOD balance from the chain.')}
           >
             Connect wallet
           </Button>
@@ -276,7 +276,7 @@ export function ActivationPanel({
               ? 'That is your own address — use the activate flow above.'
               : friendActivated && friend !== null
                 ? `${truncateAddress(friend)} is already activated. Nothing to pay.`
-                : 'Any address — it does not need to have used TeleHood before.'
+                : 'Any address — it does not need to have used HoodGram before.'
           }
           disabled={!isConnected || wrongNetwork}
           spellCheck={false}
@@ -430,7 +430,7 @@ export function ActivationPanel({
             <span className={s.pitchLead}>Once. Forever.</span>
             <p className={s.pitchCopy}>
               One payment in <span className={s.wordmark}>$THOOD</span> and your account
-              exists permanently. It is also the spam wall: every account on TeleHood
+              exists permanently. It is also the spam wall: every account on HoodGram
               cost somebody five dollars, so there are no bot floods to wade through.
             </p>
           </div>

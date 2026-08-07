@@ -1,14 +1,14 @@
 {
-  "name": "telehood",
+  "name": "hoodgram",
   "private": true,
   "version": "1.0.0",
-  "description": "TeleHood — encrypted messaging anchored on Robinhood Chain. Monthly subscription in $THOOD. 50% of every payment to holders, pro-rata by holdings, no staking.",
+  "description": "HoodGram — encrypted messaging anchored on Robinhood Chain. Monthly subscription in $THOOD. 50% of every payment to holders, pro-rata by holdings, no staking.",
   "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @telehood/relay --filter @telehood/web dev",
+    "dev": "pnpm --parallel --filter @hoodgram/relay --filter @hoodgram/web dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",

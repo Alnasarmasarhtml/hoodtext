@@ -16,7 +16,7 @@ import { useCallback, useState, type ReactNode } from 'react';
 import type { Address } from 'viem';
 import { useWriteContract } from 'wagmi';
 
-import { groupRegistryAbi, teleHoodTokenAbi } from '@/lib/abi';
+import { groupRegistryAbi, hoodGramTokenAbi } from '@/lib/abi';
 import type { ContractAddresses } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import {
@@ -139,7 +139,7 @@ function RoomCard({
       () =>
         writeContractAsync({
           address: contracts.token,
-          abi: teleHoodTokenAbi,
+          abi: hoodGramTokenAbi,
           functionName: 'approve',
           args: [contracts.groupRegistry, quote],
         }),
@@ -412,7 +412,7 @@ export function RoomsPanel({
         () =>
           writeContractAsync({
             address: contracts.token,
-            abi: teleHoodTokenAbi,
+            abi: hoodGramTokenAbi,
             functionName: 'approve',
             args: [contracts.groupRegistry, amount],
           }),

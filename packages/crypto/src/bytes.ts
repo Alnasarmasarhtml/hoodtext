@@ -1,5 +1,5 @@
 /**
- * Internal byte / hex helpers shared across `@telehood/crypto`.
+ * Internal byte / hex helpers shared across `@hoodgram/crypto`.
  *
  * Deliberately dependency-free and isomorphic: `TextEncoder`, `TextDecoder` and
  * `crypto.getRandomValues` are available in Node 18+ and every modern browser.
@@ -132,7 +132,7 @@ export function randomBytes(length: number): Uint8Array {
     globalThis as { crypto?: { getRandomValues?: (array: Uint8Array) => Uint8Array } }
   ).crypto;
   if (webcrypto === undefined || typeof webcrypto.getRandomValues !== 'function') {
-    throw new Error('@telehood/crypto requires a WebCrypto implementation (globalThis.crypto)');
+    throw new Error('@hoodgram/crypto requires a WebCrypto implementation (globalThis.crypto)');
   }
   return webcrypto.getRandomValues(new Uint8Array(length));
 }

@@ -1,5 +1,5 @@
 /**
- * TeleHood identity keys.
+ * HoodGram identity keys.
  *
  * A user's messaging keys are derived deterministically from one EIP-712 signature, so the
  * same wallet always reproduces the same keypairs on any device without the private keys
@@ -10,7 +10,7 @@ import { hexToBytes } from './bytes';
 import { ready } from './sodium';
 
 /** EIP-712 domain for the identity signature. */
-export const IDENTITY_DOMAIN = { name: 'TeleHood', version: '1', chainId: 4663 } as const;
+export const IDENTITY_DOMAIN = { name: 'HoodGram', version: '1', chainId: 4663 } as const;
 
 /** EIP-712 type definition for the identity signature. */
 export const IDENTITY_TYPES = {
@@ -22,7 +22,7 @@ export const IDENTITY_TYPES = {
 
 /** The exact message a user signs to derive their identity keys. */
 export const IDENTITY_MESSAGE = {
-  purpose: 'TeleHood identity key derivation. Signing this does not authorize any transaction.',
+  purpose: 'HoodGram identity key derivation. Signing this does not authorize any transaction.',
   version: 1n,
 };
 

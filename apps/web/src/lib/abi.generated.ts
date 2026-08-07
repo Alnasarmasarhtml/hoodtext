@@ -7,8 +7,8 @@
 
 /* eslint-disable */
 
-/** ABI for `TeleHoodToken`. */
-export const teleHoodTokenAbi = [
+/** ABI for `HoodGramToken`. */
+export const hoodGramTokenAbi = [
   {
     "type": "constructor",
     "inputs": [
@@ -4327,7 +4327,7 @@ export const revenueVaultInterfaceAbi = [
 
 /** Every generated ABI, keyed by Solidity contract name. */
 export const GENERATED_ABIS = {
-  TeleHoodToken: teleHoodTokenAbi,
+  HoodGramToken: hoodGramTokenAbi,
   ManualPriceSource: manualPriceSourceAbi,
   RevenueVault: revenueVaultAbi,
   Activation: activationAbi,

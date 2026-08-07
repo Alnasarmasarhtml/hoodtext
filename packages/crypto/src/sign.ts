@@ -12,7 +12,7 @@ import { bytesToHex, hexToBytes, utf8Encode } from './bytes';
 import { ready } from './sodium';
 
 /** Domain-separation prefix, so a drop signature can never be replayed as anything else. */
-export const DROP_SIGNING_CONTEXT = 'telehood.drop.v1';
+export const DROP_SIGNING_CONTEXT = 'hoodgram.drop.v1';
 
 /** Detached Ed25519 signature size, in bytes. */
 export const DROP_SIGNATURE_BYTES = 64;

@@ -1,4 +1,4 @@
-# TeleHood — task runner.
+# HoodGram — task runner.
 #
 #   make install       install workspace dependencies
 #   make chain         run a local anvil chain on 127.0.0.1:8545 (foreground)
@@ -32,8 +32,8 @@ chain: ## run anvil on 127.0.0.1:8545, chain id 31337 (foreground; Ctrl-C to sto
 deploy-local: ## deploy to anvil and write the addresses into packages/crypto/src/deployments.ts
 	node infra/scripts/deploy-local.mjs
 
-dev: ## run @telehood/relay and @telehood/web together
-	pnpm --parallel --filter @telehood/relay --filter @telehood/web dev
+dev: ## run @hoodgram/relay and @hoodgram/web together
+	pnpm --parallel --filter @hoodgram/relay --filter @hoodgram/web dev
 
 build: ## forge build -> sync ABIs -> build every workspace package
 	forge build --root contracts && node infra/scripts/sync-abis.mjs && pnpm -r build

@@ -1,5 +1,5 @@
 /**
- * Internal libsodium loader for `@telehood/crypto`.
+ * Internal libsodium loader for `@hoodgram/crypto`.
  *
  * `libsodium-wrappers-sumo` compiles to WebAssembly/asm.js and is only usable once its
  * `ready` promise has settled. Every async export in this package awaits {@link ready}
@@ -74,13 +74,13 @@ async function load(): Promise<Sodium> {
       return await loadViaNodeRequire();
     } catch (err: unknown) {
       throw new Error(
-        `@telehood/crypto could not load ${PACKAGE_NAME} (neither the ESM nor the CommonJS entry point resolved).`,
+        `@hoodgram/crypto could not load ${PACKAGE_NAME} (neither the ESM nor the CommonJS entry point resolved).`,
         { cause: err },
       );
     }
   }
 
-  throw new Error(`@telehood/crypto could not load ${PACKAGE_NAME}.`, { cause: esmFailure });
+  throw new Error(`@hoodgram/crypto could not load ${PACKAGE_NAME}.`, { cause: esmFailure });
 }
 
 /**

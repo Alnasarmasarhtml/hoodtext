@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {IActivation, IPerks} from "./interfaces/ITeleHood.sol";
+import {IActivation, IPerks} from "./interfaces/IHoodGram.sol";
 
 /**
  * @title Handles

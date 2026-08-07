@@ -38,7 +38,7 @@ export const wagmiConfig = createConfig({
     [anvil.id]: http(rpcUrlFor(anvil.id)),
   },
   ssr: true,
-  storage: createStorage({ storage: cookieStorage, key: 'telehood.wagmi' }),
+  storage: createStorage({ storage: cookieStorage, key: 'hoodgram.wagmi' }),
 });
 
 declare module 'wagmi' {

@@ -115,7 +115,7 @@ const uintString = (defaultValue: string) =>
 const EnvSchema = z.object({
   RELAY_PORT: z.coerce.number().int().min(0).max(65535).default(8787),
   RELAY_HOST: z.string().min(1).default('0.0.0.0'),
-  RELAY_DB_PATH: z.string().min(1).default('./data/telehood.db'),
+  RELAY_DB_PATH: z.string().min(1).default('./data/hoodgram.db'),
   RELAY_LOG_LEVEL: z.enum(LOG_LEVELS).default('info'),
   WEB_ORIGIN: z.string().min(1).default('http://localhost:3000'),
   RPC_URL: z.string().url().default('http://127.0.0.1:8545'),

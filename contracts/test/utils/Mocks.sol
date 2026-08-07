@@ -5,7 +5,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
-import {ICheckpointToken, IPriceSource} from "../../src/interfaces/ITeleHood.sol";
+import {ICheckpointToken, IPriceSource} from "../../src/interfaces/IHoodGram.sol";
 import {RevenueVault} from "../../src/RevenueVault.sol";
 
 /// @notice Callback a {HookToken} fires on its configured hook address after every credit.

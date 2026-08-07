@@ -127,7 +127,7 @@ export function AccessPage(): ReactNode {
             <Eyebrow rule>Access &amp; revenue</Eyebrow>
             <h1 className={s.title}>Pay $5 once. Get paid as a holder.</h1>
             <p className={s.lede}>
-              TeleHood charges exactly two prices: $5, once, for an account that exists
+              HoodGram charges exactly two prices: $5, once, for an account that exists
               forever, and $10 a month for a room, paid by whoever runs it. Messages are
               never charged. Half of every payment goes to whoever holds{' '}
               <span className={s.wordmark}>$THOOD</span> — no staking contract to enter,
@@ -184,7 +184,7 @@ export function AccessPage(): ReactNode {
             <Notice
               tone="warn"
               title="Wrong network"
-              body={`TeleHood is deployed on ${activeChain.name}. Switch to read your activation, quote a payment, or claim revenue.`}
+              body={`HoodGram is deployed on ${activeChain.name}. Switch to read your activation, quote a payment, or claim revenue.`}
               action={
                 <Button variant="primary" loading={switching} onClick={onSwitch}>
                   {`Switch to ${activeChain.name}`}

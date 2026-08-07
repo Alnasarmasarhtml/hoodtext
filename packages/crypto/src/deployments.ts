@@ -5,7 +5,7 @@
  * `contracts/deployments/<chainid>.json` and syncs the values here.
  */
 
-/** The nine TeleHood contracts, in deployment order. */
+/** The nine HoodGram contracts, in deployment order. */
 export interface Deployment {
   token: `0x${string}`;
   priceSource: `0x${string}`;
@@ -71,7 +71,7 @@ export function getDeployment(chainId: number): Deployment {
   if (deployment === undefined) {
     const known = Object.keys(DEPLOYMENTS).join(', ');
     throw new Error(
-      `@telehood/crypto has no deployment for chainId ${String(chainId)}. Known chains: ${known}.`,
+      `@hoodgram/crypto has no deployment for chainId ${String(chainId)}. Known chains: ${known}.`,
     );
   }
   return deployment;

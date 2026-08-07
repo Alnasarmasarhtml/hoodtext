@@ -1,4 +1,4 @@
-# TELEHOOD — Canonical Build Spec (v4 — $5 FOREVER + ROOM RENT)
+# HOODGRAM — Canonical Build Spec (v4 — $5 FOREVER + ROOM RENT)
 
 **This file is the single source of truth. Every agent conforms to the interfaces here exactly.
 Do not invent alternative names, signatures, routes, or design tokens. If something is missing,
@@ -17,11 +17,11 @@ choose the simplest option consistent with what's here and note it in your retur
 
 ## 0. Product
 
-**TeleHood** — encrypted messaging with every message anchored on Robinhood Chain. Token **$THOOD**.
+**HoodGram** — encrypted messaging with every message anchored on Robinhood Chain. Token **$THOOD**.
 
 | Price | What it buys |
 |---|---|
-| **$5, once** | Your account, forever. Also the spam wall: every account on TeleHood cost somebody five dollars, so there are no bot floods. Includes an @handle. |
+| **$5, once** | Your account, forever. Also the spam wall: every account on HoodGram cost somebody five dollars, so there are no bot floods. Includes an @handle. |
 | **$10 / month per room** | A room, paid by its admin. Members free. Anyone may pay a room's rent (paying grants no control). Lapse blocks *new messages only* — history, keys, membership and administration all survive, and paying again reopens the room exactly as it was. |
 | **$0 per message** | Relayed sends cost the user nothing (the relay batch-posts on chain from its own funded key). Self-posting is always available at ~1¢ gas. |
 
@@ -79,9 +79,9 @@ Local dev chain: `anvil` on `http://127.0.0.1:8545`, chainId 31337.
 
 ```
 contracts/                  src/ test/ script/
-packages/crypto/            @telehood/crypto — isomorphic TS
-apps/relay/                 @telehood/relay — Fastify + node:sqlite + indexer + WS + gasless send
-apps/web/                   @telehood/web — Next.js 15
+packages/crypto/            @hoodgram/crypto — isomorphic TS
+apps/relay/                 @hoodgram/relay — Fastify + node:sqlite + indexer + WS + gasless send
+apps/web/                   @hoodgram/web — Next.js 15
 infra/                      deploy scripts, fit-check, Makefile
 docs/                       orchestrator-owned
 ```
@@ -104,15 +104,15 @@ docs/                       orchestrator-owned
 `pragma solidity ^0.8.28;`. OZ `Ownable` (constructor takes `initialOwner`). Custom errors, never
 revert strings. Full NatSpec on every external function.
 
-Deploy order (`script/Deploy.s.sol`): `TeleHoodToken` → `ManualPriceSource` → `RevenueVault` →
+Deploy order (`script/Deploy.s.sol`): `HoodGramToken` → `ManualPriceSource` → `RevenueVault` →
 `Activation` → `GroupRegistry` → `KeyRegistry` → `Anchors` → `Perks` → `Handles`. Wiring:
 `vault.setNotifier(activation, true)`, `vault.setNotifier(groupRegistry, true)`,
 `anchors.setRelayer($RELAYER_ADDRESS, true)`, `vault.setExcluded(treasury/vault, true)`. Writes
 `./deployments/<chainid>.json`.
 
-### 4.1 `TeleHoodToken.sol` — ERC20 with historical balance checkpoints
+### 4.1 `HoodGramToken.sol` — ERC20 with historical balance checkpoints
 
-Name `TeleHood`, symbol `THOOD`, 18 decimals, `MAX_SUPPLY = 1_000_000_000e18` minted once to the
+Name `HoodGram`, symbol `THOOD`, 18 decimals, `MAX_SUPPLY = 1_000_000_000e18` minted once to the
 treasury. No tax, no blacklist, no owner, no pause. `balanceOfAt` / `totalSupplyAt` via
 `Checkpoints.Trace208` on raw balances (NEVER `ERC20Votes`); `FutureLookup()` on
 `timepoint >= block.number`. Unchanged from v3.
@@ -285,22 +285,22 @@ flash-buy-proof; handle validation and tier gates.
 
 ---
 
-## 5. `@telehood/crypto` — EXACT API
+## 5. `@hoodgram/crypto` — EXACT API
 
 Everything from v3 (identity derivation, sealed envelopes, view tags, groups, convo ids, buckets
 [256, 1024, 4096, 16384]) plus:
 
 ```ts
 // identity.ts — domain renamed
-export const IDENTITY_DOMAIN = { name: 'TeleHood', version: '1', chainId: 4663 } as const;
-export const IDENTITY_MESSAGE = { purpose: 'TeleHood identity key derivation. Signing this does not authorize any transaction.', version: 1n };
+export const IDENTITY_DOMAIN = { name: 'HoodGram', version: '1', chainId: 4663 } as const;
+export const IDENTITY_MESSAGE = { purpose: 'HoodGram identity key derivation. Signing this does not authorize any transaction.', version: 1n };
 
 // wire.ts — Plaintext extended
 export interface Plaintext { v: 1; t: number; kind: 'text' | 'system' | 'media' | 'react'; body: string; re?: `0x${string}` }
 // 'media' body = JSON {mime, name, bytes, ref, key}; 'react' body = JSON {target, emoji}; `re` = reply blobRef
 
 // sign.ts — relay drop signatures
-export const DROP_SIGNING_CONTEXT = 'telehood.drop.v1';
+export const DROP_SIGNING_CONTEXT = 'hoodgram.drop.v1';
 export interface SignableDrop { convoId: `0x${string}`; ephPub: `0x${string}`; blobRef: `0x${string}`; viewTag: number; size: number }
 export function encodeDropForSigning(drop: SignableDrop): Uint8Array;
 // utf8(context) || convoId(32) || ephPub(32) || blobRef(32) || viewTag(1) || size(4 LE)
@@ -322,7 +322,7 @@ tamper/size-hiding.
 
 ---
 
-## 6. `@telehood/relay` — EXACT API
+## 6. `@hoodgram/relay` — EXACT API
 
 Fastify on `:8787`, SQLite via `node:sqlite`. Everything from v3 plus the gasless send pipeline:
 
@@ -349,7 +349,7 @@ still works.
 
 ---
 
-## 7. `@telehood/web` — Next.js 15
+## 7. `@hoodgram/web` — Next.js 15
 
 Routes: `/` marketing · `/app` messenger · `/app/thread` · `/access` activation + handles + ladder +
 rooms + revenue claims.

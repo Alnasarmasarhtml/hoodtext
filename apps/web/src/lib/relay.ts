@@ -1,7 +1,7 @@
 import type { Address, Hex } from 'viem';
 
 /**
- * Typed client for `@telehood/relay` (SPEC §6).
+ * Typed client for `@hoodgram/relay` (SPEC §6).
  *
  * Every response is validated at the boundary — the relay is a separate
  * process that can be older, newer, or briefly wrong, and the UI must degrade

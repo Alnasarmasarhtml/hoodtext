@@ -11,7 +11,7 @@
  *   · Keyed by wallet address, so two accounts on one device never collide.
  *   · Wiped on disconnect.
  */
-import type { IdentityKeys } from '@telehood/crypto';
+import type { IdentityKeys } from '@hoodgram/crypto';
 import type { Address } from 'viem';
 
 import {

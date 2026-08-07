@@ -21,7 +21,7 @@ export const UNATTRIBUTED_CONVO_ID: Hex = `0x${'ff'.repeat(32)}`;
 /** Direction of a message relative to the connected wallet. */
 export type MessageDirection = 'in' | 'out';
 
-/** Every kind the wire format carries, mirrored from `@telehood/crypto`. */
+/** Every kind the wire format carries, mirrored from `@hoodgram/crypto`. */
 export type MessageKind = 'text' | 'system' | 'media' | 'react';
 
 /**
@@ -235,7 +235,7 @@ export function parseReactionPayload(body: string): ReactionPayload | null {
   return { target: target.toLowerCase() as Hex, emoji };
 }
 
-/** The JSON descriptor carried in a `media` body (`@telehood/crypto` shape). */
+/** The JSON descriptor carried in a `media` body (`@hoodgram/crypto` shape). */
 export interface MediaPayload {
   readonly mime: string;
   readonly name: string;

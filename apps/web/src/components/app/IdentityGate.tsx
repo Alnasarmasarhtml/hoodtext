@@ -89,7 +89,7 @@ function copyFor(status: IdentityStatus, isRotation: boolean): Copy {
         eyebrow: 'Step 1 of 3 · Connect',
         title: 'Connect a wallet to open the desk.',
         lede:
-          'TeleHood reads your activation and your key registration straight from the chain. Connecting signs nothing and moves nothing.',
+          'HoodGram reads your activation and your key registration straight from the chain. Connecting signs nothing and moves nothing.',
       };
     case 'wrong-network':
       return {
@@ -158,7 +158,7 @@ export function IdentityGate({ identity, className }: IdentityGateProps): ReactN
 
   const onConnect = useCallback((): void => {
     openSheet(
-      'TeleHood needs your address to read your activation and to derive your messaging keys. Connecting authorises nothing.',
+      'HoodGram needs your address to read your activation and to derive your messaging keys. Connecting authorises nothing.',
     );
   }, [openSheet]);
 

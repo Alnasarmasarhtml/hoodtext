@@ -29,7 +29,7 @@ interface ContractRow {
 
 /** All nine contracts (SPEC §4), in the order the money flows. */
 const CONTRACTS: readonly ContractRow[] = [
-  { key: 'token', label: 'TeleHoodToken', note: '$THOOD — balance checkpoints' },
+  { key: 'token', label: 'HoodGramToken', note: '$THOOD — balance checkpoints' },
   { key: 'priceSource', label: 'PriceSource', note: 'USD → $THOOD rate' },
   { key: 'activation', label: 'Activation', note: '$5, once, forever' },
   { key: 'groupRegistry', label: 'GroupRegistry', note: 'rooms · $10/month rent' },
@@ -55,7 +55,7 @@ export function SiteFooter(): ReactNode {
         <div className={s.top}>
           <div className={s.brand}>
             <LogoMark size={15} className={s.mark} />
-            <span className={s.wordmark}>TELEHOOD</span>
+            <span className={s.wordmark}>HOODGRAM</span>
             <p className={s.claim}>
               Only the recipient can read your messages. Every one of them lands on
               Robinhood Chain with a permanent, verifiable receipt.
@@ -148,7 +148,7 @@ export function SiteFooter(): ReactNode {
 
         <div className={s.base}>
           <span className={s.baseText}>
-            TeleHood is software. Anchors are public and permanent.
+            HoodGram is software. Anchors are public and permanent.
           </span>
           <span className={s.baseText}>
             $5 once · rooms $10/month · messages free · 50% to holders

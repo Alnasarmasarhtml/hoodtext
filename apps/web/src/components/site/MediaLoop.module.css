@@ -1,0 +1,12 @@
+/* The loop always fills whatever positioned box it is given. Consumers own the
+   box (and any veil above it); this owns only "cover the box, never interact". */
+
+.media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}

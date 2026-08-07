@@ -2,8 +2,8 @@
  * The gasless send path: verification order, queueing, batching, and the HTTP
  * surface — all driven through fakes, no chain required.
  */
-import { deriveIdentity, seal, signDrop } from '@telehood/crypto';
-import type { IdentityKeys, SignableDrop } from '@telehood/crypto';
+import { deriveIdentity, seal, signDrop } from '@hoodgram/crypto';
+import type { IdentityKeys, SignableDrop } from '@hoodgram/crypto';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { MAX_BATCH, SendPipeline } from '../sender.js';

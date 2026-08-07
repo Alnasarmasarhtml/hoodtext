@@ -1,5 +1,5 @@
 /**
- * HTTP + websocket surface of `@telehood/relay` (SPEC §6).
+ * HTTP + websocket surface of `@hoodgram/relay` (SPEC §6).
  *
  * `buildServer()` returns a fully wired, *unlistening* Fastify instance so tests
  * can drive it with `.inject()` — no port, no chain.

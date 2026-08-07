@@ -15,10 +15,10 @@ const LIBSODIUM_CJS = createRequire(
 ).resolve('libsodium-wrappers-sumo');
 
 /**
- * TeleHood — Next.js 15 (App Router).
+ * HoodGram — Next.js 15 (App Router).
  *
  * The App Router is the only router in this app: routing lives in `src/app`.
- * `@telehood/crypto` is a source-only workspace package (its `main` points at
+ * `@hoodgram/crypto` is a source-only workspace package (its `main` points at
  * TypeScript), so it must be transpiled by Next rather than consumed as a
  * pre-built dependency.
  *
@@ -36,7 +36,7 @@ const BASE_PATH = process.env.NEXT_BASE_PATH ?? '';
 
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@telehood/crypto'],
+  transpilePackages: ['@hoodgram/crypto'],
   poweredByHeader: false,
   ...(EXPORTING
     ? {
@@ -64,7 +64,7 @@ const nextConfig = {
    * `wagmi/connectors` is a barrel: importing `injected` from it also drags in every other
    * connector, including Coinbase's, which reaches `@coinbase/cdp-sdk` and from there the `@x402/*`
    * payment packages. Those are OPTIONAL peers of the CDP SDK — they are not installed, and
-   * TeleHood never touches the x402 payment path (we configure `injected()` only, see
+   * HoodGram never touches the x402 payment path (we configure `injected()` only, see
    * src/providers/config.ts).
    *
    * Aliasing them to `false` resolves them to an empty module so the bundle builds. If a connector

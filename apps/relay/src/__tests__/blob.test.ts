@@ -43,7 +43,7 @@ describe('blob store', () => {
   });
 
   it('derives the ref from the bytes and ignores anything the client supplies', async () => {
-    const payload = Buffer.from('telehood envelope', 'utf8');
+    const payload = Buffer.from('hoodgram envelope', 'utf8');
     const lie = `0x${'ff'.repeat(32)}`;
 
     const post = await app.inject({

@@ -10,7 +10,7 @@
  * No dependency: the `idb` package is not installed and this is ~150 lines.
  */
 
-const DB_NAME = 'telehood';
+const DB_NAME = 'hoodgram';
 /** v2 added the room stores (`rooms`, `roomKeys`). */
 const DB_VERSION = 2;
 
@@ -32,7 +32,7 @@ export const INDEX_BY_OWNER = 'by-owner';
 export class StorageUnavailableError extends Error {
   constructor() {
     super(
-      'This browser has no usable IndexedDB, so TeleHood cannot cache your identity key. ' +
+      'This browser has no usable IndexedDB, so HoodGram cannot cache your identity key. ' +
         'Messaging still works, but you will be asked to sign again on every visit.',
     );
     this.name = 'StorageUnavailableError';
@@ -96,7 +96,7 @@ function openDatabase(): Promise<IDBDatabase> {
     };
 
     request.onblocked = (): void => {
-      reject(new Error('Another TeleHood tab is holding an older database version open.'));
+      reject(new Error('Another HoodGram tab is holding an older database version open.'));
     };
   });
 }

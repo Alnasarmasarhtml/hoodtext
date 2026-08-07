@@ -260,7 +260,7 @@ export async function resolveRecipient(
       ok: false,
       failure: {
         reason: 'chain',
-        message: 'TeleHood is not configured for this chain, so handles cannot be resolved.',
+        message: 'HoodGram is not configured for this chain, so handles cannot be resolved.',
       },
     };
   }

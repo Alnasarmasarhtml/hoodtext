@@ -33,7 +33,7 @@ import {
   perksAbi,
   PerkTier,
   revenueVaultAbi,
-  teleHoodTokenAbi,
+  hoodGramTokenAbi,
   CONTRACT_CONSTANTS,
   type PerkTierId,
   isPerkTierId,
@@ -408,20 +408,20 @@ export function useTokenState(
 
   const { data, isLoading } = useReadContracts({
     contracts: [
-      { address: token, abi: teleHoodTokenAbi, functionName: 'balanceOf', args: [account] },
+      { address: token, abi: hoodGramTokenAbi, functionName: 'balanceOf', args: [account] },
       {
         address: token,
-        abi: teleHoodTokenAbi,
+        abi: hoodGramTokenAbi,
         functionName: 'allowance',
         args: [account, activation],
       },
       {
         address: token,
-        abi: teleHoodTokenAbi,
+        abi: hoodGramTokenAbi,
         functionName: 'allowance',
         args: [account, registry],
       },
-      { address: token, abi: teleHoodTokenAbi, functionName: 'totalSupply' },
+      { address: token, abi: hoodGramTokenAbi, functionName: 'totalSupply' },
     ],
     query: { enabled, refetchInterval: 30_000 },
   });
@@ -876,7 +876,7 @@ export function useEpochs(
     for (const epoch of raw) {
       out.push({
         address: token,
-        abi: teleHoodTokenAbi,
+        abi: hoodGramTokenAbi,
         functionName: 'balanceOfAt',
         args: [user, epoch.snapshot],
       });

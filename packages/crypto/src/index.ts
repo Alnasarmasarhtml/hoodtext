@@ -1,5 +1,5 @@
 /**
- * `@telehood/crypto` — isomorphic end-to-end encryption primitives for TeleHood.
+ * `@hoodgram/crypto` — isomorphic end-to-end encryption primitives for HoodGram.
  *
  * Everything here runs unchanged in Node and in the browser. libsodium initialisation is
  * handled internally; every async export waits for it before touching the WASM module.

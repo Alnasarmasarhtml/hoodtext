@@ -1,41 +1,14 @@
 /* Page rhythm for `/`.
-   The sections themselves live in `@/components/site`; this file owns only the
-   bands they sit in — a full-bleed hairline between each, and the vertical
-   measure that makes the page read like a broadsheet rather than a stack of
-   cards. */
+   Every section owns its own vertical measure and its own full-bleed media, and
+   the crawl bands carry the hairlines that used to separate them — so this file
+   is down to one job: no horizontal escape, ever. */
 
 .page {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  /* The one thing every child inherits: no horizontal escape. */
+  /* The one thing every child inherits. Full-bleed video and a marquee track
+     are both wider than the viewport by construction; this is what guarantees
+     neither can turn into a sideways scrollbar. */
   overflow-x: clip;
-}
-
-/* A band is a full-bleed hairline plus its vertical measure. `scroll-margin`
-   keeps in-page anchors clear of the sticky header on a native jump. */
-.band,
-.bandTight {
-  min-width: 0;
-  border-top: var(--hair) solid var(--line);
-  scroll-margin-top: calc(var(--header-h) + var(--sp-4));
-}
-
-.band {
-  padding-block: clamp(var(--sp-7), 6.2vw, var(--sp-9));
-}
-
-/* Readouts sit closer to their neighbours — they are a strip, not a chapter. */
-.bandTight {
-  padding-block: clamp(var(--sp-6), 4.4vw, var(--sp-8));
-}
-
-@media (max-width: 620px) {
-  .band {
-    padding-block: var(--sp-7);
-  }
-
-  .bandTight {
-    padding-block: var(--sp-6);
-  }
 }

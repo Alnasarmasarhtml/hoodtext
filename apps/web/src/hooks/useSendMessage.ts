@@ -9,7 +9,7 @@ import {
   signDrop,
   type IdentityKeys,
   type SealedDrop,
-} from '@telehood/crypto';
+} from '@hoodgram/crypto';
 import { useCallback, useEffect, useState } from 'react';
 import { hexToBytes, parseEventLogs, type Address, type Hex } from 'viem';
 import { useConfig, useWriteContract } from 'wagmi';
@@ -305,7 +305,7 @@ export function useSendMessage({ owner, keys }: UseSendMessageParams): UseSendMe
         return fail(null, 'Unlock your identity before sending.');
       }
       if (contracts === null) {
-        return fail(null, 'TeleHood is not configured for this chain, so there is nowhere to anchor.');
+        return fail(null, 'HoodGram is not configured for this chain, so there is nowhere to anchor.');
       }
       if (encoder.encode(body).length > MAX_BODY_BYTES) {
         return fail(null, 'That message is larger than the biggest padded envelope (16 KB).');

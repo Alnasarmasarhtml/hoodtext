@@ -37,7 +37,7 @@ const HANDWRITTEN = join(WEB_LIB_DIR, 'abi.ts');
  * @type {readonly { file: string, name: string, export: string }[]}
  */
 const REQUIRED = [
-  { file: 'TeleHoodToken', name: 'TeleHoodToken', export: 'teleHoodTokenAbi' },
+  { file: 'HoodGramToken', name: 'HoodGramToken', export: 'hoodGramTokenAbi' },
   { file: 'ManualPriceSource', name: 'ManualPriceSource', export: 'manualPriceSourceAbi' },
   { file: 'RevenueVault', name: 'RevenueVault', export: 'revenueVaultAbi' },
   { file: 'Activation', name: 'Activation', export: 'activationAbi' },
@@ -193,7 +193,7 @@ function parseArgs(argv) {
 function main() {
   const { check } = parseArgs(process.argv.slice(2));
 
-  banner('TeleHood — ABI sync');
+  banner('HoodGram — ABI sync');
   note(`from  contracts/out`);
   note(`to    apps/web/src/lib/abi.generated.ts`);
   blank();

@@ -3,11 +3,11 @@ pragma solidity ^0.8.28;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-import {IActivation, IRooms} from "./interfaces/ITeleHood.sol";
+import {IActivation, IRooms} from "./interfaces/IHoodGram.sol";
 
 /**
  * @title Anchors
- * @notice The message log. Every TeleHood message is anchored here as a fixed-shape drop.
+ * @notice The message log. Every HoodGram message is anchored here as a fixed-shape drop.
  *
  * @dev **Not payable. There is no per-message fee, ever.** Gating:
  *

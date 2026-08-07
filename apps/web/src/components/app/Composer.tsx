@@ -14,7 +14,7 @@
  * an observer learns is which of four classes it fell into — nothing finer.
  */
 
-import { BUCKETS } from '@telehood/crypto';
+import { BUCKETS } from '@hoodgram/crypto';
 import {
   useCallback,
   useEffect,

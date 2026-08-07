@@ -20,7 +20,7 @@ describe('loadConfig', () => {
   });
 
   it('resolves a relative db path under apps/relay and keeps :memory: literal', () => {
-    expect(loadConfig({}).dbPath.replace(/\\/g, '/')).toMatch(/apps\/relay\/data\/telehood\.db$/);
+    expect(loadConfig({}).dbPath.replace(/\\/g, '/')).toMatch(/apps\/relay\/data\/hoodgram\.db$/);
     expect(loadConfig({ RELAY_DB_PATH: ':memory:' }).dbPath).toBe(':memory:');
     expect(loadConfig({ RELAY_DB_PATH: '/tmp/relay.db' }).dbPath).toBe('/tmp/relay.db');
   });
@@ -40,14 +40,14 @@ describe('loadConfig', () => {
       CHAIN_ID: '4663',
       ANCHORS_ADDRESS: '0xAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa',
       START_BLOCK: '123456',
-      WEB_ORIGIN: 'https://telehood.xyz, http://localhost:3000',
+      WEB_ORIGIN: 'https://hoodgram.xyz, http://localhost:3000',
     });
 
     expect(config.port).toBe(9_001);
     expect(config.chainId).toBe(4_663);
     expect(config.anchorsAddress).toBe('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
     expect(config.startBlock).toBe(123_456n);
-    expect(config.webOrigins).toEqual(['https://telehood.xyz', 'http://localhost:3000']);
+    expect(config.webOrigins).toEqual(['https://hoodgram.xyz', 'http://localhost:3000']);
   });
 
   it('understands every spelling of the indexer switch', () => {

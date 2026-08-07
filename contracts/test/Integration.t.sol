@@ -7,7 +7,7 @@ import {GroupRegistry} from "../src/GroupRegistry.sol";
 
 /**
  * @title IntegrationTest
- * @notice The full TeleHood lifecycle against the production topology:
+ * @notice The full HoodGram lifecycle against the production topology:
  *
  *         activate ($5, once) -> claim a handle -> create a room ($10/month) -> post 1:1 and room
  *         drops, self and relayed -> the room lapses and posting is blocked while administration

@@ -1,4 +1,4 @@
-# TeleHood
+# HoodGram
 
 Encrypted messaging with every message anchored on Robinhood Chain. Token: **$THOOD**.
 
@@ -102,7 +102,7 @@ held, not visited. Full model and revenue math: [`docs/ECONOMICS.md`](docs/ECONO
    ┌───────────────────────────────┐   ┌────────────────────────────────────────┐
    │ apps/relay — Fastify :8787    │   │ contracts/                             │
    │                               │   │                                        │
-   │  POST /v1/blob  content-      │   │  TeleHoodToken     ERC20 + balance     │
+   │  POST /v1/blob  content-      │   │  HoodGramToken     ERC20 + balance     │
    │                 addressed     │   │                    checkpoints         │
    │  POST /v1/send  verify sig +  │   │  ManualPriceSource thoodPerUsd (18dp)  │
    │       activation + room rent, │   │  Activation        $5 once, forever    │
@@ -111,7 +111,7 @@ held, not visited. Full model and revenue math: [`docs/ECONOMICS.md`](docs/ECONO
    │  GET  /v1/health  WS /stream  │   │                    epochs, pro-rata    │
    │                               │   │  KeyRegistry       pubkeys, free       │
    │  node:sqlite (WAL)            │   │  Anchors           the message log     │
-   │  data/telehood.db             │   │  Perks             holder ladder       │
+   │  data/hoodgram.db             │   │  Perks             holder ladder       │
    │                               │   │  Handles           @names              │
    │  indexer ─ viem watchContract │◄──┤                                        │
    │  Event(Anchors.Dropped)       │   │  no fee on post(), no staking anywhere │
@@ -180,7 +180,7 @@ Then four terminals, in order:
 make chain            # 1 — anvil --chain-id 31337 --block-time 1
 make deploy-local     # 2 — deploys all nine contracts, verifies bytecode,
                       #     rewrites packages/crypto/src/deployments.ts (31337 entry)
-make dev              # 3+4 — @telehood/relay on :8787 and @telehood/web on :3000
+make dev              # 3+4 — @hoodgram/relay on :8787 and @hoodgram/web on :3000
 ```
 
 For gasless send locally, set in `.env` before starting the relay: `RELAYER_PRIVATE_KEY` (anvil
@@ -201,15 +201,15 @@ make test             # forge test (142) + crypto vitest (176) + relay vitest (9
 
 ```
 contracts/                Foundry. Nine contracts + full test suite.
-  src/                      TeleHoodToken, ManualPriceSource, RevenueVault, Activation,
+  src/                      HoodGramToken, ManualPriceSource, RevenueVault, Activation,
                             GroupRegistry, KeyRegistry, Anchors, Perks, Handles
   script/Deploy.s.sol       deploy + wire + deployments/<chainid>.json
-packages/crypto/          @telehood/crypto — isomorphic TypeScript
+packages/crypto/          @hoodgram/crypto — isomorphic TypeScript
   src/                      identity, envelope, convo, group, media, sign, deployments
-apps/relay/               @telehood/relay — Fastify 5 + node:sqlite + viem indexer + WS
+apps/relay/               @hoodgram/relay — Fastify 5 + node:sqlite + viem indexer + WS
   src/                      server, db, indexer, stream, sender (gasless pipeline), config
-  data/telehood.db          created on first run (WAL); gitignored
-apps/web/                 @telehood/web — Next.js 15 App Router, React 19
+  data/hoodgram.db          created on first run (WAL); gitignored
+apps/web/                 @hoodgram/web — Next.js 15 App Router, React 19
 infra/scripts/            deploy-local.mjs, sync-abis.mjs, check-fit.mjs
 docs/ECONOMICS.md         the money, measured
 SPEC.md                   the canonical build spec (v4)
@@ -222,4 +222,4 @@ SPEC.md                   the canonical build spec (v4)
 | `make test` | every test suite in the repo |
 | `make chain` | local anvil |
 | `make deploy-local` | deploy + wire + write addresses back into the repo |
-| `make dev` | run `@telehood/relay` and `@telehood/web` together |
+| `make dev` | run `@hoodgram/relay` and `@hoodgram/web` together |

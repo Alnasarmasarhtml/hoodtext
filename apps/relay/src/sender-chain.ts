@@ -18,7 +18,7 @@ import {
   type Transport,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import type { SignableDrop } from '@telehood/crypto';
+import type { SignableDrop } from '@hoodgram/crypto';
 import { POST_BATCH_ABI, RELAY_READS_ABI } from './abi.js';
 import type { RelayConfig } from './config.js';
 import type { BatchPoster, ChainGate } from './sender.js';

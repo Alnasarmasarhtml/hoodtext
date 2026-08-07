@@ -22,7 +22,7 @@ import {
 const PUBLIC_KEY_BYTES = 32;
 
 /** Domain separator so a group id can never collide with a conversation id. */
-const GROUP_ID_DOMAIN = 'TeleHood/groupId/v1';
+const GROUP_ID_DOMAIN = 'HoodGram/groupId/v1';
 
 /**
  * Derives the shared conversation id for two participants.

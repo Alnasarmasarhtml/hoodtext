@@ -4,7 +4,9 @@
   z-index: var(--z-header);
   min-width: 0;
   background-color: var(--void);
-  border-bottom: 1px solid var(--line);
+  /* Bone, not the usual 7% hairline — the bar's contour matches the white of
+     the logo (client call, 2026-08-07). */
+  border-bottom: 1px solid var(--bone);
 }
 
 .bar {

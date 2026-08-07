@@ -62,9 +62,9 @@ export function SiteHeader(): ReactNode {
   return (
     <header className={s.header}>
       <div className={s.bar}>
-        <Link href="/" className={s.brand} aria-label="TeleHood — home">
+        <Link href="/" className={s.brand} aria-label="HoodGram — home">
           <LogoMark size={17} className={s.mark} />
-          <span className={s.wordmark}>TeleHood</span>
+          <span className={s.wordmark}>HoodGram</span>
         </Link>
 
         <span className={s.chainChip}>

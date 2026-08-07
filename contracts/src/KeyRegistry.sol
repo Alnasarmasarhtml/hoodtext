@@ -3,7 +3,7 @@ pragma solidity ^0.8.28;
 
 /**
  * @title KeyRegistry
- * @notice Publishes the public halves of a user's TeleHood identity: an X25519 key for encryption
+ * @notice Publishes the public halves of a user's HoodGram identity: an X25519 key for encryption
  *         and an Ed25519 key for signing.
  *
  * @dev Deliberately free and ungated. You must be able to *receive* messages before you have ever

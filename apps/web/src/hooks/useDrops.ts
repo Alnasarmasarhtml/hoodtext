@@ -1,6 +1,6 @@
 'use client';
 
-import type { IdentityKeys } from '@telehood/crypto';
+import type { IdentityKeys } from '@hoodgram/crypto';
 import { useCallback, useEffect } from 'react';
 import type { Address, Hex } from 'viem';
 import { useConfig } from 'wagmi';

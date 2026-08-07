@@ -1,6 +1,6 @@
 'use client';
 
-import { convoIdFor } from '@telehood/crypto';
+import { convoIdFor } from '@hoodgram/crypto';
 import { useCallback, useMemo, useState } from 'react';
 import { hexToBytes, type Address, type Hex } from 'viem';
 import { useConfig } from 'wagmi';
@@ -212,7 +212,7 @@ export function useStartConversation({
       }
       if (contracts === null && !isDemoActive()) {
         setStatus('error');
-        setError('TeleHood is not configured for this chain, so the key registry cannot be read.');
+        setError('HoodGram is not configured for this chain, so the key registry cannot be read.');
         return null;
       }
 
@@ -251,7 +251,7 @@ export function useStartConversation({
       }
       if (contracts === null) {
         setStatus('error');
-        setError('TeleHood is not configured for this chain, so the key registry cannot be read.');
+        setError('HoodGram is not configured for this chain, so the key registry cannot be read.');
         return null;
       }
 
@@ -268,7 +268,7 @@ export function useStartConversation({
         if (peerPubHex.toLowerCase() === ZERO_KEY) {
           setStatus('error');
           setError(
-            'That account has not registered messaging keys yet, so nothing can be encrypted to it. Registering is free — ask them to open TeleHood once.',
+            'That account has not registered messaging keys yet, so nothing can be encrypted to it. Registering is free — ask them to open HoodGram once.',
           );
           return null;
         }

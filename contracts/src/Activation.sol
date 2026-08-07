@@ -7,7 +7,7 @@ import {IERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/IERC2
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
-import {IActivation, IPriceSource, IRevenueVault} from "./interfaces/ITeleHood.sol";
+import {IActivation, IPriceSource, IRevenueVault} from "./interfaces/IHoodGram.sol";
 
 /**
  * @title Activation
@@ -18,7 +18,7 @@ import {IActivation, IPriceSource, IRevenueVault} from "./interfaces/ITeleHood.s
  *      1. **One-time, permanent.** There is no expiry, no renewal and nothing to maintain.
  *         `isActivated` flips to true exactly once per address and never flips back.
  *
- *      2. **The spam wall IS the price.** Every account on TeleHood cost somebody five dollars,
+ *      2. **The spam wall IS the price.** Every account on HoodGram cost somebody five dollars,
  *         which is why there are no bot floods. The fee is deliberately small enough to be paid
  *         without thinking and large enough that ten thousand spam accounts are not.
  *

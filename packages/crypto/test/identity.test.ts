@@ -16,7 +16,7 @@ function toHex(bytes: Uint8Array): string {
 
 describe('identity constants', () => {
   it('pins the EIP-712 domain', () => {
-    expect(IDENTITY_DOMAIN).toEqual({ name: 'TeleHood', version: '1', chainId: 4663 });
+    expect(IDENTITY_DOMAIN).toEqual({ name: 'HoodGram', version: '1', chainId: 4663 });
   });
 
   it('pins the EIP-712 types', () => {
@@ -30,7 +30,7 @@ describe('identity constants', () => {
 
   it('pins the message the user signs', () => {
     expect(IDENTITY_MESSAGE.purpose).toBe(
-      'TeleHood identity key derivation. Signing this does not authorize any transaction.',
+      'HoodGram identity key derivation. Signing this does not authorize any transaction.',
     );
     expect(IDENTITY_MESSAGE.version).toBe(1n);
   });

@@ -32,8 +32,8 @@ import {
   openFromGroup,
   scanMatches,
   unwrapGroupKey,
-} from '@telehood/crypto';
-import type { IdentityKeys, Plaintext } from '@telehood/crypto';
+} from '@hoodgram/crypto';
+import type { IdentityKeys, Plaintext } from '@hoodgram/crypto';
 import { hexToBytes, sha256, type Address, type Hex } from 'viem';
 import { create } from 'zustand';
 

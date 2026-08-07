@@ -1,0 +1,97 @@
+/* The wire band. Black on bone — a printed strip of record between the dark
+   sections — with hairline rules, a static "WIRE" cap on the left, and a
+   constant-speed crawl travelling leftward behind it. */
+
+.band {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bone);
+  color: #0b0c0d;
+  border-top: var(--hair) solid rgba(8, 9, 10, 0.35);
+  border-bottom: var(--hair) solid rgba(8, 9, 10, 0.35);
+}
+
+.viewport {
+  width: 100%;
+  overflow: hidden;
+}
+
+.crawl {
+  display: flex;
+  width: max-content;
+  animation: crawl var(--crawl-seconds, 60s) linear infinite;
+  will-change: transform;
+}
+
+/* 0 → -50% moves the content leftward, so every headline enters from the right
+   and is read from its first word. The two tracks are identical, so the restart
+   frame matches the final frame exactly. */
+@keyframes crawl {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  flex: none;
+  height: 46px;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: 14px 30px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: var(--tr-eyebrow);
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ticker separators are one of the few permitted green surfaces. */
+.square {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  background-color: var(--green);
+}
+
+.cap {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 18px 16px;
+  background-color: var(--bone);
+  border-right: var(--hair) solid rgba(8, 9, 10, 0.35);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(8, 9, 10, 0.55);
+}
+
+@media (max-width: 640px) {
+  .cap {
+    display: none;
+  }
+}
+
+/* The global reduced-motion rule already collapses the animation; this makes the
+   intent explicit rather than incidental. */
+@media (prefers-reduced-motion: reduce) {
+  .crawl {
+    animation: none;
+  }
+}

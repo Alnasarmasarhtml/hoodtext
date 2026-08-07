@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * deploy-local.mjs — deploy the TeleHood contract set to a local anvil node and
+ * deploy-local.mjs — deploy the HoodGram contract set to a local anvil node and
  * write the resulting addresses back into `packages/crypto/src/deployments.ts`.
  *
  *   node infra/scripts/deploy-local.mjs [options]
@@ -36,13 +36,13 @@ const ANVIL_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f
 const ANVIL_ADDRESS = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
 
 /**
- * The nine addresses of a TeleHood deployment, in the order they are deployed.
+ * The nine addresses of a HoodGram deployment, in the order they are deployed.
  * The key is the field name in `Deployment` (SPEC 5); the value is the Solidity
  * contract name, which is how the broadcast artifact identifies it.
  * @type {readonly [string, string][]}
  */
 const CONTRACTS = [
-  ['token', 'TeleHoodToken'],
+  ['token', 'HoodGramToken'],
   ['priceSource', 'ManualPriceSource'],
   ['revenueVault', 'RevenueVault'],
   ['activation', 'Activation'],
@@ -535,7 +535,7 @@ export function getDeployment(chainId: number): Deployment {
   if (deployment === undefined) {
     const known = Object.keys(DEPLOYMENTS).join(', ');
     throw new Error(
-      \`TeleHood is not deployed on chain \${chainId}. Known chains: \${known}.\`,
+      \`HoodGram is not deployed on chain \${chainId}. Known chains: \${known}.\`,
     );
   }
   return deployment;
@@ -634,7 +634,7 @@ async function main() {
   }
   const treasury = toChecksumAddress(treasuryRaw);
 
-  banner('TeleHood — local deploy');
+  banner('HoodGram — local deploy');
   note(`rpc       ${rpcUrl}`);
   note(`treasury  ${treasury}`);
   note(`deployer  ${privateKey === ANVIL_KEY ? `${ANVIL_ADDRESS} (anvil #0)` : 'from DEPLOYER_PRIVATE_KEY'}`);

@@ -15,7 +15,7 @@
  * self-posting via `Anchors.post` always remains open to every activated account.
  */
 
-import { verifyDrop, type SignableDrop } from '@telehood/crypto';
+import { verifyDrop, type SignableDrop } from '@hoodgram/crypto';
 import { hexToBytes } from 'viem';
 import type { FastifyBaseLogger } from 'fastify';
 

@@ -513,7 +513,7 @@ function report(aggregate, widths, maxRows) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
 
-  banner('TeleHood — fit check');
+  banner('HoodGram — fit check');
   note(`url     ${options.url}`);
   note(`widths  ${options.widths.join(', ')} px`);
   note(`rules   rect.right <= innerWidth+${TOLERANCE} · rect.left >= -${TOLERANCE} · rect.right <= offsetParent.right+${TOLERANCE}`);

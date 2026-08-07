@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import s from './Logo.module.css';
 
 /**
- * The TeleHood mark.
+ * The HoodGram mark.
  *
  * A block cut with the same 6px corner notch that shapes every button and panel on this site, taken
  * twice — top-right and bottom-left — so it reads as a sealed page. Two bars are knocked out of it:
@@ -60,7 +60,7 @@ export function Logo({ size = 18, markOnly = false, className }: LogoProps): Rea
       <LogoMark size={size} className={s.mark} />
       {!markOnly && (
         <span className={s.wordmark} style={{ fontSize: `${size * 0.95}px` }}>
-          TELEHOOD
+          HOODGRAM
         </span>
       )}
     </span>

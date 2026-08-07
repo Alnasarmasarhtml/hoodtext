@@ -1,5 +1,5 @@
 /**
- * DEMO MODE — a fully navigable, simulated TeleHood.
+ * DEMO MODE — a fully navigable, simulated HoodGram.
  *
  * The deployed site targets a chain the contracts are not on yet, and a visitor
  * without a wallet could otherwise see nothing past the connect gate. Demo mode
@@ -17,7 +17,7 @@
 
 /* ────────────────────────────────────────────────────────────── the switch ── */
 
-const STORAGE_KEY = 'telehood.demo';
+const STORAGE_KEY = 'hoodgram.demo';
 
 /** Query parameter that switches demo mode on: `?demo=1`. */
 export const DEMO_PARAM = 'demo';

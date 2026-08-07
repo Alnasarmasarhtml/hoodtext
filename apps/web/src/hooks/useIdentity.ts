@@ -6,7 +6,7 @@ import {
   IDENTITY_TYPES,
   deriveIdentity,
   type IdentityKeys,
-} from '@telehood/crypto';
+} from '@hoodgram/crypto';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { bytesToHex, type Address, type Hex } from 'viem';
 import { useAccount, useAccountEffect, useConfig, useReadContract, useSignTypedData, useWriteContract } from 'wagmi';
@@ -73,7 +73,7 @@ type Phase = 'loading' | 'idle' | 'unlocking' | 'registering';
 /**
  * The one-time identity ceremony (SPEC §7.3).
  *
- * The signature is over the fixed EIP-712 payload from `@telehood/crypto`, so
+ * The signature is over the fixed EIP-712 payload from `@hoodgram/crypto`, so
  * the derivation is deterministic across devices — the same wallet always
  * reproduces the same messaging keys, and nothing secret is ever transmitted.
  *

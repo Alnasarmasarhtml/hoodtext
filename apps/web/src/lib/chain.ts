@@ -123,7 +123,7 @@ export function explorerBlockUrl(
 /**
  * Deployed contract set for one chain. Field names mirror the `Deployment`
  * interface in SPEC §5 exactly, so this can delegate to
- * `@telehood/crypto`'s `DEPLOYMENTS` once that package ships without any
+ * `@hoodgram/crypto`'s `DEPLOYMENTS` once that package ships without any
  * call-site changes.
  */
 export interface ContractAddresses {
@@ -189,7 +189,7 @@ export class MissingDeploymentError extends Error {
   constructor(chainId: number, missing: readonly ContractName[]) {
     const vars = missing.map((name) => ADDRESS_ENV[name]).join(', ');
     super(
-      `TeleHood is not configured for chain ${chainId}. ` +
+      `HoodGram is not configured for chain ${chainId}. ` +
         `Deploy the contracts (\`pnpm deploy:local\`) and set: ${vars}.`,
     );
     this.name = 'MissingDeploymentError';

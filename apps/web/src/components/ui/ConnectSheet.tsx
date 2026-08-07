@@ -153,8 +153,8 @@ export function ConnectSheet(): ReactNode {
               <span className={s.reason}>
                 {reason ??
                   (isConnected
-                    ? 'Your keys stay in your wallet. TeleHood never sees them.'
-                    : 'TeleHood reads your subscription and holdings from the chain. Connecting does not authorise any transaction.')}
+                    ? 'Your keys stay in your wallet. HoodGram never sees them.'
+                    : 'HoodGram reads your subscription and holdings from the chain. Connecting does not authorise any transaction.')}
               </span>
             </div>
             <button
@@ -201,7 +201,7 @@ export function ConnectSheet(): ReactNode {
                 {wrongNetwork && (
                   <>
                     <p className={s.note}>
-                      TeleHood is deployed on {activeChain.name}. Switch networks to read
+                      HoodGram is deployed on {activeChain.name}. Switch networks to read
                       your subscription and post messages.
                     </p>
                     <Button
@@ -251,7 +251,7 @@ export function ConnectSheet(): ReactNode {
               <div className={s.empty}>
                 <span className={s.emptyTitle}>No wallet detected</span>
                 <p className={s.note}>
-                  TeleHood connects to any EIP-1193 browser wallet. Install one, then
+                  HoodGram connects to any EIP-1193 browser wallet. Install one, then
                   reopen this sheet — nothing else is needed to read the chain.
                 </p>
                 <div className={s.links}>

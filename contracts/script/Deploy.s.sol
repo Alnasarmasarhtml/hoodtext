@@ -4,7 +4,7 @@ pragma solidity ^0.8.28;
 import {Script} from "forge-std/Script.sol";
 import {console2} from "forge-std/console2.sol";
 
-import {TeleHoodToken} from "../src/TeleHoodToken.sol";
+import {HoodGramToken} from "../src/HoodGramToken.sol";
 import {ManualPriceSource} from "../src/ManualPriceSource.sol";
 import {RevenueVault} from "../src/RevenueVault.sol";
 import {Activation} from "../src/Activation.sol";
@@ -16,10 +16,10 @@ import {Handles} from "../src/Handles.sol";
 
 /**
  * @title Deploy
- * @notice Deploys and fully wires the TeleHood protocol, then writes every address to
+ * @notice Deploys and fully wires the HoodGram protocol, then writes every address to
  *         `./deployments/<chainid>.json`.
  *
- * @dev Order: TeleHoodToken -> ManualPriceSource -> RevenueVault -> Activation -> GroupRegistry ->
+ * @dev Order: HoodGramToken -> ManualPriceSource -> RevenueVault -> Activation -> GroupRegistry ->
  *      KeyRegistry -> Anchors -> Perks -> Handles. Then the cross-wiring, the revenue exclusions
  *      and the relayer approval.
  *
@@ -91,7 +91,7 @@ contract Deploy is Script {
     /// @dev Deploys every contract and wires the protocol together.
     function _deployAndWire(Config memory c) internal returns (Deployment memory d) {
         // 1. Token — mints the whole supply to the treasury. No owner, no mint path afterwards.
-        d.token = address(new TeleHoodToken(c.treasury));
+        d.token = address(new HoodGramToken(c.treasury));
 
         // 2. Price source — USD to $THOOD conversion for activation and rent.
         d.priceSource = address(new ManualPriceSource(c.deployer, c.rate));
@@ -153,7 +153,7 @@ contract Deploy is Script {
             vm.createDir(dir, true);
         }
 
-        string memory key = "telehood-deployment";
+        string memory key = "hoodgram-deployment";
         vm.serializeUint(key, "chainId", block.chainid);
         vm.serializeAddress(key, "token", d.token);
         vm.serializeAddress(key, "priceSource", d.priceSource);
@@ -175,7 +175,7 @@ contract Deploy is Script {
 
     /// @dev Human-readable summary in the script output.
     function _log(Deployment memory d, Config memory c) internal pure {
-        console2.log("TeleHood deployed");
+        console2.log("HoodGram deployed");
         console2.log("  token          ", d.token);
         console2.log("  priceSource    ", d.priceSource);
         console2.log("  revenueVault   ", d.revenueVault);

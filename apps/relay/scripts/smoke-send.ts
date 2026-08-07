@@ -12,7 +12,7 @@
  *   5. the relay batches it on chain and the indexer serves it back on /v1/drops
  *   6. the blob round-trips and decrypts to the original message
  *
- * Run: pnpm --filter @telehood/relay exec tsx scripts/smoke-send.ts
+ * Run: pnpm --filter @hoodgram/relay exec tsx scripts/smoke-send.ts
  */
 
 import { readFileSync } from 'node:fs';
@@ -34,7 +34,7 @@ import {
   open,
   seal,
   signDrop,
-} from '@telehood/crypto';
+} from '@hoodgram/crypto';
 
 const RPC = process.env['SMOKE_RPC'] ?? 'http://127.0.0.1:8545';
 const RELAY = process.env['SMOKE_RELAY'] ?? 'http://localhost:8787';

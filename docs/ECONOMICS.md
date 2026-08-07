@@ -1,4 +1,4 @@
-# TeleHood — Economics (measured, not guessed)
+# HoodGram — Economics (measured, not guessed)
 
 Model: **$5 one-time account activation + $10/month per room, paid by the room's admin. Messages are
 never charged. Half of every payment goes to $THOOD holders, pro-rata by holdings, no staking.**
@@ -25,7 +25,7 @@ Paid in $THOOD. Prices are stored **in USD on-chain** and converted at purchase 
 time; paying early extends from the current expiry (`max(now, paidUntil)`), never burns time.
 
 **Why $5 works as a price:** it is small enough to be paid without thinking and large enough that
-ten thousand spam accounts cost $50,000. The fee *is* the spam wall — "every account on TeleHood
+ten thousand spam accounts cost $50,000. The fee *is* the spam wall — "every account on HoodGram
 cost somebody five dollars" is both the pitch and the abuse model.
 
 **Why rooms carry the recurring revenue:** the people who run rooms — communities, alpha groups,

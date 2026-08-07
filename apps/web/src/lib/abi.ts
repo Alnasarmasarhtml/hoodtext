@@ -1,5 +1,5 @@
 /**
- * Hand-written viem ABIs for the nine TeleHood contracts (SPEC §4).
+ * Hand-written viem ABIs for the nine HoodGram contracts (SPEC §4).
  *
  * These are `as const` so viem infers argument and return types at the call
  * site — `useReadContract({ abi: activationAbi, functionName: 'quote' })`
@@ -85,7 +85,7 @@ const dropTupleComponents = [
   { name: 'size', type: 'uint32', internalType: 'uint32' },
 ] as const;
 
-/* ══════════════════════════════════════════════════ 4.1 TeleHoodToken ═══ */
+/* ══════════════════════════════════════════════════ 4.1 HoodGramToken ═══ */
 
 /**
  * ERC20 + ERC20Permit + ICheckpointToken.
@@ -94,7 +94,7 @@ const dropTupleComponents = [
  * delegated votes) — they are what lets `RevenueVault` pay holders and `Perks`
  * judge tiers without any staking, deposit or delegation.
  */
-export const teleHoodTokenAbi = [
+export const hoodGramTokenAbi = [
   {
     type: 'constructor',
     stateMutability: 'nonpayable',

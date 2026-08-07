@@ -3,7 +3,7 @@ pragma solidity ^0.8.28;
 
 import {Test} from "forge-std/Test.sol";
 
-import {TeleHoodToken} from "../../src/TeleHoodToken.sol";
+import {HoodGramToken} from "../../src/HoodGramToken.sol";
 import {ManualPriceSource} from "../../src/ManualPriceSource.sol";
 import {RevenueVault} from "../../src/RevenueVault.sol";
 import {Activation} from "../../src/Activation.sol";
@@ -15,7 +15,7 @@ import {Handles} from "../../src/Handles.sol";
 
 /**
  * @title Fixture
- * @notice Shared deployment + assertion helpers for the TeleHood Foundry suite.
+ * @notice Shared deployment + assertion helpers for the HoodGram Foundry suite.
  *
  * @dev Deploys and wires the protocol exactly the way `script/Deploy.s.sol` does, so every test
  *      runs against the real production topology: 100% of payments land in the vault, the
@@ -41,7 +41,7 @@ abstract contract Fixture is Test {
 
     uint64 internal constant MONTH = 30 days;
 
-    TeleHoodToken internal token;
+    HoodGramToken internal token;
     ManualPriceSource internal priceSource;
     RevenueVault internal vault;
     Activation internal activation;
@@ -80,7 +80,7 @@ abstract contract Fixture is Test {
         vm.warp(START_TIME);
         vm.roll(START_BLOCK);
 
-        token = new TeleHoodToken(treasury);
+        token = new HoodGramToken(treasury);
         priceSource = new ManualPriceSource(owner, INITIAL_RATE);
         vault = new RevenueVault(owner, address(token), treasury);
         activation = new Activation(owner, address(token), address(priceSource), address(vault));

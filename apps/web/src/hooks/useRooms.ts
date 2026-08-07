@@ -24,14 +24,14 @@ import {
   signDrop,
   wrapGroupKey,
   type IdentityKeys,
-} from '@telehood/crypto';
+} from '@hoodgram/crypto';
 import { useCallback, useMemo, useState } from 'react';
 import { bytesToHex, hexToBytes, type Address, type Hex } from 'viem';
 import { useConfig, useReadContract, useReadContracts, useWriteContract } from 'wagmi';
 import type { Config } from 'wagmi';
 import { readContract, waitForTransactionReceipt } from 'wagmi/actions';
 
-import { anchorsAbi, groupRegistryAbi, keyRegistryAbi, teleHoodTokenAbi } from '@/lib/abi';
+import { anchorsAbi, groupRegistryAbi, keyRegistryAbi, hoodGramTokenAbi } from '@/lib/abi';
 import { ACTIVE_CHAIN_ID, tryGetContracts } from '@/lib/chain';
 import { DEMO_ACCESS, isDemoActive } from '@/lib/demo';
 import { RelayError, postBlob, sendDrop } from '@/lib/relay';
@@ -372,7 +372,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
       }
 
       if (contracts === null) {
-        return failWith('TeleHood is not configured for this chain.');
+        return failWith('HoodGram is not configured for this chain.');
       }
 
       try {
@@ -387,7 +387,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
 
         const allowance = await readContract(config, {
           address: contracts.token,
-          abi: teleHoodTokenAbi,
+          abi: hoodGramTokenAbi,
           functionName: 'allowance',
           args: [owner, contracts.groupRegistry],
           chainId: ACTIVE_CHAIN_ID,
@@ -397,7 +397,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
           setPhase('approving');
           const approveHash = await writeContractAsync({
             address: contracts.token,
-            abi: teleHoodTokenAbi,
+            abi: hoodGramTokenAbi,
             functionName: 'approve',
             args: [contracts.groupRegistry, quote],
             chainId: ACTIVE_CHAIN_ID,
@@ -537,7 +537,7 @@ export function usePayRent(groupId: Hex | null, payer: Address | null): UsePayRe
         });
         const allowance = await readContract(config, {
           address: contracts.token,
-          abi: teleHoodTokenAbi,
+          abi: hoodGramTokenAbi,
           functionName: 'allowance',
           args: [payer, contracts.groupRegistry],
           chainId: ACTIVE_CHAIN_ID,
@@ -547,7 +547,7 @@ export function usePayRent(groupId: Hex | null, payer: Address | null): UsePayRe
           setPhase('approving');
           const approveHash = await writeContractAsync({
             address: contracts.token,
-            abi: teleHoodTokenAbi,
+            abi: hoodGramTokenAbi,
             functionName: 'approve',
             args: [contracts.groupRegistry, quote],
             chainId: ACTIVE_CHAIN_ID,
@@ -679,7 +679,7 @@ export function useRoomRoster({
         const memberX25519 = await registeredKeyOf(config, member);
         if (memberX25519 === null) {
           return failWith(
-            'That account has not registered messaging keys, so the room key cannot be encrypted to them. Registering is free — ask them to open TeleHood once.',
+            'That account has not registered messaging keys, so the room key cannot be encrypted to them. Registering is free — ask them to open HoodGram once.',
           );
         }
 

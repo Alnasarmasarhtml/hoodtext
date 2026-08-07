@@ -1,0 +1,35 @@
+/* SECTION 04 — full-width procession loop. Text sits low-left; the figure owns
+   the right of frame. */
+
+.section {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: min(88svh, 900px);
+}
+
+.veil {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(8, 9, 10, 0.38);
+}
+
+.inner {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  padding-block: clamp(64px, 10vh, 112px);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-5);
+}
+
+.line {
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+}

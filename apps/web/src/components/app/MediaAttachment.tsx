@@ -11,7 +11,7 @@
  * its name, its true size and a download action.
  */
 
-import { openMedia } from '@telehood/crypto';
+import { openMedia } from '@hoodgram/crypto';
 import { useEffect, useState, type ReactNode } from 'react';
 import { hexToBytes } from 'viem';
 
