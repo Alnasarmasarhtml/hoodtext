@@ -43,12 +43,18 @@
     /* Top highlight — the only permitted "shadow" */
     --highlight: rgba(255, 255, 255, 0.09);
 
-    /* Type */
-    /* The inner fallback matters: an undefined `var()` with no fallback makes
+    /* Type — Orbitron is the site face, headings and prose alike.
+       The inner fallback matters: an undefined `var()` with no fallback makes
        the whole declaration invalid, which would drop the entire stack rather
        than fall through to the system face. */
-    --font-sans: var(--font-geist-sans, ui-sans-serif), system-ui, -apple-system,
+    --font-sans: var(--font-orbitron, ui-sans-serif), system-ui, -apple-system,
       "Segoe UI", sans-serif;
+    /* Orbitron is wide and geometric, so running text needs a touch less
+       tracking and a good deal more leading than a text face would. */
+    --font-display: var(--font-sans);
+    /* Geist Mono survives in one place only: columns where digits and hex must
+       align (balances, addresses, countdowns in /app and /access). Orbitron has
+       no monospaced cut, so using it there would break those columns. */
     --font-mono: var(--font-geist-mono, ui-monospace), "SF Mono", "JetBrains Mono",
       Menlo, monospace;
 
@@ -64,9 +70,11 @@
     --fs-3xl: clamp(31px, 4.6vw, 48px);
     --fs-display: clamp(38px, 6.2vw, 76px);
 
-    --lh-tight: 1.02;
-    --lh-snug: 1.2;
-    --lh-body: 1.55;
+    --lh-tight: 1.04;
+    --lh-snug: 1.24;
+    /* Orbitron is a wide geometric face: running text needs materially more
+       leading than the 1.55 a text face would take, or the lines lock together. */
+    --lh-body: 1.72;
     --lh-mono: 1.4;
 
     --tr-eyebrow: 0.06em;
@@ -334,9 +342,10 @@
   h4,
   h5,
   h6 {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    letter-spacing: var(--tr-display);
+    font-family: var(--font-sans);
+    font-weight: 800;
+    /* Orbitron is already wide; the -0.02em a mono display took would crowd it. */
+    letter-spacing: 0;
     line-height: var(--lh-snug);
     text-wrap: balance;
     color: var(--bone);
@@ -500,7 +509,7 @@
     font-variant-numeric: tabular-nums;
   }
   .eyebrow {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-size: var(--fs-eyebrow);
     font-weight: 500;
     letter-spacing: var(--tr-eyebrow);

@@ -47,7 +47,7 @@
   align-items: center;
   gap: 12px;
   padding-inline: 14px 30px;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--fs-xs);
   font-weight: 500;
   letter-spacing: var(--tr-eyebrow);
@@ -74,7 +74,7 @@
   padding-inline: 18px 16px;
   background-color: var(--bone);
   border-right: var(--hair) solid rgba(8, 9, 10, 0.35);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--fs-micro);
   font-weight: 600;
   letter-spacing: 0.14em;

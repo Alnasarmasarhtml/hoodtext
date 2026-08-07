@@ -65,6 +65,21 @@ const BLOCKS: readonly Block[] = [
   },
 ];
 
+/**
+ * Four corner marks instead of a continuous border — the box reads as a
+ * registration frame over the footage rather than a card sitting on top of it.
+ */
+function Brackets(): ReactNode {
+  return (
+    <>
+      <span className={cx(s.brk, s.brkTl)} aria-hidden="true" />
+      <span className={cx(s.brk, s.brkTr)} aria-hidden="true" />
+      <span className={cx(s.brk, s.brkBl)} aria-hidden="true" />
+      <span className={cx(s.brk, s.brkBr)} aria-hidden="true" />
+    </>
+  );
+}
+
 interface Tier {
   readonly name: string;
   readonly hold: string;
@@ -112,6 +127,7 @@ export function WhatThisIs(): ReactNode {
         <div className={s.grid}>
           {BLOCKS.map((block) => (
             <article className={s.block} data-reveal key={block.index}>
+              <Brackets />
               <h3 className={s.blockHead}>
                 <span className={s.blockIndex}>{block.index}</span>
                 {block.title}
@@ -121,6 +137,7 @@ export function WhatThisIs(): ReactNode {
           ))}
 
           <article className={cx(s.block, s.wide)} data-reveal>
+            <Brackets />
             <h3 className={s.blockHead}>
               <span className={s.blockIndex}>05</span>
               Half goes back
@@ -134,6 +151,7 @@ export function WhatThisIs(): ReactNode {
           </article>
 
           <article className={cx(s.block, s.wide)} data-reveal>
+            <Brackets />
             <h3 className={s.blockHead}>
               <span className={s.blockIndex}>06</span>
               The ladder
@@ -171,6 +189,7 @@ export function WhatThisIs(): ReactNode {
         {/* Set apart from the numbered file: centred, unnumbered, the one passage
             that is about the world rather than the product. */}
         <div className={s.why} data-reveal>
+          <Brackets />
           <span className={s.whyRule} aria-hidden="true" />
           <h3 className={s.whyHead}>Why this exists</h3>
           <p className={s.whyBody}>

@@ -1,7 +1,22 @@
 import type { Metadata, Viewport } from 'next';
 import { GeistMono } from 'geist/font/mono';
-import { GeistSans } from 'geist/font/sans';
+import localFont from 'next/font/local';
 import type { ReactNode } from 'react';
+
+/**
+ * Orbitron — the site face (SIL OFL). One variable file covers 400–900, so the
+ * whole weight range costs 12 KB and no network round-trip: `next/font/local`
+ * self-hosts it and inlines the `@font-face` with the right `basePath`, which
+ * a hand-written rule in `globals.css` would not get right on GitHub Pages.
+ */
+const orbitron = localFont({
+  src: './fonts/Orbitron-Variable.woff2',
+  weight: '400 900',
+  style: 'normal',
+  display: 'swap',
+  variable: '--font-orbitron',
+  fallback: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+});
 
 import { SignalField } from '@/components/site/SignalField';
 import { SiteHeader } from '@/components/ui/SiteHeader';
@@ -73,7 +88,7 @@ export default function RootLayout({
   readonly children: ReactNode;
 }): ReactNode {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" className={`${orbitron.variable} ${GeistMono.variable}`}>
       <body suppressHydrationWarning>
         {/* Ambient signal field — drifting glows and a whisper of falling hex.
             It sits UNDER the grain so the noise lands on top of the glow and the
