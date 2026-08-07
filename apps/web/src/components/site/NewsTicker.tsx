@@ -87,7 +87,7 @@ export function NewsTicker({ items, ariaLabel }: NewsTickerProps): ReactNode {
 
       <span className={s.cap} aria-hidden="true">
         <span className={s.square} aria-hidden="true" />
-        Wire
+        HGram
       </span>
 
       {/* The crawl is decorative motion; this is the same copy for readers and screen readers. */}

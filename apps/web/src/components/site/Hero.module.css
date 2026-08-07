@@ -14,42 +14,20 @@
   }
 }
 
-/* The procession is a bright, high-key render — a white hood fills most of the
-   frame — so a flat veil either washes the figure out or leaves the copy
-   unreadable. This is directional instead: heavy along the left and bottom
-   where the type lives, clearing toward the top right so the marching figure
-   keeps its contrast. */
+/* The procession is a high-key render: a near-white hood fills the frame, and
+   no soft fade can beat white. Dimming the film itself is what makes the fade
+   viable — unlike a grey veil, brightness() pulls the highlights down without
+   lifting the blacks, so the frame gets darker instead of hazier. */
+.film {
+  filter: brightness(0.46) contrast(1.12);
+}
+
+/* Light and flat. With the film already dimmed, all the remaining legibility
+   work belongs to the soft fade behind the copy. */
 .veil {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(
-      103deg,
-      rgba(5, 6, 7, 0.95) 0%,
-      rgba(5, 6, 7, 0.88) 26%,
-      rgba(5, 6, 7, 0.55) 52%,
-      rgba(5, 6, 7, 0.2) 78%,
-      rgba(5, 6, 7, 0.06) 100%
-    ),
-    linear-gradient(
-      to top,
-      rgba(5, 6, 7, 0.88) 0%,
-      rgba(5, 6, 7, 0.4) 30%,
-      rgba(5, 6, 7, 0) 58%
-    );
-}
-
-/* One column on a phone: the copy sits at the bottom, so the scrim does too. */
-@media (max-width: 759.98px) {
-  .veil {
-    background: linear-gradient(
-      to top,
-      rgba(5, 6, 7, 0.96) 0%,
-      rgba(5, 6, 7, 0.9) 34%,
-      rgba(5, 6, 7, 0.5) 62%,
-      rgba(5, 6, 7, 0.14) 100%
-    );
-  }
+  background-color: rgba(8, 9, 10, 0.22);
 }
 
 /* ── the HUD frame ──────────────────────────────────────────────────────── */
@@ -157,19 +135,27 @@
   max-width: 640px;
 }
 
-/* The only thing standing between the copy and the footage. A soft ellipse
-   rather than a panel, so the marching figure is never boxed out. */
+/* The soft fade. An ellipse of darkness that belongs to the copy and dissolves
+   into the frame — never a panel, never a hard edge, so the marching figure is
+   never boxed out. It reaches well past the text on every side, which is what
+   lets it stay soft and still beat a white hood behind it. */
 .block::before {
   content: '';
   position: absolute;
-  inset: clamp(-28px, -3vw, -20px) clamp(-90px, -9vw, -50px) clamp(-30px, -3.5vw, -22px)
-    clamp(-52px, -5vw, -30px);
+  inset: clamp(-110px, -10vw, -64px) clamp(-300px, -28vw, -170px)
+    clamp(-120px, -11vw, -72px) clamp(-170px, -16vw, -100px);
   z-index: -1;
+  /* The core holds near-opaque out to 46% so the copy always sits on solid
+     ground; only past that does it dissolve. A fade that starts falling off
+     immediately looks soft but cannot beat a white hood. */
   background: radial-gradient(
-    ellipse 74% 80% at 28% 52%,
-    rgba(5, 6, 7, 0.96) 0%,
-    rgba(5, 6, 7, 0.9) 48%,
-    rgba(5, 6, 7, 0) 84%
+    ellipse 58% 62% at 33% 50%,
+    rgba(5, 6, 7, 0.97) 0%,
+    rgba(5, 6, 7, 0.95) 46%,
+    rgba(5, 6, 7, 0.84) 62%,
+    rgba(5, 6, 7, 0.5) 78%,
+    rgba(5, 6, 7, 0.16) 91%,
+    rgba(5, 6, 7, 0) 100%
   );
   pointer-events: none;
 }
@@ -233,5 +219,20 @@
 
   .block {
     gap: var(--sp-3);
+  }
+
+  /* The block spans the full width on a phone, so an ellipse centred a third
+     of the way across leaves the right-hand end of every line in the falloff.
+     Centre it and let it cover the whole block. */
+  .block::before {
+    inset: -90px -64px -70px -64px;
+    background: radial-gradient(
+      ellipse 76% 60% at 50% 52%,
+      rgba(5, 6, 7, 0.96) 0%,
+      rgba(5, 6, 7, 0.94) 50%,
+      rgba(5, 6, 7, 0.8) 68%,
+      rgba(5, 6, 7, 0.42) 84%,
+      rgba(5, 6, 7, 0) 100%
+    );
   }
 }

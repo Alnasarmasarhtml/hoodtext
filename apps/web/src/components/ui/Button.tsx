@@ -3,7 +3,6 @@
 import type { ComponentPropsWithRef, ReactNode } from 'react';
 
 import { cx } from '@/lib/cx';
-import { shapeClass, type Notch } from '@/lib/notch';
 import s from './Button.module.css';
 
 export type ButtonVariant = 'primary' | 'ghost' | 'danger';
@@ -13,7 +12,6 @@ export interface ButtonStyleOptions {
   readonly variant?: ButtonVariant;
   readonly size?: ButtonSize;
   readonly block?: boolean;
-  readonly notch?: Notch;
 }
 
 /**
@@ -24,14 +22,8 @@ export interface ButtonStyleOptions {
  * `<Link href="/access" className={buttonClassName({ variant: 'primary' })}>`
  */
 export function buttonClassName(options: ButtonStyleOptions = {}): string {
-  const { variant = 'ghost', size = 'md', block = false, notch = 'br' } = options;
-  return cx(
-    s.btn,
-    s[variant],
-    s[size],
-    block && s.block,
-    shapeClass(notch),
-  );
+  const { variant = 'ghost', size = 'md', block = false } = options;
+  return cx(s.btn, s[variant], s[size], block && s.block);
 }
 
 /** Three staggered bars — a signal meter. Never a spinning circle. */
@@ -61,7 +53,6 @@ export function Button({
   variant = 'ghost',
   size = 'md',
   block = false,
-  notch = 'br',
   loading = false,
   loadingLabel = 'Working',
   leading,
@@ -81,7 +72,7 @@ export function Button({
       disabled={isDisabled}
       aria-busy={loading || undefined}
       className={cx(
-        buttonClassName({ variant, size, block, notch }),
+        buttonClassName({ variant, size, block }),
         loading && s.loading,
         className,
       )}

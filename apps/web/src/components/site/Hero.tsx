@@ -25,6 +25,7 @@ export function Hero(): ReactNode {
   return (
     <section className={s.hero} aria-label="HoodGram — pay $5 once, text forever">
       <MediaLoop
+        className={s.film}
         src={asset('/media/procession.mp4')}
         poster={asset('/art/figure-profile.png')}
       />
