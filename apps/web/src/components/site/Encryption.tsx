@@ -91,29 +91,25 @@ export function Encryption(): ReactNode {
               </figcaption>
             </figure>
 
-            {/* A diptych, not one image: the argument is a before/after, and two
-                prints side by side hold far more detail at this size than a
-                single wide frame trying to carry both halves. */}
+            {/* A diptych, not one frame: the argument is a before/after, and two
+                panels side by side hold far more detail at this size than one
+                wide frame trying to carry both halves. Both loops close on
+                their own opening frame, so `loop` alone is seamless — nothing
+                here may add a fade. */}
             <figure className={s.fig} data-reveal>
               <div className={s.plates}>
-                <img
-                  className={s.plate}
-                  src={asset('/art/mail-opened.jpg')}
-                  alt="Screenprint: an envelope torn open, the letter inside dragged out and lit by a hard beam."
-                  width={900}
-                  height={1125}
-                  loading="lazy"
-                  decoding="async"
-                />
-                <img
-                  className={s.plate}
-                  src={asset('/art/mail-sealed.jpg')}
-                  alt="Screenprint: a sealed envelope inside a green lattice cage, the same beam shattering against it."
-                  width={900}
-                  height={1125}
-                  loading="lazy"
-                  decoding="async"
-                />
+                <div className={s.plate}>
+                  <MediaLoop
+                    src={asset('/media/mail-opened.mp4')}
+                    poster={asset('/art/mail-opened.jpg')}
+                  />
+                </div>
+                <div className={s.plate}>
+                  <MediaLoop
+                    src={asset('/media/mail-sealed.mp4')}
+                    poster={asset('/art/mail-sealed.jpg')}
+                  />
+                </div>
               </div>
               <figcaption className={s.caption}>
                 <span className={s.figLabel}>Fig. 02</span> What a scanning order needs is

@@ -112,8 +112,8 @@
   background-color: var(--panel);
 }
 
-/* The two prints butt together with a hairline between them, so they read as
-   one plate in two panels rather than two unrelated pictures. */
+/* The two panels butt together with a hairline between them, so they read as
+   one plate in two halves rather than two unrelated clips. */
 .plates {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -122,10 +122,12 @@
   border: 1px solid var(--line-2);
 }
 
+/* 4:5 each — the footage's own ratio, and the same box the stills occupied. */
 .plate {
-  display: block;
-  width: 100%;
-  height: auto;
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background-color: #050607;
 }
 
 .caption {
