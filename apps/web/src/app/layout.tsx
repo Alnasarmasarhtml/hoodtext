@@ -32,6 +32,81 @@ const FAVICON =
 /** Where the static export is served from; makes the OG image URL absolute. */
 const SITE_URL = 'https://hoodgram.tech/';
 
+/**
+ * Content Security Policy, delivered as a <meta> tag.
+ *
+ * `next.config.mjs` declares a header policy through `headers()`, but that is a
+ * server feature and is silently dropped by `output: 'export'`, so on the static
+ * host nothing was enforcing anything. A meta CSP is the only mechanism a static
+ * host gives us, and it is worth having on a page that talks to a wallet.
+ *
+ * WHAT THIS DOES NOT DO: `frame-ancestors` is ignored by browsers when a policy
+ * arrives via <meta> (CSP Level 3 §3.1), and X-Frame-Options cannot be set as a
+ * meta tag at all. **There is therefore no clickjacking defence on the static
+ * host.** Do not add `frame-ancestors` back here and believe it works — the fix
+ * is a host that can set real response headers, at which point the `headers()`
+ * block in next.config.mjs becomes live and this tag can go.
+ *
+ * Relaxations, each load-bearing:
+ * - `'unsafe-inline'` script-src: Next inlines its hydration payload and the
+ *   no-JS reveal fallback. Nonces would need a server to vary per response.
+ * - `'wasm-unsafe-eval'`: libsodium ships its cipher as embedded WASM.
+ */
+const CSP_ORIGINS: readonly string[] = (() => {
+  /* Mirrors the fallbacks in lib/relay.ts and lib/chain.ts. Reading the env
+     directly rather than importing those modules keeps viem out of this file;
+     the values must stay in step, so any change there belongs here too. */
+  const relayHttp = process.env.NEXT_PUBLIC_RELAY_URL?.trim() || 'http://localhost:8787';
+  const relayWs =
+    process.env.NEXT_PUBLIC_RELAY_WS?.trim() ||
+    relayHttp.replace(/^http/, 'ws');
+  const rpc = process.env.NEXT_PUBLIC_RPC_URL?.trim() || '';
+
+  const origins = new Set<string>([
+    'https://rpc.mainnet.chain.robinhood.com',
+    'https://robinhoodchain.blockscout.com',
+    /* the local chain and relay, so a dev build is not silently strangled */
+    'http://127.0.0.1:8545',
+    'http://localhost:8545',
+    'http://127.0.0.1:8787',
+    'http://localhost:8787',
+    'ws://127.0.0.1:8787',
+    'ws://localhost:8787',
+  ]);
+  for (const url of [relayHttp, relayWs, rpc]) {
+    if (url === '') continue;
+    try {
+      origins.add(new URL(url).origin);
+    } catch {
+      /* a malformed override must not take the whole policy down with it */
+    }
+  }
+  return [...origins];
+})();
+
+const CSP = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "form-action 'self'",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "media-src 'self' blob:",
+  "font-src 'self' data:",
+  "worker-src 'self' blob:",
+  `connect-src 'self' data: blob: ${CSP_ORIGINS.join(' ')}`,
+].join('; ');
+
+/**
+ * Only the production bundle carries the policy. `next dev` compiles every
+ * module inside `eval()` for React Refresh, which any CSP without
+ * `'unsafe-eval'` blocks outright — a blank page and a console full of
+ * violations. Granting `'unsafe-eval'` to ship just to keep dev alive would be
+ * the wrong trade, so dev simply runs without the tag.
+ */
+const CSP_ENABLED = process.env.NODE_ENV === 'production';
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -89,6 +164,13 @@ export default function RootLayout({
 }): ReactNode {
   return (
     <html lang="en" className={`${orbitron.variable} ${GeistMono.variable}`}>
+      <head>
+        {CSP_ENABLED && <meta httpEquiv="Content-Security-Policy" content={CSP} />}
+        {/* Of the header policies, only CSP and `referrer` survive as meta tags.
+            X-Content-Type-Options, X-Frame-Options and Permissions-Policy are
+            ignored when delivered this way — see the CSP note above. */}
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
+      </head>
       <body suppressHydrationWarning>
         {/* Ambient signal field — drifting glows and a whisper of falling hex.
             It sits UNDER the grain so the noise lands on top of the glow and the

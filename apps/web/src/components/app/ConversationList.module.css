@@ -1,6 +1,12 @@
 /* The rail. Single column, always — every child is min-width:0 and every hex is
    truncated before it renders, so long values can never widen this element
-   (SPEC §7.5). */
+   (SPEC §7.5).
+
+   Surfaces carry the region boundary, not the hairline. The rail body sits at
+   --panel, its head and foot bands step up to --panel-2, and the thread log
+   next door drops to --void. A 7% rule between two surfaces that are 1.05:1
+   apart is not an edge the eye can find, so the seams take --line-2 and the
+   tone does the rest. */
 
 .rail {
   display: flex;
@@ -12,6 +18,9 @@
 
 /* ── head ───────────────────────────────────────────────────────────────── */
 
+/* 56px is the shared content-header height: this band and the thread header
+   start at the same y, so at any width over 1024 their bottom rules meet as one
+   unbroken line instead of stepping at the column seam. */
 .head {
   display: flex;
   align-items: center;
@@ -19,9 +28,10 @@
   gap: var(--sp-3);
   flex: none;
   min-width: 0;
-  height: 38px;
+  height: 56px;
   padding-inline: var(--sp-4);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-2);
+  background-color: var(--panel-2);
   font-family: var(--font-mono);
   font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);
@@ -29,7 +39,7 @@
 }
 
 .headLabel {
-  color: var(--muted);
+  color: var(--bone);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -38,7 +48,7 @@
 
 .headCount {
   flex: none;
-  color: var(--dim);
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -51,7 +61,7 @@
   flex: none;
   min-width: 0;
   padding: var(--sp-4);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-2);
 }
 
 .openerField {
@@ -70,8 +80,11 @@
   min-width: 0;
 }
 
+/* Padding, not margin: an underlined text control still has to clear 24px of
+   hit height, and the rule reads as an underline offset rather than a gap. */
 .newRoom {
   flex: none;
+  padding-block: var(--sp-1);
   font-family: var(--font-mono);
   font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);
@@ -110,6 +123,8 @@
   min-width: 0;
 }
 
+/* Row separators stay at --line: they divide items inside one region, and
+   promoting them would compete with the region seams that use --line-2. */
 .item + .item {
   border-top: 1px solid var(--line);
 }
@@ -118,8 +133,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--sp-2);
   min-width: 0;
+  min-height: 44px;
   padding: var(--sp-3) var(--sp-4);
   outline: none;
   transition: background-color var(--dur-1) var(--ease);
@@ -129,13 +145,18 @@
   content: '';
   position: absolute;
   inset: 0 auto 0 0;
-  width: 2px;
+  width: 3px;
   background-color: transparent;
   transition: background-color var(--dur-1) var(--ease);
 }
 
 .row:hover {
   background-color: var(--panel-2);
+}
+
+/* Hover gets its own edge so the green one never has to mean two things. */
+.row:hover::before {
+  background-color: var(--line-2);
 }
 
 .row:focus-visible {
@@ -149,7 +170,8 @@
   background-color: var(--panel-2);
 }
 
-.rowActive::before {
+.rowActive::before,
+.rowActive:hover::before {
   background-color: var(--green);
 }
 
@@ -168,7 +190,7 @@
   flex: none;
   width: 6px;
   height: 6px;
-  border: 1px solid var(--dim);
+  border: 1px solid var(--muted);
   clip-path: var(--path-notch-br);
 }
 
@@ -185,9 +207,10 @@
 .name {
   flex: 1 1 auto;
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   font-weight: 500;
   letter-spacing: 0.02em;
+  line-height: var(--lh-snug);
   color: var(--bone);
   min-width: 0;
   overflow: hidden;
@@ -199,22 +222,29 @@
   color: var(--muted);
 }
 
+/* The open thread is the one row that is fully lit — surface, edge and ink all
+   move together, so it is unmistakable with no cursor on screen. */
 .rowActive .name {
+  color: var(--bone);
+  font-weight: 600;
+}
+
+.rowActive .preview {
   color: var(--bone);
 }
 
 .time {
   flex: none;
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  color: var(--dim);
+  color: var(--muted);
 }
 
 .preview {
-  font-size: var(--fs-xs);
-  line-height: 1.4;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
   color: var(--muted);
   min-width: 0;
   overflow: hidden;
@@ -226,27 +256,28 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px var(--sp-3);
+  gap: var(--sp-1) var(--sp-3);
   min-width: 0;
-  margin-top: 1px;
 }
 
+/* Key/value pairs run muted label, bone value everywhere in the app — the
+   number is what is read, the label only says which number it is. */
 .tag {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--sp-1);
   min-width: 0;
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--dim);
+  color: var(--bone);
   white-space: nowrap;
 }
 
 .tagKey {
-  color: var(--dim);
+  color: var(--muted);
 }
 
 .tagDot {
@@ -270,7 +301,7 @@
 }
 
 .tagQuiet {
-  color: var(--dim);
+  color: var(--muted);
 }
 
 /* ── skeleton ───────────────────────────────────────────────────────────── */
@@ -284,7 +315,7 @@
 .skeletonRow {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--sp-2);
   min-width: 0;
   padding: var(--sp-4);
   border-bottom: 1px solid var(--line);
@@ -342,7 +373,7 @@
 .emptyMark {
   width: 44px;
   height: 24px;
-  stroke: var(--dim);
+  stroke: var(--muted);
   stroke-width: 1;
   stroke-linecap: square;
 }
@@ -356,7 +387,7 @@
 }
 
 .emptyText {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   line-height: var(--lh-body);
   color: var(--muted);
   min-width: 0;
@@ -370,6 +401,9 @@
   border-bottom: 0;
 }
 
+/* 40px is the shared utility-band height, matching the desk chrome strip. The
+   foot used to be --void, i.e. the exact colour of the thread log beside it, so
+   the rail appeared to end before its own floor. */
 .foot {
   display: flex;
   align-items: center;
@@ -377,10 +411,10 @@
   gap: var(--sp-3);
   flex: none;
   min-width: 0;
-  height: 34px;
+  height: 40px;
   padding-inline: var(--sp-4);
-  border-top: 1px solid var(--line);
-  background-color: var(--void);
+  border-top: 1px solid var(--line-2);
+  background-color: var(--panel-2);
 }
 
 .counters {
@@ -394,23 +428,24 @@
 .counter {
   display: inline-flex;
   align-items: baseline;
-  gap: 5px;
+  gap: var(--sp-1);
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   font-variant-numeric: tabular-nums;
-  color: var(--muted);
+  color: var(--bone);
   white-space: nowrap;
 }
 
 .counterKey {
-  color: var(--dim);
+  color: var(--muted);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
 }
 
-/* Between 1024 and 1279 the rail is a fixed 318px and three six-figure
-   counters plus the rescan control no longer fit on one 34px line. */
-@media (min-width: 1024px) and (max-width: 1279px) {
+/* From 1024 up the rail is a fixed 318–352px column, and at 11px three
+   six-figure counters plus the rescan control no longer share one line. Below
+   1024 the rail is the whole viewport and all three fit. */
+@media (min-width: 1024px) {
   .counterOptional {
     display: none;
   }
@@ -418,8 +453,9 @@
 
 .rescan {
   flex: none;
+  padding-block: var(--sp-1);
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
   color: var(--muted);
@@ -431,6 +467,9 @@
   color: var(--bone);
 }
 
+/* Disabled here means a backfill is running and the label reads "Scanning…" —
+   live status, not a dead control, so it takes the in-flight steel rather than
+   dropping out of sight. */
 .rescan:disabled {
-  color: var(--dim);
+  color: var(--steel);
 }

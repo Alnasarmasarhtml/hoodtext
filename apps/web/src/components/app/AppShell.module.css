@@ -10,8 +10,14 @@
    inside themselves and the composer stays on the floor. */
 
 .shell {
-  /* The site header is 60px, plus a 41px compact nav strip below 760px. */
-  --chrome-offset: calc(var(--header-h) + 41px);
+  /* Everything above the shell, to the pixel. --header-h (60px) is the height
+     of the header's inner .bar; the header's 1px --bone bottom border hangs
+     OUTSIDE it, because .header itself has no declared height for box-sizing to
+     absorb. Below 760px the compact nav strip adds 40px of links over its own
+     1px top rule. Undercount by even 1px and the shell outgrows the space left
+     under the header — which is all the runway a wheel needs to scroll the
+     page instead of the pane. */
+  --chrome-offset: calc(var(--header-h) + 1px + 41px);
 
   display: flex;
   flex-direction: column;
@@ -21,9 +27,10 @@
   background-color: var(--void);
 }
 
+/* The compact nav strip is gone from 760px up; the header's border is not. */
 @media (min-width: 760px) {
   .shell {
-    --chrome-offset: var(--header-h);
+    --chrome-offset: calc(var(--header-h) + 1px);
   }
 }
 

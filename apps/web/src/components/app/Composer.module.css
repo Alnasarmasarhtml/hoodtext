@@ -1,15 +1,19 @@
 /* The composer. A ruled field, not a rounded chat box: one hairline above it,
-   a 2px gutter mark to the left, and a mono instrument strip underneath. */
+   a 2px gutter mark to the left, and a mono instrument strip underneath.
+
+   It is the top surface of the app (--panel-2) sitting directly on the log's
+   --void, with the seam at --line-2. At --panel over a 7% rule it read as one
+   more message row rather than as the instrument you type into. */
 
 .composer {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
   flex: none;
   min-width: 0;
-  padding: var(--sp-3) var(--sp-5) var(--sp-3);
-  border-top: 1px solid var(--line);
-  background-color: var(--panel);
+  padding: var(--sp-4) var(--sp-5);
+  border-top: 1px solid var(--line-2);
+  background-color: var(--panel-2);
 }
 
 .fieldRow {
@@ -20,9 +24,11 @@
   min-width: 0;
 }
 
+/* Matches the send block (a 38px button plus its 2px lift) so an empty field
+   still shows a full-height gutter. */
 .gutter {
   align-self: stretch;
-  min-height: 34px;
+  min-height: 40px;
   background-color: var(--line-2);
   transition: background-color var(--dur-2) var(--ease);
 }
@@ -51,8 +57,14 @@
   outline: none;
 }
 
+/* The placeholder is the only place the Enter/Shift+Enter contract is stated,
+   so it cannot inherit the global --dim used for decorative placeholders. */
+.area::placeholder {
+  color: var(--muted);
+}
+
 .area:disabled {
-  color: var(--dim);
+  color: var(--muted);
 }
 
 .send {
@@ -65,15 +77,18 @@
 
 /* ── attach ─────────────────────────────────────────────────────────────── */
 
+/* Squared to the 38px Send button beside it: two controls on one line at two
+   different heights read as a mistake, and 34×30 was under the 24px floor once
+   the skew ate the corners. */
 .attach {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 34px;
-  height: 30px;
-  border: 1px solid var(--line);
-  background-color: var(--panel-2);
+  width: 40px;
+  height: 38px;
+  border: 1px solid var(--line-2);
+  background-color: var(--panel);
   transform: skewX(-9deg);
   color: var(--muted);
   transition:
@@ -88,7 +103,7 @@
 .attach:hover:not(:disabled),
 .attach:focus-visible:not(:disabled) {
   color: var(--bone);
-  border-color: var(--line-2);
+  border-color: var(--bone);
 }
 
 .attach:disabled {
@@ -96,8 +111,8 @@
 }
 
 .attachGlyph {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.2;
@@ -118,12 +133,13 @@
 
 /* ── reply strip ────────────────────────────────────────────────────────── */
 
+/* The rule starts in the gutter column and the gap is --sp-3, so the quoted
+   text begins on the same x as the textarea rather than 14px to its right. */
 .replyStrip {
   display: flex;
   align-items: baseline;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
   min-width: 0;
-  padding: var(--sp-2) 0 0 calc(2px + var(--sp-3));
 }
 
 .replyRule {
@@ -136,16 +152,16 @@
 .replyKey {
   flex: none;
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--dim);
+  color: var(--muted);
 }
 
 .replyText {
-  font-size: var(--fs-xs);
-  line-height: 1.4;
-  color: var(--muted);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--bone);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -155,18 +171,22 @@
 .replyCancel {
   flex: none;
   margin-left: auto;
+  padding-block: var(--sp-1);
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
   color: var(--muted);
   border-bottom: 1px solid var(--line-2);
-  transition: color var(--dur-1) var(--ease);
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
 }
 
 .replyCancel:hover,
 .replyCancel:focus-visible {
   color: var(--bone);
+  border-bottom-color: var(--bone);
 }
 
 /* ── instrument strip ───────────────────────────────────────────────────── */
@@ -179,7 +199,7 @@
   min-width: 0;
   padding-left: calc(2px + var(--sp-3));
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
 }
@@ -187,17 +207,17 @@
 .stage {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-2);
   flex: none;
-  color: var(--muted);
+  color: var(--bone);
   white-space: nowrap;
 }
 
 .stageDot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   flex: none;
-  background-color: var(--dim);
+  background-color: var(--muted);
 }
 
 .stageWorking {
@@ -267,7 +287,7 @@
 }
 
 .bucketFilled {
-  background-color: var(--dim);
+  background-color: var(--muted);
 }
 
 .bucketHead {
@@ -277,53 +297,57 @@
 .readout {
   display: inline-flex;
   align-items: baseline;
-  gap: 5px;
+  gap: var(--sp-1);
   min-width: 0;
   font-variant-numeric: tabular-nums;
-  color: var(--muted);
+  color: var(--bone);
   white-space: nowrap;
 }
 
 .readoutKey {
-  color: var(--dim);
-}
-
-.readoutValue {
   color: var(--muted);
 }
 
+.readoutValue {
+  color: var(--bone);
+}
+
 .readoutSep {
-  color: var(--dim);
+  color: var(--muted);
 }
 
 /* ── send-path toggle: relay (free) vs self-post (wallet + gas) ─────────── */
 
+/* This switches between a free relay send and a wallet transaction that spends
+   gas. It was the smallest, dimmest thing in the composer; a consequential
+   control gets the eyebrow size and a 24px hit band like any other. */
 .pathToggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-2);
   margin-left: auto;
   min-width: 0;
+  padding-block: var(--sp-1);
   overflow: hidden;
   white-space: nowrap;
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--dim);
+  color: var(--muted);
   transition: color var(--dur-1) var(--ease);
 }
 
 .pathToggle:hover,
 .pathToggle:focus-visible {
-  color: var(--muted);
+  color: var(--bone);
 }
 
 .pathDot {
   flex: none;
-  width: 5px;
-  height: 5px;
-  border: 1px solid var(--dim);
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--muted);
 }
 
 /* self-post is the deliberate, visible exception */
@@ -338,6 +362,8 @@
 
 /* ── inline problems ────────────────────────────────────────────────────── */
 
+/* Failure text is what a user reads at the worst moment, so it matches the
+   message body size rather than sitting a step below it. */
 .warn,
 .error {
   display: flex;
@@ -346,7 +372,7 @@
   gap: var(--sp-2);
   min-width: 0;
   padding-left: calc(2px + var(--sp-3));
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   line-height: var(--lh-body);
   color: var(--crimson);
 }
@@ -354,8 +380,8 @@
 .errorMark {
   align-self: center;
   flex: none;
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   background-color: var(--crimson);
 }
 
@@ -366,18 +392,22 @@
 
 .errorAction {
   flex: none;
+  padding-block: var(--sp-1);
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--bone);
   border-bottom: 1px solid var(--line-2);
-  transition: color var(--dur-1) var(--ease);
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
 }
 
 .errorAction:hover,
 .errorAction:focus-visible {
   color: var(--bone);
+  border-bottom-color: var(--bone);
 }
 
 @keyframes tick {

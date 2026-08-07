@@ -25,11 +25,17 @@ const LIBSODIUM_CJS = createRequire(
  * @type {import('next').NextConfig}
  */
 /**
- * Static-export mode, used for the GitHub Pages build (`NEXT_EXPORT=1`).
+ * Static-export mode (`NEXT_EXPORT=1`).
  *
- * Pages serves a project site from a sub-path, so the bundle needs `basePath`/`assetPrefix` baked
- * in at build time. `headers()` is a server feature and is dropped in this mode — the same policies
- * are set as <meta> tags in the document head instead.
+ * `basePath`/`assetPrefix` are baked in at build time and only set when serving from a sub-path;
+ * on the apex domain they stay empty so assets resolve from the root.
+ *
+ * `headers()` below is a server feature and is DROPPED in this mode. Only a CSP and a referrer
+ * policy can be recovered as <meta> tags, and those live in `src/app/layout.tsx`. The rest —
+ * X-Content-Type-Options, X-Frame-Options, Permissions-Policy — are ignored as meta and are
+ * therefore simply ABSENT on the static host; in particular there is no clickjacking defence
+ * there, because `frame-ancestors` is also ignored via meta. Moving to a host that can set real
+ * headers is what fixes that, and would make this block live again.
  */
 const EXPORTING = process.env.NEXT_EXPORT === '1';
 const BASE_PATH = process.env.NEXT_BASE_PATH ?? '';

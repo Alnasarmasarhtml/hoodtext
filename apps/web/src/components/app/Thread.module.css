@@ -1,5 +1,9 @@
 /* The thread. Three bands: a ruled header, a scrolling log, and the composer
-   pinned to the floor. Nothing here is centred and nothing is a card. */
+   pinned to the floor. Nothing here is centred and nothing is a card.
+
+   The log is the darkest surface in the app (--void) precisely so the header
+   band above it and the composer floor below it can step up to --panel-2 and
+   read as separate instruments rather than as the first and last message. */
 
 .thread {
   display: flex;
@@ -11,25 +15,30 @@
 
 /* ── header ─────────────────────────────────────────────────────────────── */
 
+/* 56px is the shared content-header height — the rail head next door is the
+   same, so the two bottom rules meet as one line across the desk. The block
+   padding is only a floor for the rare tall child (a Hex with its copy button);
+   min-height owns the band. */
 .head {
   display: flex;
   align-items: center;
   gap: var(--sp-4);
   flex: none;
   min-width: 0;
-  min-height: 46px;
-  padding: var(--sp-2) var(--sp-5);
-  border-bottom: 1px solid var(--line);
-  background-color: var(--panel);
+  min-height: 56px;
+  padding: var(--sp-1) var(--sp-5);
+  border-bottom: 1px solid var(--line-2);
+  background-color: var(--panel-2);
 }
 
 .back {
   display: none;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-2);
   flex: none;
+  padding-block: var(--sp-1);
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
   color: var(--muted);
@@ -42,8 +51,8 @@
 }
 
 .backIcon {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   stroke: currentColor;
   stroke-width: 1.4;
   stroke-linecap: square;
@@ -52,24 +61,29 @@
 .headMain {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--sp-1);
   min-width: 0;
   flex: 1 1 auto;
 }
 
 .headEyebrow {
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
+  line-height: var(--lh-mono);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--dim);
+  color: var(--muted);
 }
 
+/* The name of the thread you are inside has to outrank the message bodies
+   below it; at 12px it was smaller than them and the header stopped reading as
+   a header. Snug leading keeps the two-line stack inside the 56px band. */
 .headName {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: 500;
+  font-size: var(--fs-base);
+  font-weight: 600;
   letter-spacing: 0.02em;
+  line-height: var(--lh-snug);
   color: var(--bone);
   min-width: 0;
   overflow: hidden;
@@ -80,6 +94,7 @@
 .headHex {
   min-width: 0;
   max-width: 100%;
+  line-height: var(--lh-snug);
 }
 
 .headStats {
@@ -90,51 +105,64 @@
   min-width: 0;
 }
 
+/* Muted label, bone value — the number is what is read, the label only says
+   which number it is. The block padding matches the members toggle beside it so
+   the two sit on one optical line. */
 .stat {
   display: inline-flex;
   align-items: baseline;
-  gap: 5px;
+  gap: var(--sp-1);
+  padding-block: var(--sp-1);
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--bone);
   white-space: nowrap;
 }
 
 .statKey {
-  color: var(--dim);
+  color: var(--muted);
 }
 
 /* The members count doubles as the roster toggle in rooms. */
 .membersToggle {
   display: inline-flex;
   align-items: baseline;
-  gap: 5px;
+  gap: var(--sp-1);
+  padding-block: var(--sp-1);
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--bone);
   white-space: nowrap;
   border-bottom: 1px solid var(--line-2);
   transition: color var(--dur-1) var(--ease);
 }
 
+/* The value is already bone, so hover has to move the rule and the label — the
+   only two things left that can change. */
 .membersToggle:hover,
 .membersToggle:focus-visible {
+  border-bottom-color: var(--bone);
+}
+
+.membersToggle:hover .statKey,
+.membersToggle:focus-visible .statKey,
+.membersToggleOn .statKey {
   color: var(--bone);
 }
 
 .membersToggleOn {
-  color: var(--bone);
+  border-bottom-color: var(--bone);
 }
 
 .rentClock {
-  font-size: var(--fs-micro);
-  gap: 4px;
+  font-size: var(--fs-eyebrow);
+  gap: var(--sp-1);
 }
 
 /* confirmed on chain — permitted green */
@@ -204,32 +232,32 @@
   width: 100%;
   min-width: 0;
   margin-top: var(--sp-2);
-  background-color: var(--line);
-  border: 1px solid var(--line);
+  background-color: var(--line-2);
+  border: 1px solid var(--line-2);
 }
 
 .emptyFact {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--sp-1);
   min-width: 0;
-  padding: var(--sp-3);
+  padding: var(--sp-4);
   background-color: var(--panel);
 }
 
 .emptyFactKey {
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--dim);
+  color: var(--muted);
 }
 
 .emptyFactValue {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   font-variant-numeric: tabular-nums;
-  color: var(--muted);
+  color: var(--bone);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -238,16 +266,31 @@
 
 /* ── floor ──────────────────────────────────────────────────────────────── */
 
+/* The floor is one band: any notice above the composer already carries the
+   --panel-2 of AppNotice, so painting it here means no strip of --void ever
+   shows between the log and the instrument.
+
+   The log-to-floor seam is owned by the band itself, not by whichever child
+   happens to be on top. Leaving it to the children put a faint 7% notice
+   border there whenever a notice was showing, and drew a second 13% rule
+   between two surfaces that are already the same colour. */
 .foot {
   display: flex;
   flex-direction: column;
   flex: none;
   min-width: 0;
+  border-top: 1px solid var(--line-2);
+  background-color: var(--panel-2);
 }
 
 .footNotice {
-  border-inline: 0;
-  border-bottom: 0;
+  border: 0;
+}
+
+/* Anything below the notice is interior to the band and must not redraw the
+   seam — the composer's own top border is only correct when it is alone. */
+.footNotice + * {
+  border-top: 0;
 }
 
 /* ── unknown / malformed thread ─────────────────────────────────────────── */
@@ -286,10 +329,10 @@
 
 .missingMeta {
   font-family: var(--font-mono);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-eyebrow);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  color: var(--dim);
+  color: var(--muted);
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -323,6 +366,7 @@
 
 .missingLink {
   margin-top: var(--sp-2);
+  padding-block: var(--sp-1);
   font-family: var(--font-mono);
   font-size: var(--fs-eyebrow);
   letter-spacing: var(--tr-eyebrow);

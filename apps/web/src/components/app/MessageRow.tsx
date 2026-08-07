@@ -94,6 +94,36 @@ function AuthorName({ address }: { readonly address: Address }): ReactNode {
   );
 }
 
+/** Shown in place of a body when the attachment descriptor will not parse. */
+const MEDIA_UNREADABLE = 'Attachment descriptor could not be read.';
+
+/* A box sheared by 9° has edges that cut inward by (H/2)·tan(9°) at the corner
+   where the first line starts and the corner where the last line ends, so a
+   taller body needs proportionally more inline padding before text meets the
+   slope. The step is derived from the text rather than measured: measuring
+   would cost a layout read per row on every scroll, and the padding only has
+   to be right to within a step. */
+/* Characters per line at the narrowest width the bubble is ever laid out at.
+   The body is set in Orbitron, a wide geometric face averaging ~0.62em of
+   advance — about 8px at 13px type. A 390px viewport leaves the bubble roughly
+   300px of measure once the row gutter, the direction mark and the lean
+   reserve are taken out, so ~34 characters fit, not the 40 a normal-width face
+   would give. Guessing high rounds the step DOWN and under-reserves exactly the
+   padding the step exists to provide, so this is deliberately conservative:
+   over-reserving costs a few pixels, under-reserving clips the text. */
+const LEAN_WRAP_CHARS = 34;
+
+function leanStep(text: string, hasQuote: boolean): 1 | 2 | 3 | 4 {
+  let lines = hasQuote ? 1 : 0;
+  for (const line of text.split('\n')) {
+    lines += Math.max(1, Math.ceil(line.length / LEAN_WRAP_CHARS));
+  }
+  if (lines >= 12) return 4;
+  if (lines >= 6) return 3;
+  if (lines >= 3) return 2;
+  return 1;
+}
+
 function quotedPreview(quoted: ChatMessage): string {
   if (quoted.kind === 'media') {
     const payload = parseMediaPayload(quoted.body);
@@ -106,10 +136,12 @@ function quotedPreview(quoted: ChatMessage): string {
 /**
  * One anchored message.
  *
- * Deliberately not a chat bubble: a hairline-separated row with its on-chain
- * metadata set beside it in mono — block, view tag and padded byte bucket — so
- * the thing you are reading and the thing that was anchored are visibly the
- * same object. `system` rows collapse to a single quiet ruled line.
+ * The body sits in the house parallelogram — the same skewX(-9deg) the buttons
+ * carry, contents counter-sheared so nothing reads on a slant. Only the body
+ * leans. The author line, the timestamp, the perk chip and the whole on-chain
+ * metadata column stay square outside it, so the thing you are reading and the
+ * thing that was anchored are still visibly the same object. `system` rows
+ * collapse to a single quiet ruled line and never take a bubble.
  */
 export function MessageRow({
   message,
@@ -153,6 +185,18 @@ export function MessageRow({
   const canReply = onReply !== undefined && message.blobRef !== null;
   const canReact = onReact !== undefined && message.blobRef !== null;
 
+  /* One strip, two homes: inside the bubble when the body is text, bare above
+     the frame when it is media — a reply strip nested in a leaning box on top
+     of an already-notched attachment frame is three shapes deep. */
+  const quoteStrip =
+    quoted === null ? null : (
+      <div className={s.quote}>
+        <span className={s.quoteRule} aria-hidden="true" />
+        <span className={s.quoteWho}>{quoted.direction === 'out' ? 'You' : 'Reply to'}</span>
+        <span className={s.quoteText}>{quotedPreview(quoted)}</span>
+      </div>
+    );
+
   return (
     <article
       className={cx(s.row, outbound ? s.out : s.in, s[tone])}
@@ -183,26 +227,30 @@ export function MessageRow({
           )}
         </header>
 
-        {quoted !== null && (
-          <div className={s.quote}>
-            <span className={s.quoteRule} aria-hidden="true" />
-            <span className={s.quoteWho}>
-              {quoted.direction === 'out' ? 'You' : 'Reply to'}
-            </span>
-            <span className={s.quoteText}>{quotedPreview(quoted)}</span>
+        {mediaPayload === null ? (
+          <div
+            className={s.bubble}
+            data-lean={leanStep(
+              message.kind === 'media' ? MEDIA_UNREADABLE : message.body,
+              quoted !== null,
+            )}
+          >
+            <div className={s.bubbleInner}>
+              {quoteStrip}
+              <p className={s.body}>
+                {message.kind === 'media' ? (
+                  <span className={s.bodyDim}>{MEDIA_UNREADABLE}</span>
+                ) : (
+                  message.body
+                )}
+              </p>
+            </div>
           </div>
-        )}
-
-        {message.kind === 'media' ? (
-          mediaPayload === null ? (
-            <p className={s.body}>
-              <span className={s.bodyDim}>Attachment descriptor could not be read.</span>
-            </p>
-          ) : (
-            <MediaAttachment payload={mediaPayload} className={s.media} />
-          )
         ) : (
-          <p className={s.body}>{message.body}</p>
+          <>
+            {quoteStrip}
+            <MediaAttachment payload={mediaPayload} className={s.media} />
+          </>
         )}
 
         {reactions.length > 0 && (

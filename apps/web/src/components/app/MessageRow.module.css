@@ -1,6 +1,11 @@
-/* A message row, not a bubble. Hairline-separated, mono metadata beside the
-   body on wide screens and beneath it on narrow ones. Green appears once, on
-   confirmed-on-chain status. */
+/* A message row: the body sits in the house parallelogram — skewX(-9deg), the
+   same shear the buttons carry — while the author line, the timestamp and the
+   whole on-chain metadata column stay square outside it. Metadata sets beside
+   the body on wide screens and beneath it on narrow ones.
+
+   Green now appears twice: solid on confirmed-on-chain status, and as a 6%
+   wash on inbound bubbles. The wash is deliberately an order of magnitude
+   below the status chip so the accent still resolves to one thing. */
 
 .row {
   display: grid;
@@ -9,11 +14,12 @@
   gap: var(--sp-4);
   min-width: 0;
   padding: var(--sp-4) var(--sp-5);
-  border-top: 1px solid var(--line);
-}
-
-.row:first-child {
-  border-top: 0;
+  /* A sheared box is wider than its layout box, and the log scrolls: without
+     this a tall bubble's corner would hand the scroller a horizontal axis.
+     `clip` (not `hidden`) so it never becomes a scroll container itself, and
+     only on the inline axis so focus rings above and below survive. */
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 /* ── direction mark ─────────────────────────────────────────────────────── */
@@ -99,7 +105,6 @@
   min-width: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  max-width: 68ch;
 }
 
 .working .body {
@@ -114,23 +119,129 @@
   color: var(--dim);
 }
 
+/* An attachment is already a framed, notched object. Tilting it would stack
+   two shapes and crop the image inside a parallelogram, so media stays square
+   and sits beside the bubble language rather than inside it. */
 .media {
   margin-top: 2px;
 }
 
-/* ── system rows: one quiet ruled line ──────────────────────────────────── */
+/* ── the bubble ─────────────────────────────────────────────────────────────
+   Two numbers drive everything here. A box sheared by 9° overhangs its layout
+   box by (H/2)·tan(9°) ≈ 0.079·H on each side, and its edges cut inward by the
+   same amount at the top-left and bottom-right — where the first line starts
+   and the last line ends. So both the inline padding (text-to-slope clearance)
+   and the outboard reserve (slope-to-container clearance) have to grow with
+   height. `data-lean` steps them together off an estimated line count. */
+
+.bubble {
+  /* Lifted verbatim off Button.module.css: the shear IS the shape, which is
+     why nothing here is also notched or rounded. */
+  --skew: -9deg;
+  --lean-pad: 14px;
+  --lean-gap: 6px;
+  --bubble-fill: var(--bone-wash);
+  --bubble-edge: var(--line-2);
+
+  align-self: flex-start;
+  min-width: 0;
+  /* The shear overhangs on BOTH sides — top-right goes right, bottom-left goes
+     left — so clearance is reserved on both. Reserving only the right let a
+     tall bubble slide its bottom-left corner under the direction mark, and at
+     390px pushed it into the row's clip. The margin moves the box inward and
+     the max-width term accounts for the space that margin consumed. */
+  margin-inline: var(--lean-gap);
+  max-width: min(
+    calc(68ch + 2 * var(--lean-pad)),
+    calc(100% - 2 * var(--lean-gap))
+  );
+  padding: 10px var(--lean-pad);
+  /* `ch` resolves against the element's own font. Without this the bubble
+     inherits 15px from body while the text inside is 13px, so the measure
+     silently ran ~15% wide. */
+  font-size: var(--fs-sm);
+  border: 1px solid var(--bubble-edge);
+  background-color: var(--bubble-fill);
+  /* Both fill and edge are translucent; without this the border would paint
+     over the fill and read as a third, darker hue. */
+  background-clip: padding-box;
+  transform: skewX(var(--skew));
+}
+
+/* Counter-shear. One wrapper carries every text part a message can have, so
+   the rule cannot be outgrown by adding a part. Block padding must stay
+   symmetric: an uneven vertical centre offsets the two shears against each
+   other and slides the text sideways. Inline padding is free to differ. */
+.bubble > * {
+  transform: skewX(calc(-1 * var(--skew)));
+}
+
+.bubbleInner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bubble[data-lean='2'] {
+  --lean-pad: 20px;
+  --lean-gap: 12px;
+}
+
+.bubble[data-lean='3'] {
+  --lean-pad: 30px;
+  --lean-gap: 20px;
+}
+
+.bubble[data-lean='4'] {
+  --lean-pad: 40px;
+  --lean-gap: 28px;
+}
+
+/* Sent: white. Above --bone-wash (5%), because at that alpha the sent and
+   received fills measured three points apart and the two directions were not
+   tellable at a glance — which is the one job the fills have. Still well below
+   opaque, so the plate stays a wash rather than a card. */
+.out .bubble {
+  --bubble-fill: rgba(232, 234, 235, 0.085);
+  --bubble-edge: rgba(255, 255, 255, 0.2);
+}
+
+/* Received: green. Held to --green-wash (10%) rather than pushed past it —
+   this fill repeats on every inbound message down the whole log, and the wash
+   token is already sized for a single focused surface. 10% is enough to read
+   as green beside the white one without the log turning into a flood.
+
+   The edge sits under the outbound edge's alpha on purpose: green carries
+   chroma that bone does not, so matching numbers would make the inbound edges
+   visibly heavier than the outbound ones. Measured side by side, this is where
+   the two weigh the same. */
+.in .bubble {
+  --bubble-fill: rgba(0, 200, 5, 0.1);
+  --bubble-edge: rgba(0, 200, 5, 0.26);
+}
+
+/* A failed send keeps its direction fill — the crimson belongs on the edge,
+   next to the crimson mark and the error line, not flooding the body. */
+.failed .bubble {
+  --bubble-edge: var(--crimson-edge);
+}
+
+/* ── system rows: one quiet ruled line ──────────────────────────────────────
+   A notice is not conversation, so it gets none of the bubble: no shear, no
+   fill, no direction. Square mono against leaning parallelograms is already
+   the whole distinction; the hairline above it fences the notice off.
+
+   The old `.systemRow:first-child` reset is gone — each row is the only child
+   of its own <li>, so it matched every notice and the rule never painted. */
 
 .systemRow {
   display: flex;
   align-items: baseline;
   gap: var(--sp-3);
   min-width: 0;
-  padding: var(--sp-2) var(--sp-5);
+  padding: var(--sp-3) var(--sp-5);
   border-top: 1px solid var(--line);
-}
-
-.systemRow:first-child {
-  border-top: 0;
 }
 
 .systemRule {
@@ -484,6 +595,19 @@
 
   .systemRow {
     padding-inline: var(--sp-4);
+  }
+
+  /* A narrow column wraps more lines, so the same text leans further and by
+     rights wants more clearance — but 40px a side inside a 336px column would
+     leave a 24-character measure. Below the desktop breakpoint line length
+     wins and the top-left gap is allowed to close up. The outboard reserve is
+     not relaxed: that one is load-bearing against horizontal overflow. */
+  .bubble[data-lean='3'] {
+    --lean-pad: 24px;
+  }
+
+  .bubble[data-lean='4'] {
+    --lean-pad: 30px;
   }
 
   .meta {
