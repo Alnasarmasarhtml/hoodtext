@@ -32,13 +32,26 @@ export interface StreamHubOptions {
   /** Read lazily so a broadcast always reflects the database at that instant. */
   readonly stats: () => RelayStats;
   readonly log: FastifyBaseLogger;
+  /** Hard cap on concurrent subscribers. Omit for unbounded (tests only). */
+  readonly maxClients?: number;
 }
 
 /** `ws.WebSocket.OPEN`. Imported as a literal because `ws` is a transitive dep. */
 const WS_OPEN = 1;
 
 const CLOSE_GOING_AWAY = 1001;
+const CLOSE_TRY_AGAIN_LATER = 1013;
 const CLOSE_SERVICE_RESTART = 1012;
+
+/**
+ * Outbound bytes a single subscriber may leave unflushed before it is dropped.
+ *
+ * `ws` buffers in process memory for a socket that stops reading, and the fan-out
+ * writes to every subscriber unconditionally — so one stalled client would grow
+ * the relay's heap without limit. A client that cannot absorb 1 MiB of JSON is
+ * better off reconnecting and backfilling over HTTP.
+ */
+const MAX_BUFFERED_BYTES = 1_048_576;
 
 export class StreamHub {
   readonly #clients = new Set<StreamSocket>();
@@ -71,6 +84,14 @@ export class StreamHub {
       return;
     }
     if (this.#clients.has(socket)) return;
+    const maxClients = this.#options.maxClients;
+    if (maxClients !== undefined && this.#clients.size >= maxClients) {
+      // The per-IP handshake limit bounds churn, not concurrency: many IPs can
+      // each hold one socket. This is the ceiling on the fan-out itself.
+      this.#options.log.warn({ maxClients }, 'stream: subscriber cap reached, refusing socket');
+      this.#safeClose(socket, CLOSE_TRY_AGAIN_LATER, 'relay stream is at capacity');
+      return;
+    }
 
     const onGone = (): void => {
       this.remove(socket);
@@ -173,6 +194,15 @@ export class StreamHub {
   #sendFrame(socket: StreamSocket, frame: string): void {
     if (socket.readyState !== WS_OPEN) {
       this.remove(socket);
+      return;
+    }
+    if (socket.bufferedAmount > MAX_BUFFERED_BYTES) {
+      this.#options.log.warn(
+        { buffered: socket.bufferedAmount },
+        'stream: subscriber is not draining, dropping it',
+      );
+      this.remove(socket);
+      this.#safeClose(socket, CLOSE_TRY_AGAIN_LATER, 'stream backpressure');
       return;
     }
     try {

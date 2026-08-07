@@ -46,6 +46,51 @@ class FakePoster implements BatchPoster {
   }
 }
 
+/**
+ * Poster whose `post()` hangs until the test releases it, so a batch can be held
+ * in flight while further submissions arrive.
+ */
+class GatedPoster implements BatchPoster {
+  readonly posted: SignableDrop[][] = [];
+  fail = false;
+  /** Resolves as soon as a batch reaches the poster. */
+  posting: Promise<void>;
+
+  #arrived: () => void = () => undefined;
+  #release: (() => void) | null = null;
+
+  constructor() {
+    this.posting = new Promise<void>((resolve) => {
+      this.#arrived = resolve;
+    });
+  }
+
+  post(drops: readonly SignableDrop[]): Promise<`0x${string}`> {
+    const snapshot = [...drops];
+    return new Promise<`0x${string}`>((resolve, reject) => {
+      this.#release = (): void => {
+        this.posting = new Promise<void>((next) => {
+          this.#arrived = next;
+        });
+        if (this.fail) {
+          reject(new Error('rpc unavailable'));
+          return;
+        }
+        this.posted.push(snapshot);
+        resolve(`0x${'11'.repeat(32)}` as `0x${string}`);
+      };
+      this.#arrived();
+    });
+  }
+
+  /** Lets the in-flight batch complete (or fail, when `fail` is set). */
+  release(): void {
+    const release = this.#release;
+    this.#release = null;
+    release?.();
+  }
+}
+
 const silentLog = {
   info: () => undefined,
   warn: () => undefined,
@@ -231,6 +276,100 @@ describe('SendPipeline.flushNow', () => {
     const pipeline = pipelineWith(gate, null);
     expect(pipeline.enabled()).toBe(false);
     await pipeline.flushNow(); // must not throw
+  });
+});
+
+describe('SendPipeline under concurrent submission', () => {
+  let gate: FakeGate;
+  let poster: GatedPoster;
+  let identity: IdentityKeys;
+  let pipeline: SendPipeline;
+
+  beforeEach(async () => {
+    gate = new FakeGate();
+    poster = new GatedPoster();
+    identity = await identityFor('aa');
+    gate.keys.set(ALICE, `0x${Buffer.from(identity.ed25519.publicKey).toString('hex')}`);
+    gate.activated.add(ALICE);
+    pipeline = new SendPipeline({
+      gate,
+      poster,
+      log: silentLog,
+      flushMs: 60_000,
+      queueMax: 100,
+    });
+  });
+
+  /** Queues `n` valid drops and returns their blobRefs in submission order. */
+  async function queue(n: number): Promise<string[]> {
+    const refs: string[] = [];
+    for (let i = 0; i < n; i += 1) {
+      const { drop, signature } = await signedDrop(identity);
+      const result = await pipeline.submit(ALICE, drop, signature);
+      expect(result.ok).toBe(true);
+      refs.push(drop.blobRef);
+    }
+    return refs;
+  }
+
+  it('keeps drops submitted while a batch is in flight, and posts them next', async () => {
+    const first = await queue(3);
+
+    const flush = pipeline.flushNow();
+    await poster.posting;
+
+    // The relay answered 200 for these; losing them would mean a message the web
+    // client shows as sent and the chain never sees.
+    const late = await queue(2);
+    // The in-flight batch has already left the queue, so only the late arrivals
+    // are still waiting — and they must survive the flush that is mid-await.
+    expect(pipeline.size()).toBe(2);
+
+    poster.release();
+    await flush;
+
+    expect(poster.posted).toHaveLength(1);
+    expect(poster.posted[0]?.map((drop) => drop.blobRef)).toEqual(first);
+    expect(pipeline.size()).toBe(2);
+
+    const second = pipeline.flushNow();
+    await poster.posting;
+    poster.release();
+    await second;
+
+    // Order preserved: the late arrivals went out behind the batch, not instead of it.
+    expect(poster.posted[1]?.map((drop) => drop.blobRef)).toEqual(late);
+    expect(pipeline.size()).toBe(0);
+  });
+
+  it('restores the batch ahead of later arrivals when a post fails', async () => {
+    await queue(3);
+
+    poster.fail = true;
+    const flush = pipeline.flushNow();
+    await poster.posting;
+    await queue(2);
+
+    poster.release();
+    await flush;
+
+    expect(poster.posted).toHaveLength(0);
+    expect(pipeline.size()).toBe(5);
+  });
+
+  it('never overshoots the queue cap when submissions race', async () => {
+    const capped = new SendPipeline({ gate, poster, log: silentLog, flushMs: 60_000, queueMax: 8 });
+    const signed = await Promise.all(Array.from({ length: 20 }, () => signedDrop(identity)));
+
+    const results = await Promise.all(
+      signed.map(({ drop, signature }) => capped.submit(ALICE, drop, signature)),
+    );
+
+    const accepted = results.filter((result) => result.ok).length;
+    const rejected = results.filter((result) => !result.ok).length;
+    expect(accepted + rejected).toBe(20);
+    expect(accepted).toBe(8);
+    expect(capped.size()).toBe(8);
   });
 });
 

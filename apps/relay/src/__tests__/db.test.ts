@@ -1,4 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
+import { mkdtempSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { RelayDb, blobRefOf } from '../db.js';
 import { hex20, hex32, makeDrop } from './helpers.js';
@@ -129,9 +132,72 @@ describe('RelayDb', () => {
     expect(db.countDrops()).toBe(2);
   });
 
+  it('memoises stats and drops the memo on every write', () => {
+    db.upsertDrop(makeDrop(1));
+
+    const first = db.stats();
+    // Identity, not equality: a second call inside the TTL must not re-run the
+    // scan that `/v1/stats` and the 10s broadcast both go through.
+    expect(db.stats()).toBe(first);
+
+    db.upsertDrop(makeDrop(2));
+    const afterDrop = db.stats();
+    expect(afterDrop).not.toBe(first);
+    expect(afterDrop.totalDrops).toBe(2);
+
+    db.putBlob(Buffer.from('invalidate', 'utf8'));
+    expect(db.stats().totalBlobs).toBe(1);
+
+    db.setCursor(77);
+    expect(db.stats().indexedBlock).toBe(77);
+  });
+
+  it('prunes only blobs older than the cutoff', () => {
+    const kept = db.putBlob(Buffer.from('recent', 'utf8')).ref;
+
+    // Nothing is older than a cutoff in the past.
+    expect(db.pruneBlobs(Date.now() - 60_000)).toBe(0);
+    expect(db.countBlobs()).toBe(1);
+
+    // A cutoff in the future sweeps everything stored so far.
+    expect(db.pruneBlobs(Date.now() + 60_000)).toBe(1);
+    expect(db.countBlobs()).toBe(0);
+    expect(db.getBlob(kept)).toBeNull();
+    expect(db.stats().totalBlobs).toBe(0);
+  });
+
   it('is safe to close twice', () => {
     db.close();
     expect(() => db.close()).not.toThrow();
     expect(db.closed).toBe(true);
+  });
+});
+
+describe('RelayDb on disk', () => {
+  let dir: string;
+  let db: RelayDb;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'relay-db-'));
+    db = RelayDb.open(join(dir, 'relay.db'));
+  });
+
+  afterEach(() => {
+    db.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('journals in WAL so a reader never blocks the indexer mid-write', () => {
+    expect(db.journalMode()).toBe('wal');
+  });
+
+  it('checkpoints after a prune so the deleted pages actually leave the file', () => {
+    db.putBlob(randomBytes(256_000));
+    expect(db.countBlobs()).toBe(1);
+
+    expect(db.pruneBlobs(Date.now() + 60_000)).toBe(1);
+    expect(db.countBlobs()).toBe(0);
+    // A prune that leaves the WAL untouched frees no disk at all.
+    expect(statSync(join(dir, 'relay.db-wal')).size).toBe(0);
   });
 });

@@ -91,6 +91,13 @@ CREATE TABLE IF NOT EXISTS drops (
 
 CREATE INDEX IF NOT EXISTS drops_convo_id_idx     ON drops(convo_id);
 CREATE INDEX IF NOT EXISTS drops_block_number_idx ON drops(block_number);
+-- The stats query counts distinct posters; without this it is a full table scan
+-- plus a temp b-tree, the single most expensive query the relay runs.
+CREATE INDEX IF NOT EXISTS drops_poster_idx       ON drops(poster);
+
+-- The retention sweep deletes by age. Without this index that DELETE walks every
+-- page of the table — including the multi-MiB payloads it is not filtering on.
+CREATE INDEX IF NOT EXISTS blobs_created_at_idx   ON blobs(created_at);
 
 CREATE TABLE IF NOT EXISTS cursor (
   id         INTEGER PRIMARY KEY,
@@ -158,9 +165,20 @@ function toDropRow(row: Row): DropRow {
  * Every relay query lives here. The class owns the `DatabaseSync` handle and is
  * the only place raw SQL appears.
  */
+/**
+ * How long a {@link RelayStats} snapshot may be reused.
+ *
+ * The websocket broadcast is every 10s and nothing else needs fresher numbers, so
+ * this only ever collapses a *flood* — the honest caller sees the same value it
+ * would have computed. Every write path invalidates the cache explicitly, so this
+ * TTL is a ceiling on staleness from concurrent writers, not on correctness.
+ */
+const STATS_TTL_MS = 2_000;
+
 export class RelayDb {
   readonly #db: SqliteDatabase;
   readonly #statements = new Map<string, StatementSync>();
+  #statsCache: { readonly at: number; readonly value: RelayStats } | null = null;
   #closed = false;
 
   private constructor(db: SqliteDatabase) {
@@ -181,6 +199,10 @@ export class RelayDb {
     // in-memory databases, which SQLite always journals in memory.
     db.exec('PRAGMA journal_mode = WAL;');
     db.exec('PRAGMA synchronous = NORMAL;');
+    // `node:sqlite` defaults busy_timeout to 0, so any second holder of the file
+    // — a backup, an `sqlite3` shell, a second relay on the same volume — turns
+    // into an instant SQLITE_BUSY throw with no retry. Wait instead.
+    db.exec('PRAGMA busy_timeout = 5000;');
     db.exec('PRAGMA foreign_keys = ON;');
     db.exec(SCHEMA);
     db.exec('PRAGMA user_version = 1;');
@@ -189,6 +211,12 @@ export class RelayDb {
 
   get closed(): boolean {
     return this.#closed;
+  }
+
+  /** The journal mode SQLite actually settled on — `'wal'` for any file-backed db. */
+  journalMode(): string {
+    const row = this.#prepare('PRAGMA journal_mode').get();
+    return row === undefined ? 'unknown' : readText(row, 'journal_mode');
   }
 
   /** Prepare once, reuse forever. Statements are finalised when the handle closes. */
@@ -215,7 +243,32 @@ export class RelayDb {
     const result = this.#prepare(
       'INSERT INTO blobs (ref, bytes, size, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(ref) DO NOTHING',
     ).run(ref, bytes, bytes.byteLength, Date.now());
-    return { ref, size: bytes.byteLength, stored: Number(result.changes) > 0 };
+    const stored = Number(result.changes) > 0;
+    if (stored) this.#statsCache = null;
+    return { ref, size: bytes.byteLength, stored };
+  }
+
+  /**
+   * Permanently delete every blob stored before `cutoffMs`.
+   *
+   * This is destructive in a way nothing else here is: the row is the *only* copy
+   * of the ciphertext a recipient can fetch — the chain holds a reference, not the
+   * payload. A recipient offline longer than the TTL loses those messages for good.
+   * That is why retention is opt-in (`RELAY_BLOB_TTL_DAYS=0` keeps everything) and
+   * why the caller logs every sweep that removes anything.
+   *
+   * @returns how many blobs were removed.
+   */
+  pruneBlobs(cutoffMs: number): number {
+    const result = this.#prepare('DELETE FROM blobs WHERE created_at < ?').run(cutoffMs);
+    const removed = Number(result.changes);
+    if (removed > 0) {
+      this.#statsCache = null;
+      // Deleted pages live in the WAL until a checkpoint moves them out; without
+      // this a prune frees no disk at all, which is the entire point of the knob.
+      this.#db.exec('PRAGMA wal_checkpoint(TRUNCATE);');
+    }
+    return removed;
   }
 
   getBlob(ref: string): StoredBlob | null {
@@ -271,6 +324,7 @@ export class RelayDb {
       drop.txHash,
       drop.blockNumber,
     );
+    this.#statsCache = null;
   }
 
   /** Run `fn` inside a single transaction, rolling back if it throws. */
@@ -338,11 +392,24 @@ export class RelayDb {
     this.#prepare(
       'INSERT INTO cursor (id, last_block) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET last_block = excluded.last_block',
     ).run(CURSOR_ID, lastBlock);
+    this.#statsCache = null;
   }
 
   // ── aggregate ────────────────────────────────────────────────────────────
 
+  /**
+   * Aggregate counters for `/v1/stats` and the websocket stats frame.
+   *
+   * Memoised: this is the one query here that scans, it is reachable
+   * unauthenticated, and `node:sqlite` is synchronous — so every millisecond it
+   * spends freezes HTTP, the fan-out and the indexer alike. Writes invalidate the
+   * memo, so a cached answer is only ever stale with respect to a *concurrent*
+   * writer, never with respect to this caller's own writes.
+   */
   stats(): RelayStats {
+    const cached = this.#statsCache;
+    if (cached !== null && Date.now() - cached.at < STATS_TTL_MS) return cached.value;
+
     const row = this.#prepare(
       `SELECT
          (SELECT COALESCE(MAX(seq), 0)      FROM drops) AS head,
@@ -353,18 +420,21 @@ export class RelayDb {
     if (row === undefined) {
       throw new DbError('stats query returned no row');
     }
-    return {
+    const value: RelayStats = {
       head: readInt(row, 'head'),
       totalDrops: readInt(row, 'total_drops'),
       totalBlobs: readInt(row, 'total_blobs'),
       uniquePosters: readInt(row, 'unique_posters'),
       indexedBlock: this.getCursor() ?? 0,
     };
+    this.#statsCache = { at: Date.now(), value };
+    return value;
   }
 
   close(): void {
     if (this.#closed) return;
     this.#closed = true;
+    this.#statsCache = null;
     this.#statements.clear();
     this.#db.close();
   }

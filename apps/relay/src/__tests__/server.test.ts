@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { MAX_BLOB_BYTES } from '../config.js';
 import type { StreamMessage } from '../stream.js';
-import { BINARY, makeDrop, newApp, waitFor } from './helpers.js';
+import { BINARY, hex32, makeDrop, newApp, waitFor } from './helpers.js';
 
 describe('WS /v1/stream', () => {
   let app: FastifyInstance;
@@ -68,7 +68,7 @@ describe('blob rate limit', () => {
     expect(await post(2)).toBe(200);
     expect(await post(3)).toBe(429);
 
-    // Reads are not rate limited.
+    // Each route carries its own bucket, so exhausting writes never throttles reads.
     const stats = await app.inject({ method: 'GET', url: '/v1/stats' });
     expect(stats.statusCode).toBe(200);
   });
@@ -89,6 +89,118 @@ describe('blob rate limit', () => {
     expect(throttled.statusCode).toBe(429);
     expect(throttled.json<{ error: string }>().error).toBe('rate_limited');
     expect(throttled.headers['retry-after']).toBeDefined();
+  });
+});
+
+describe('read rate limits', () => {
+  let app: FastifyInstance;
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  /** Fires `n` identical requests in order and returns each status. */
+  async function statuses(
+    instance: FastifyInstance,
+    url: string,
+    n: number,
+  ): Promise<readonly number[]> {
+    const out: number[] = [];
+    for (let i = 0; i < n; i += 1) {
+      out.push((await instance.inject({ method: 'GET', url })).statusCode);
+    }
+    return out;
+  }
+
+  it('caps /v1/drops and its per-conversation sibling', async () => {
+    app = await newApp({ dropsRateLimitMax: 2 });
+
+    expect(await statuses(app, '/v1/drops', 3)).toEqual([200, 200, 429]);
+    // A separate bucket per route: exhausting the log page must not lock a client
+    // out of its own conversation.
+    expect(await statuses(app, `/v1/drops/convo/${hex32(1)}`, 3)).toEqual([200, 200, 429]);
+  });
+
+  it('caps GET /v1/blob/:ref', async () => {
+    app = await newApp({ blobReadRateLimitMax: 2 });
+    const post = await app.inject({
+      method: 'POST',
+      url: '/v1/blob',
+      headers: BINARY,
+      payload: Buffer.from('rate limited read', 'utf8'),
+    });
+    const { blobRef } = post.json<{ blobRef: string }>();
+
+    expect(await statuses(app, `/v1/blob/${blobRef}`, 3)).toEqual([200, 200, 429]);
+  });
+
+  it('caps GET /v1/stats and GET /v1/health', async () => {
+    app = await newApp({ statsRateLimitMax: 2, healthRateLimitMax: 1 });
+
+    expect(await statuses(app, '/v1/stats', 3)).toEqual([200, 200, 429]);
+    expect(await statuses(app, '/v1/health', 2)).toEqual([200, 429]);
+  });
+
+  it('labels a throttled read exactly like a throttled write', async () => {
+    app = await newApp({ statsRateLimitMax: 1 });
+
+    await app.inject({ method: 'GET', url: '/v1/stats' });
+    const throttled = await app.inject({ method: 'GET', url: '/v1/stats' });
+
+    expect(throttled.statusCode).toBe(429);
+    expect(throttled.json<{ error: string }>().error).toBe('rate_limited');
+    expect(throttled.headers['retry-after']).toBeDefined();
+  });
+
+  it('caps websocket handshakes and refuses the upgrade outright', async () => {
+    app = await newApp({ streamRateLimitMax: 1 });
+
+    const first = await app.injectWS('/v1/stream');
+    await expect(app.injectWS('/v1/stream')).rejects.toThrow(/429/);
+
+    first.terminate();
+  });
+
+  it('does not spend a browser client budget on the CORS preflight', async () => {
+    app = await newApp({ statsRateLimitMax: 1, webOrigins: ['http://localhost:3000'] });
+
+    const preflight = await app.inject({
+      method: 'OPTIONS',
+      url: '/v1/stats',
+      headers: {
+        origin: 'http://localhost:3000',
+        'access-control-request-method': 'GET',
+      },
+    });
+    const read = await app.inject({
+      method: 'GET',
+      url: '/v1/stats',
+      headers: { origin: 'http://localhost:3000' },
+    });
+
+    // A preflight that counted would halve every limit for browser callers only.
+    expect(preflight.statusCode).toBe(204);
+    expect(read.statusCode).toBe(200);
+  });
+
+  it('cannot be reset by forging X-Forwarded-For', async () => {
+    // The relay trusts no proxy by default, so a client-supplied forwarding header
+    // must not mint a fresh bucket — otherwise every limit above is decoration.
+    app = await newApp({ statsRateLimitMax: 1 });
+
+    const first = await app.inject({
+      method: 'GET',
+      url: '/v1/stats',
+      headers: { 'x-forwarded-for': '10.0.0.1' },
+    });
+    const spoofed = await app.inject({
+      method: 'GET',
+      url: '/v1/stats',
+      headers: { 'x-forwarded-for': '10.0.0.2' },
+    });
+
+    expect(first.statusCode).toBe(200);
+    expect(spoofed.statusCode).toBe(429);
   });
 });
 

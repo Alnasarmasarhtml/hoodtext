@@ -70,6 +70,16 @@ import {
 
 /** Page size for the backfill sweep. */
 const BACKFILL_LIMIT = 200;
+/**
+ * Backoff before another sweep after an aborted one.
+ *
+ * `GET /v1/drops` is rate-limited, so a 429 mid-sweep is an ordinary event, not
+ * an exceptional one. An aborted sweep used to leave the gap for a human to
+ * notice and press "resync"; these delays retry it instead. Exhausting the
+ * schedule still leaves `resyncMessenger`, and the scan cursor stays clamped
+ * below the gap the whole time, so nothing is lost by giving up on the timer.
+ */
+const BACKFILL_RETRY_DELAYS_MS = [250, 1_000, 4_000, 15_000] as const;
 /** How many tamper events to keep in the banner before dropping the oldest. */
 const MAX_TAMPER_EVENTS = 12;
 /** Grace period before tearing the engine down, so StrictMode does not thrash. */
@@ -331,8 +341,169 @@ let stopStream: (() => void) | null = null;
 let detachTimer: ReturnType<typeof setTimeout> | null = null;
 let runToken = 0;
 let pipeline: Promise<void> = Promise.resolve();
-/** Anchors already handled this session, so a WS echo of a backfilled drop is free. */
-const processedSeqs = new Set<number>();
+
+/**
+ * Dedupe state for the scan, as a high-water mark rather than a set of every
+ * seq ever seen.
+ *
+ * The mark means *fully processed*, not *looked at*: it is advanced by
+ * `processDrops` only once the slice's I/O has resolved, never by
+ * `classifySlice` while the drops are still in flight. A throw halfway through
+ * a slice's fetches therefore costs a re-examination of that slice and nothing
+ * more.
+ *
+ * This state is *work avoidance*, not write protection: every downstream write
+ * is idempotent and content-addressed (`messageId` is `owner:blobRef`, and
+ * `patchMessage` / `addMessage` / `upsertRoom` / `putRoomKey` are all upserts
+ * keyed by id, each re-checking `existing.seq` before it writes). Forgetting a
+ * seq therefore costs one redundant examination and can never produce a
+ * duplicate row; remembering one that was never opened is the only unsafe
+ * direction. Two independent things guard that direction: `rememberRetry` puts
+ * the seq back within this session, and — because the retry set is bounded and
+ * only the WebSocket ever re-delivers a seq — `backfill` refuses to persist a
+ * scan cursor at or above the lowest re-armed seq, so the *next* sweep asks the
+ * relay for it again. The cursor is the durable record; the retry set is only
+ * the fast path.
+ *
+ * A plain `Set` grew without bound — ~31 MB at a million drops. The high-water
+ * mark holds because every source of drops is ascending: backfill pages are
+ * `seq > since ORDER BY seq ASC` and non-overlapping, and the relay stream
+ * emits in ascending block/logIndex order. The one source of descending seqs is
+ * the indexer's reorg rewind, and those re-emissions are exactly what we want
+ * to skip — identical to the behaviour of the old `Set`.
+ */
+let scanHighWater = -1;
+/** Seqs at or below the mark that must be examined again — see `rememberRetry`. */
+const retrySeqs = new Set<number>();
+/**
+ * Ceiling on the retry set.
+ *
+ * The bound is *not* excused by the view tag: only stealth drops are filtered
+ * to ~1/256 before `fetchVerified`, while every room drop of every room this
+ * device holds is fetched unconditionally. A relay that refuses blobs can
+ * therefore arm one seq per drop in the log, which is exactly why the cap
+ * refuses entries past 4096 — and exactly why refusing them has to be safe.
+ * It is safe because `rememberRetry` records the lowest failed seq *before* the
+ * cap is consulted, and `backfill` clamps the persisted cursor below it: a
+ * refused arming costs a re-sweep, never a message.
+ */
+const MAX_RETRY_SEQS = 4096;
+
+/** Main-thread budget for one uninterrupted classification slice, in ms. */
+const SCAN_SLICE_MS = 8;
+
+/**
+ * Lowest seq re-armed since the current `processDrops` batch began, or `null`
+ * when every drop in it was resolved. Module-level rather than threaded through
+ * the call chain because `rememberRetry` is called from three nesting levels
+ * down; safe as a single slot because every entry point funnels through
+ * `enqueue`, so batches never overlap.
+ */
+let retryLowWater: number | null = null;
+
+/**
+ * True while a hole is known to exist above the persisted scan cursor: an
+ * aborted sweep, a page with an unfetchable blob, or a live drop that did not
+ * follow the cursor by exactly one. While it is set, the stream may not push
+ * the cursor forward — doing so is what turned a rate-limited page into
+ * permanent loss. Only a sweep that reaches the relay head with nothing left
+ * behind clears it.
+ */
+let scanGap = true;
+
+function resetScanDedupe(): void {
+  scanHighWater = -1;
+  retrySeqs.clear();
+  retryLowWater = null;
+  scanGap = true;
+}
+
+/**
+ * Re-arms a seq for another examination after a *transient* failure — a blob
+ * the relay could not serve right now. Capped, because an outage that lasts
+ * a whole backfill would otherwise rebuild the unbounded set we just removed.
+ *
+ * The low-water mark is recorded before the cap is consulted: the caller uses
+ * it to hold the scan cursor below the failure, and that has to happen whether
+ * or not there was room to arm the seq itself.
+ */
+function rememberRetry(seq: number): void {
+  if (retryLowWater === null || seq < retryLowWater) retryLowWater = seq;
+  if (retrySeqs.size < MAX_RETRY_SEQS) retrySeqs.add(seq);
+}
+
+/* ───────────────────────────────────────────────────── yielding to paint ─── */
+
+type YieldFn = () => Promise<void>;
+
+let yieldImpl: YieldFn | null = null;
+let messageChannel: MessageChannel | null = null;
+const yieldWaiters: (() => void)[] = [];
+
+function now(): number {
+  return typeof performance === 'undefined' ? Date.now() : performance.now();
+}
+
+const timeoutYield: YieldFn = () =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, 0);
+  });
+
+function schedulerYield(): YieldFn | null {
+  // Reflected rather than referenced: `scheduler.yield()` is Baseline-new, and
+  // the DOM lib this project builds against does not declare it everywhere.
+  const scheduler: unknown = Reflect.get(globalThis, 'scheduler');
+  if (typeof scheduler !== 'object' || scheduler === null) return null;
+  const candidate: unknown = Reflect.get(scheduler, 'yield');
+  if (typeof candidate !== 'function') return null;
+  const bound = (candidate as YieldFn).bind(scheduler);
+  return async (): Promise<void> => {
+    try {
+      await bound();
+    } catch {
+      // `scheduler.yield()` rejects when its task is aborted; a plain macrotask
+      // still hands the frame back, which is all we need.
+      await timeoutYield();
+    }
+  };
+}
+
+function ensureMessageChannel(): MessageChannel {
+  if (messageChannel !== null) return messageChannel;
+  const created = new MessageChannel();
+  created.port1.onmessage = (): void => {
+    const next = yieldWaiters.shift();
+    if (next !== undefined) next();
+  };
+  messageChannel = created;
+  return created;
+}
+
+function messageChannelYield(): YieldFn | null {
+  if (typeof MessageChannel === 'undefined') return null;
+  return () =>
+    new Promise<void>((resolve) => {
+      const channel = ensureMessageChannel();
+      yieldWaiters.push(resolve);
+      channel.port2.postMessage(0);
+    });
+}
+
+/**
+ * Hands the main thread back for one macrotask.
+ *
+ * The scan *looks* asynchronous and is not: `scanMatches` is an `async` wrapper
+ * over a synchronous WASM scalarmult, and every other await on the
+ * 99.6 %-non-matching path resolves against an already-settled promise. Awaiting
+ * a settled promise schedules a microtask, and microtasks drain inside the same
+ * task — the browser never gets a chance to paint or to deliver input. So
+ * `queueMicrotask` and `await Promise.resolve()` are useless here; only a real
+ * macrotask boundary yields a frame.
+ */
+function yieldToBrowser(): Promise<void> {
+  yieldImpl ??= schedulerYield() ?? messageChannelYield() ?? timeoutYield;
+  return yieldImpl();
+}
 
 function readableError(error: unknown): string {
   if (error instanceof Error) {
@@ -378,24 +549,31 @@ function toKeyBytes(value: Hex): Uint8Array | null {
   }
 }
 
+type OwnDropVerdict = 'not-ours' | 'up-to-date' | 'needs-anchor';
+
 /**
- * Reconciles a drop with an outbound row this device already holds.
+ * Decides whether a drop reconciles against an outbound row this device already
+ * holds. Synchronous on purpose: this runs inside the classification slice, and
+ * the IndexedDB write it may imply is deferred to `anchorOwnDrop`.
  *
  * Matching is on `blobRef` — the content address — because the poster on the
- * gasless path is the relay, not the author. Returns `true` when the drop was
- * ours, so the caller can stop processing it.
+ * gasless path is the relay, not the author.
  */
-async function reconcileOwnDrop(owner: Address, drop: DropRow): Promise<boolean> {
-  const id = messageId(owner, drop.blobRef);
+function classifyOwnDrop(drop: DropRow, id: string): OwnDropVerdict {
   const existing = findMessage(id);
-  if (existing === null || existing.direction !== 'out') return false;
+  if (existing === null || existing.direction !== 'out') return 'not-ours';
   if (
     existing.status === 'anchored' &&
     existing.seq === drop.seq &&
     existing.blockNumber === drop.blockNumber
   ) {
-    return true;
+    return 'up-to-date';
   }
+  return 'needs-anchor';
+}
+
+/** Flips one of our own outbound rows to `anchored`. */
+async function anchorOwnDrop(id: string, drop: DropRow): Promise<void> {
   await patchMessage(id, {
     status: 'anchored',
     seq: drop.seq,
@@ -407,7 +585,6 @@ async function reconcileOwnDrop(owner: Address, drop: DropRow): Promise<boolean>
     ephPub: drop.ephPub,
     error: null,
   });
-  return true;
 }
 
 interface VerifiedBlob {
@@ -540,7 +717,7 @@ async function processRoomDrop(
 
   const fetched = await fetchVerified(drop);
   if (fetched === false) {
-    processedSeqs.delete(drop.seq);
+    rememberRetry(drop.seq);
     return;
   }
   if (fetched === null) return;
@@ -589,36 +766,104 @@ async function processRoomDrop(
   await upsertRoom({ ...room, lastSeenAt: Math.max(room.lastSeenAt, sentAt) });
 }
 
-async function processDrops(
+/** One slice of classification: pure CPU, no I/O, bounded by `SCAN_SLICE_MS`. */
+interface ScanSlice {
+  /** Our own outbound rows that need flipping to `anchored`. */
+  readonly own: readonly { readonly id: string; readonly drop: DropRow }[];
+  /** Room drops, still unresolved — `findRoom` runs in the I/O phase. */
+  readonly room: readonly DropRow[];
+  /** Stealth 1:1 drops whose view tag matched our key. */
+  readonly stealth: readonly DropRow[];
+  /** Anchors admitted by the dedupe gate in this slice. */
+  readonly examined: number;
+  /**
+   * Highest seq admitted by the gate, or `-1` for a slice that admitted none.
+   * The caller writes this to `scanHighWater` — but only after the slice's I/O
+   * has resolved, so the mark can never claim a drop that was never recorded.
+   */
+  readonly highest: number;
+  /**
+   * Seqs this slice took *out* of `retrySeqs`. If the I/O throws they go back:
+   * they sit at or below the mark, so nothing else would ever look at them.
+   */
+  readonly rearmed: readonly number[];
+  /** Index in `drops` where the next slice resumes. */
+  readonly next: number;
+  /** The run token changed mid-slice; the caller must abandon the batch. */
+  readonly cancelled: boolean;
+}
+
+/**
+ * Classifies drops until the slice budget is spent.
+ *
+ * Everything here is synchronous work — the one `await` is `scanMatches`, whose
+ * body is a synchronous WASM scalarmult behind a memoised `ready()`. Nothing in
+ * this function touches the network or IndexedDB, which is what makes it safe
+ * to cut at an arbitrary drop and resume after a macrotask yield.
+ *
+ * It *reads* the dedupe gate and it never advances it. Marking a drop examined
+ * before its blob has been fetched, opened and written would lose the whole
+ * slice — 40 to 150 drops — to a single `idbPut` quota error or a failed
+ * `resolvePeerKeys`, so the mark is the caller's to make, once the I/O is done.
+ */
+async function classifySlice(
   attachment: MessengerAttachment,
   drops: readonly DropRow[],
+  from: number,
   token: number,
-): Promise<void> {
+): Promise<ScanSlice> {
   const { owner, keys } = attachment;
   const ownerKey = owner.toLowerCase();
   const priv = keys.x25519.privateKey;
-  const pub = keys.x25519.publicKey;
 
-  const candidates: Candidate[] = [];
+  const own: { readonly id: string; readonly drop: DropRow }[] = [];
+  const room: DropRow[] = [];
+  const stealth: DropRow[] = [];
+  const rearmed: number[] = [];
   let examined = 0;
-  let matches = 0;
+  let highest = -1;
+  let index = from;
+  const sliceStart = now();
 
-  for (const drop of drops) {
-    if (token !== runToken) return;
-    if (processedSeqs.has(drop.seq)) continue;
-    processedSeqs.add(drop.seq);
+  while (index < drops.length) {
+    /* Always make progress on at least one drop, so a slow device cannot
+       livelock on a budget it can never meet. */
+    if (index > from && now() - sliceStart > SCAN_SLICE_MS) break;
+
+    const drop = drops[index];
+    if (drop === undefined) {
+      index += 1;
+      continue;
+    }
+
+    /* The token test and the gate below are one synchronous block with no await
+       between them. `teardown()` is the only writer of `runToken` and it resets
+       the dedupe state in the same synchronous breath, so an abandoned run can
+       never consume an armed seq on behalf of the run that replaces it. */
+    if (token !== runToken) {
+      return { own, room, stealth, examined, highest, rearmed, next: index, cancelled: true };
+    }
+    index += 1;
+
+    if (drop.seq <= scanHighWater) {
+      if (!retrySeqs.delete(drop.seq)) continue;
+      rearmed.push(drop.seq);
+    }
+    if (drop.seq > highest) highest = drop.seq;
     examined += 1;
 
     /* 0 — our own optimistic row, matched by content address. */
-    if (await reconcileOwnDrop(owner, drop)) continue;
+    const id = messageId(owner, drop.blobRef);
+    const verdict = classifyOwnDrop(drop, id);
+    if (verdict === 'needs-anchor') {
+      own.push({ id, drop });
+      continue;
+    }
+    if (verdict === 'up-to-date') continue;
 
     /* 1a — room drops: `convoId` is the on-chain group id. */
     if (drop.convoId.toLowerCase() !== STEALTH_CONVO_ID) {
-      const room = findRoom(drop.convoId);
-      if (room !== null) {
-        matches += 1;
-        await processRoomDrop(attachment, drop, room);
-      }
+      room.push(drop);
       continue;
     }
 
@@ -632,11 +877,36 @@ async function processDrops(
 
     const isMatch = await scanMatches(ephPub, drop.viewTag, priv);
     if (!isMatch) continue;
-    matches += 1;
+    stealth.push(drop);
+  }
+
+  return { own, room, stealth, examined, highest, rearmed, next: index, cancelled: false };
+}
+
+/**
+ * Fetches, opens and records the stealth drops of one slice.
+ *
+ * Split out of the scan loop so that the CPU filter above stays pure; the awaits
+ * in here are genuine network and IndexedDB I/O and yield on their own.
+ */
+async function processStealthDrops(
+  attachment: MessengerAttachment,
+  drops: readonly DropRow[],
+  token: number,
+): Promise<void> {
+  if (drops.length === 0) return;
+
+  const { owner, keys } = attachment;
+  const priv = keys.x25519.privateKey;
+  const pub = keys.x25519.publicKey;
+  const candidates: Candidate[] = [];
+
+  for (const drop of drops) {
+    if (token !== runToken) return;
 
     const fetched = await fetchVerified(drop);
     if (fetched === false) {
-      processedSeqs.delete(drop.seq);
+      rememberRetry(drop.seq);
       continue;
     }
     if (fetched === null) continue;
@@ -658,12 +928,6 @@ async function processDrops(
     candidates.push({ drop, pt: plaintext, sentAt, integrity: fetched.integrity });
   }
 
-  if (examined > 0 || matches > 0) {
-    setState((state) => ({
-      scanned: state.scanned + examined,
-      matched: state.matched + matches,
-    }));
-  }
   if (candidates.length === 0 || token !== runToken) return;
 
   /* Resolve every unknown sender's registered key in one round trip. */
@@ -691,7 +955,7 @@ async function processDrops(
   }
   if (token !== runToken) return;
 
-  const now = Math.floor(Date.now() / 1000);
+  const nowSeconds = Math.floor(Date.now() / 1000);
   const fresh: ChatMessage[] = [];
   const touchedPeers = new Map<string, PeerRecord>();
 
@@ -738,7 +1002,7 @@ async function processDrops(
       convoId,
       address: peerPubBytes === null ? null : candidate.drop.poster,
       x25519Pub: peerPubBytes === null ? null : peerPubHex,
-      createdAt: now,
+      createdAt: nowSeconds,
       lastSeenAt: candidate.sentAt,
     };
     const previous = touchedPeers.get(record.id);
@@ -755,6 +1019,97 @@ async function processDrops(
     putMessages(fresh);
     await saveMessages(fresh);
   }
+}
+
+/**
+ * Runs every I/O the slice implied.
+ *
+ * @returns the number of anchors that matched — view-tag hits plus room drops
+ *          for a room this device actually holds.
+ */
+async function runSliceIo(
+  attachment: MessengerAttachment,
+  slice: ScanSlice,
+  token: number,
+): Promise<number> {
+  for (const entry of slice.own) {
+    if (token !== runToken) return 0;
+    await anchorOwnDrop(entry.id, entry.drop);
+  }
+
+  /* Stealth before rooms, and `findRoom` deferred to here: a room key arrives
+     as a stealth `system` drop, so a room drop from the same slice can only be
+     opened once that handoff has been applied. The serial loop used to give
+     this ordering for free. */
+  await processStealthDrops(attachment, slice.stealth, token);
+
+  let matches = slice.stealth.length;
+  for (const drop of slice.room) {
+    if (token !== runToken) return matches;
+    const room = findRoom(drop.convoId);
+    if (room === null) continue;
+    matches += 1;
+    await processRoomDrop(attachment, drop, room);
+  }
+  return matches;
+}
+
+/**
+ * Handles a batch of anchors without ever blocking the main thread for more
+ * than one slice.
+ *
+ * Concurrency: every entry point funnels through `enqueue`, so `processDrops`
+ * calls are strictly serialised on the `pipeline` promise — the yields below
+ * hand the frame back to the browser but never let a second `processDrops`
+ * start. That is what keeps the dedupe gate in `classifySlice` a critical
+ * section despite the interruptions.
+ *
+ * @returns the lowest seq re-armed for a later attempt, or `null` when every
+ *          drop in the batch reached a verdict. The caller must not persist a
+ *          scan cursor at or above that seq.
+ */
+async function processDrops(
+  attachment: MessengerAttachment,
+  drops: readonly DropRow[],
+  token: number,
+): Promise<number | null> {
+  retryLowWater = null;
+  let index = 0;
+
+  while (index < drops.length) {
+    if (token !== runToken) return retryLowWater;
+
+    const slice = await classifySlice(attachment, drops, index, token);
+    index = slice.next;
+    if (slice.cancelled) return retryLowWater;
+
+    let matches: number;
+    try {
+      matches = await runSliceIo(attachment, slice, token);
+    } catch (error: unknown) {
+      /* Nothing in this slice was marked, so the whole slice is still on the
+         relay's side of the ledger — except the armed seqs it consumed, which
+         only `retrySeqs` remembers. Put those back before the throw unwinds. */
+      for (const seq of slice.rearmed) rememberRetry(seq);
+      throw error;
+    }
+
+    /* Mark only now, and only for a run that still owns the engine: the token
+       may have moved while the I/O above was in flight, and `teardown()` has
+       already reset the mark for whoever comes next. */
+    if (token !== runToken) return retryLowWater;
+    if (slice.highest > scanHighWater) scanHighWater = slice.highest;
+
+    if (slice.examined > 0 || matches > 0) {
+      setState((state) => ({
+        scanned: state.scanned + slice.examined,
+        matched: state.matched + matches,
+      }));
+    }
+
+    if (index < drops.length) await yieldToBrowser();
+  }
+  return retryLowWater;
 }
 
 async function hydrate(attachment: MessengerAttachment, token: number): Promise<void> {
@@ -787,32 +1142,123 @@ async function hydrate(attachment: MessengerAttachment, token: number): Promise<
   });
 }
 
-async function backfill(attachment: MessengerAttachment, token: number): Promise<void> {
-  setState({ backfilling: true, error: null });
-  try {
-    let since = getState().scannedSeq;
+/** Pending automatic re-sweep, if any. */
+let backfillRetryTimer: ReturnType<typeof setTimeout> | null = null;
 
+function cancelBackfillRetry(): void {
+  if (backfillRetryTimer === null) return;
+  clearTimeout(backfillRetryTimer);
+  backfillRetryTimer = null;
+}
+
+/**
+ * Queues another sweep after `delay`.
+ *
+ * The wait happens on a timer rather than inside the pipeline: a sleeping
+ * backfill would hold `pipeline` and stall live delivery for as long as the
+ * backoff, which is the opposite of what a struggling relay needs.
+ */
+function scheduleBackfill(
+  attachment: MessengerAttachment,
+  token: number,
+  attempt: number,
+  delay: number,
+): void {
+  cancelBackfillRetry();
+  backfillRetryTimer = setTimeout(() => {
+    backfillRetryTimer = null;
+    if (token !== runToken) return;
+    enqueue(async () => {
+      if (token !== runToken) return;
+      await backfill(attachment, token, attempt);
+    });
+  }, delay);
+}
+
+/**
+ * Sweeps `GET /v1/drops` from the persisted cursor to the relay head.
+ *
+ * Two cursors, deliberately: `since` is where the *paging* is, and always
+ * advances so the sweep terminates; `cursor` is what gets persisted, and stops
+ * dead at the first seq this sweep failed to resolve. Advancing the persisted
+ * cursor over a failure is unrecoverable — the relay only ever serves
+ * `seq > since`, so a seq the cursor has passed is never offered again — which
+ * is why the clamp is here and not left to the bounded, session-local retry set.
+ *
+ * @param attempt index into `BACKFILL_RETRY_DELAYS_MS` for the *next* abort.
+ */
+async function backfill(
+  attachment: MessengerAttachment,
+  token: number,
+  attempt = 0,
+): Promise<void> {
+  cancelBackfillRetry();
+  setState({ backfilling: true, error: null });
+
+  const started = getState().scannedSeq;
+  let since = started;
+  let cursor = started;
+  /** Lowest seq this sweep left behind, sticky: later pages cannot jump it. */
+  let hole: number | null = null;
+  let reachedHead = false;
+
+  /* Everything at or below the resume cursor is durably processed and nothing
+     above it is, whatever a live drop may have marked while the sweep was
+     aborted. Re-arming the region above the cursor is what lets a retry heal a
+     gap the stream has already scanned past. */
+  scanHighWater = since;
+  retrySeqs.clear();
+  scanGap = true;
+
+  try {
     for (;;) {
       if (token !== runToken) return;
       const page = await getDrops({ since, limit: BACKFILL_LIMIT });
       setState({ head: page.head });
-      if (page.drops.length === 0) break;
+      if (page.drops.length === 0) {
+        reachedHead = true;
+        break;
+      }
 
-      await processDrops(attachment, page.drops, token);
+      const retried = await processDrops(attachment, page.drops, token);
       if (token !== runToken) return;
+      if (retried !== null && (hole === null || retried < hole)) hole = retried;
 
       let highest = since;
       for (const drop of page.drops) highest = Math.max(highest, drop.seq);
       if (highest <= since) break;
 
       since = highest;
-      setState({ scannedSeq: since });
-      await saveScanCursor(attachment.owner, since);
+      const next = hole === null ? highest : Math.min(highest, hole - 1);
+      if (next > cursor) {
+        cursor = next;
+        setState({ scannedSeq: cursor });
+        await saveScanCursor(attachment.owner, cursor);
+      }
 
-      if (page.drops.length < BACKFILL_LIMIT) break;
+      if (page.drops.length < BACKFILL_LIMIT) {
+        reachedHead = true;
+        break;
+      }
     }
+    /* The stream may extend the cursor only from a sweep that ended whole. */
+    if (reachedHead && hole === null) scanGap = false;
   } catch (error: unknown) {
-    if (token === runToken) setError(readableError(error));
+    if (token !== runToken) return;
+    setError(readableError(error));
+    /* A sweep that was draining the backlog before it was cut off has been
+       throttled rather than broken, so it drops back down the ladder instead of
+       climbing it — but only by one rung, never all the way to the floor.
+       Resetting to 0 on any progress is what turned this into a hot loop: each
+       sweep landed a page, reset to the 250 ms delay, and the client sat at
+       ~4 req/s, which is exactly the relay's own DROPS_RATE_MAX. Backing off one
+       step still drains a large backlog steadily while easing off a service that
+       is already shedding load. */
+    const nextAttempt = cursor > started ? Math.max(0, attempt - 1) : attempt;
+    const delay = BACKFILL_RETRY_DELAYS_MS[nextAttempt];
+    if (delay !== undefined) {
+      scheduleBackfill(attachment, token, nextAttempt + 1, delay);
+    }
   } finally {
     if (token === runToken) setState({ backfilling: false });
   }
@@ -824,12 +1270,31 @@ function startStream(attachment: MessengerAttachment, token: number): void {
     onDrop: (drop) => {
       if (token !== runToken) return;
       enqueue(async () => {
-        await processDrops(attachment, [drop], token);
         if (token !== runToken) return;
-        if (drop.seq > getState().scannedSeq) {
-          setState({ scannedSeq: drop.seq, head: Math.max(getState().head, drop.seq) });
-          await saveScanCursor(attachment.owner, drop.seq);
+        const retried = await processDrops(attachment, [drop], token);
+        if (token !== runToken) return;
+        setState({ head: Math.max(getState().head, drop.seq) });
+
+        /* The cursor is a promise that everything at or below it is recorded,
+           so the stream may only extend it across a prefix with no holes: not
+           over a drop it could not fetch, not while a sweep is known to have
+           left something behind, and not over seqs it never saw. `seq` is the
+           contract's own dense counter, so "the next drop" is literally the
+           next number; anything else is a gap the following sweep must fill. */
+        if (retried !== null) {
+          scanGap = true;
+          return;
         }
+        const floor = getState().scannedSeq;
+        if (drop.seq <= floor || scanGap) return;
+        if (drop.seq > floor + 1) {
+          scanGap = true;
+          scheduleBackfill(attachment, token, 1, BACKFILL_RETRY_DELAYS_MS[0]);
+          return;
+        }
+
+        setState({ scannedSeq: drop.seq });
+        await saveScanCursor(attachment.owner, drop.seq);
       });
     },
     onStats: (stats) => {
@@ -838,12 +1303,21 @@ function startStream(attachment: MessengerAttachment, token: number): void {
   });
 }
 
+/**
+ * Bumping `runToken` and resetting the dedupe state happen in one synchronous
+ * block with no await between them. Any task still in flight fails its next
+ * token test before it can touch `scanHighWater` again — `processDrops` tests
+ * it immediately before writing the mark, precisely because the slice's I/O is
+ * a long await during which this can run — so an abandoned run cannot mark a
+ * seq as examined on behalf of the run that replaces it.
+ */
 function teardown(): void {
   runToken += 1;
   stopStream?.();
   stopStream = null;
+  cancelBackfillRetry();
   context = null;
-  processedSeqs.clear();
+  resetScanDedupe();
   roomKeys.clear();
   setState(EMPTY_STATE);
 }
@@ -885,13 +1359,21 @@ export function detachMessenger(): void {
   }, DETACH_GRACE_MS);
 }
 
-/** Re-runs the backfill from the persisted cursor. Safe to call repeatedly. */
+/**
+ * Re-runs the backfill from the persisted cursor. Safe to call repeatedly.
+ *
+ * The reset happens *inside* the queued task, not at call time: a backfill may
+ * be mid-flight, and it now yields the main thread between slices, so a reset
+ * from outside the pipeline would land in the middle of someone else's sweep
+ * and rewind the mark under them.
+ */
 export function resyncMessenger(): void {
   const attachment = context;
   if (attachment === null) return;
   const token = runToken;
-  processedSeqs.clear();
   enqueue(async () => {
+    if (token !== runToken) return;
+    resetScanDedupe();
     await backfill(attachment, token);
   });
 }
@@ -901,9 +1383,10 @@ export function rescanMessengerFromGenesis(): void {
   const attachment = context;
   if (attachment === null) return;
   const token = runToken;
-  processedSeqs.clear();
-  setState({ scannedSeq: 0 });
   enqueue(async () => {
+    if (token !== runToken) return;
+    resetScanDedupe();
+    setState({ scannedSeq: 0 });
     await saveScanCursor(attachment.owner, 0);
     await backfill(attachment, token);
   });

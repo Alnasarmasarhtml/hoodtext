@@ -9,6 +9,8 @@ const CLOSED = 3;
 /** Minimal stand-in for a `ws` socket — only what the hub actually touches. */
 class FakeSocket {
   readyState = OPEN;
+  /** Mirrors `ws`'s own counter of bytes queued but not yet flushed. */
+  bufferedAmount = 0;
   readonly sent: string[] = [];
   closedWith: { code: number; reason: string } | null = null;
   readonly #listeners = new Map<string, Set<() => void>>();
@@ -180,6 +182,49 @@ describe('StreamHub', () => {
     expect(hub.timerArmed).toBe(false);
     expect(socket.closedWith?.code).toBe(1_001);
     expect(socket.listenerCount('close')).toBe(0);
+  });
+
+  it('drops a subscriber that has stopped draining instead of buffering for it', () => {
+    const healthy = new FakeSocket();
+    const stalled = new FakeSocket();
+    hub.add(healthy.asSocket());
+    hub.add(stalled.asSocket());
+
+    // `ws` buffers in process memory for a client that never reads; without a
+    // ceiling one stalled subscriber grows the relay's heap without bound.
+    stalled.bufferedAmount = 2 * 1_048_576;
+    hub.broadcastDrop(makeDrop(1));
+
+    expect(hub.size).toBe(1);
+    expect(stalled.closedWith?.code).toBe(1_013);
+    expect(stalled.listenerCount('close')).toBe(0);
+    expect(healthy.messages().at(-1)).toEqual({ type: 'drop', drop: makeDrop(1) });
+  });
+
+  it('refuses subscribers past the concurrency cap', () => {
+    const capped = new StreamHub({
+      statsIntervalMs: 10,
+      stats: () => STATS,
+      log: silentLogger(),
+      maxClients: 2,
+    });
+    const sockets = [new FakeSocket(), new FakeSocket(), new FakeSocket()];
+    for (const socket of sockets) capped.add(socket.asSocket());
+
+    expect(capped.size).toBe(2);
+    // 1013 "try again later" — the per-IP handshake limit bounds churn, not the
+    // number of sockets a distributed client set can hold open at once.
+    expect(sockets[2]?.closedWith?.code).toBe(1_013);
+    expect(sockets[2]?.sent).toHaveLength(0);
+
+    // A departure frees the slot again.
+    sockets[0]?.emit('close');
+    const late = new FakeSocket();
+    capped.add(late.asSocket());
+    expect(capped.size).toBe(2);
+    expect(late.closedWith).toBeNull();
+
+    capped.close();
   });
 
   it('refuses new subscribers once closed', () => {

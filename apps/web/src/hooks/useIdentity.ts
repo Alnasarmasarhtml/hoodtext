@@ -22,6 +22,22 @@ import { wipeMessenger } from './messenger-store';
 const ZERO_KEY: Hex = `0x${'00'.repeat(32)}`;
 
 /**
+ * Wallets refuse `eth_signTypedData_v4` when the domain's `chainId` is not the active one. Our
+ * domain is pinned to 4663 so an identity never changes with the network (see IDENTITY_DOMAIN in
+ * `@hoodgram/crypto`), which means this fires only for a developer pointed at a local chain with a
+ * different id — never for a user on Robinhood Chain.
+ */
+function isDomainChainMismatch(error: unknown): boolean {
+  /* viem nests the provider's message several causes deep, so walk the chain. */
+  let current: unknown = error;
+  for (let depth = 0; current instanceof Error && depth < 8; depth += 1) {
+    if (/must match the active chain/i.test(current.message)) return true;
+    current = current.cause;
+  }
+  return false;
+}
+
+/**
  * `idle`         — no wallet connected.
  * `wrong-network`— connected, but not to the chain this build targets.
  * `not-deployed` — this build has no contract addresses for the active chain.
@@ -188,6 +204,13 @@ export function useIdentity(): UseIdentityResult {
       setStorageWarning(null);
       setPhase('unlocking');
       try {
+        /*
+         * IDENTITY_DOMAIN is signed VERBATIM — never spread with an override, and never with the
+         * connected `chainId` substituted in. The signature is the sole input to the key
+         * derivation, so any change to this payload yields a different identity for the same
+         * wallet and orphans every message already sealed to the old one. `smoke-send.ts` diverged
+         * here once; keep all three call sites (app, script, tests) byte-identical.
+         */
         const signature = await signTypedDataAsync({
           domain: IDENTITY_DOMAIN,
           types: IDENTITY_TYPES,
@@ -207,12 +230,18 @@ export function useIdentity(): UseIdentityResult {
           );
         }
       } catch (signError: unknown) {
-        setError(describeChainError(signError, 'The identity signature was not completed.'));
+        setError(
+          isDomainChainMismatch(signError)
+            ? `Your wallet refused to sign because it is on chain ${String(chainId ?? 'unknown')}, ` +
+              `while HoodGram identities are always derived on chain ${String(IDENTITY_DOMAIN.chainId)}. ` +
+              'This is deliberate — an identity must not change when you switch networks. Switch your wallet to Robinhood Chain.'
+            : describeChainError(signError, 'The identity signature was not completed.'),
+        );
       } finally {
         setPhase('idle');
       }
     })();
-  }, [address, signTypedDataAsync]);
+  }, [address, chainId, signTypedDataAsync]);
 
   const register = useCallback((): void => {
     if (address === undefined || activeKeys === null || contracts === null) return;

@@ -14,6 +14,15 @@ describe('loadConfig', () => {
     expect(config.indexerEnabled).toBe(true);
     expect(config.maxBlobBytes).toBe(MAX_BLOB_BYTES);
     expect(config.blobRateLimitMax).toBe(60);
+    expect(config.dropsRateLimitMax).toBe(240);
+    expect(config.blobReadRateLimitMax).toBe(600);
+    expect(config.statsRateLimitMax).toBe(30);
+    expect(config.healthRateLimitMax).toBe(120);
+    expect(config.streamRateLimitMax).toBe(30);
+    expect(config.readRateLimitWindow).toBe('1 minute');
+    // Trust nothing and retain everything unless an operator says otherwise.
+    expect(config.trustProxyHops).toBe(0);
+    expect(config.blobTtlDays).toBe(0);
     expect(config.reorgDepth).toBe(32n);
     expect(config.statsBroadcastMs).toBe(10_000);
     expect(config.webOrigins).toEqual(['http://localhost:3000']);
@@ -76,6 +85,36 @@ describe('loadConfig', () => {
       expect(error).toBeInstanceOf(ConfigError);
       expect((error as ConfigError).issues.join(' ')).toContain('RELAY_PORT');
     }
+  });
+
+  it('reads the retention and proxy knobs the example env ships', () => {
+    // `.env.example` ships RELAY_BLOB_TTL_DAYS=0, and the knob was previously
+    // absent from the schema — parsed and dropped on the floor.
+    expect(loadConfig({ RELAY_BLOB_TTL_DAYS: '0' }).blobTtlDays).toBe(0);
+    expect(loadConfig({ RELAY_BLOB_TTL_DAYS: '30' }).blobTtlDays).toBe(30);
+    expect(loadConfig({ RELAY_TRUST_PROXY: '1' }).trustProxyHops).toBe(1);
+
+    expect(() => loadConfig({ RELAY_BLOB_TTL_DAYS: '-1' })).toThrow(ConfigError);
+    expect(() => loadConfig({ RELAY_BLOB_TTL_DAYS: 'forever' })).toThrow(ConfigError);
+    expect(() => loadConfig({ RELAY_TRUST_PROXY: 'true' })).toThrow(ConfigError);
+  });
+
+  it('reads each read-route limit from its own key', () => {
+    const config = loadConfig({
+      RELAY_DROPS_RATE_MAX: '10',
+      RELAY_BLOB_READ_RATE_MAX: '11',
+      RELAY_STATS_RATE_MAX: '12',
+      RELAY_HEALTH_RATE_MAX: '13',
+      RELAY_STREAM_RATE_MAX: '14',
+      RELAY_STREAM_MAX_CLIENTS: '15',
+    });
+
+    expect(config.dropsRateLimitMax).toBe(10);
+    expect(config.blobReadRateLimitMax).toBe(11);
+    expect(config.statsRateLimitMax).toBe(12);
+    expect(config.healthRateLimitMax).toBe(13);
+    expect(config.streamRateLimitMax).toBe(14);
+    expect(config.streamMaxClients).toBe(15);
   });
 
   it('applies overrides last', () => {

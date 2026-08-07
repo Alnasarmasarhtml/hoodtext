@@ -220,6 +220,23 @@ scattering on the right) · `dossier.png` (full-bleed technical grid texture) ·
 7. **Fit check is mandatory.** Nothing may overflow at **1440 / 1024 / 760 / 390** px.
    `grid-template-columns: minmax(0,1fr)` — never a bare `1fr`; `min-width:0` on every flex/grid
    child; long hex truncates with ellipsis. Checker: `node infra/scripts/check-fit.mjs <url>`.
+8. **`IDENTITY_DOMAIN` is signed verbatim — everywhere, no exceptions.** It is pinned to
+   `chainId: 4663` in `packages/crypto/src/identity.ts` and is deliberately **not** the connected
+   chain: the signature is the only input to the key derivation, so a domain that follows the
+   network would hand the same wallet a different identity per chain and orphan every message
+   sealed to the old key. `smoke-send.ts` used to sign `{ ...IDENTITY_DOMAIN, chainId: chain.id }`
+   and therefore derived a different identity than the browser on every local chain
+   (`docs/PROOF-OF-FUNCTION.md` §9.2). Fixed — app and script now sign the identical object, and
+   `packages/crypto/test/identity.test.ts` pins its exact shape.
+   Never spread-and-override it, and treat any edit to the domain, types or message as an
+   irreversible rotation of every user's keys.
+   *Consequence for local dev:* MetaMask and Rabby reject `signTypedData_v4` when `domain.chainId`
+   is not the wallet's active chain, so the browser ceremony cannot complete against anvil on
+   31337. Run the local node as **`anvil --chain-id 4663`**, deploy to it, and start the web app
+   with `NEXT_PUBLIC_CHAIN_ID=4663 NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545`; point the smoke test
+   at the same node with `SMOKE_CHAIN_ID=4663`. Real users on Robinhood Chain are never affected.
+   `useIdentity` detects this specific wallet rejection and explains it instead of surfacing the raw
+   RPC error.
 
 ---
 

@@ -27,7 +27,16 @@ const ZERO_KEY = `0x${'0'.repeat(64)}`;
 
 /** How long a registered identity key is trusted before re-reading it. */
 const KEY_TTL_MS = 300_000;
-/** How long a room's rent status is trusted before re-reading it. */
+/**
+ * How long a room's rent status is trusted before re-reading it.
+ *
+ * This is a load-shedding knob, not a safety boundary. A rent lapse inside the
+ * window can still let `submit()` accept a doomed drop — the chain rejects it
+ * regardless, `SendPipeline` isolates it from its batch-mates, and the sender can
+ * see the failure. Shrinking it only reduces how often that path is taken; it
+ * cannot close the window, because rent can lapse after the read and before the
+ * transaction lands. Hence: cheap here, correct there.
+ */
 const ROOM_TTL_MS = 15_000;
 
 interface Cached<T> {
@@ -105,10 +114,18 @@ export class ViemChainGate implements ChainGate {
     return active;
   }
 
-  async isRoomActive(groupId: `0x${string}`): Promise<boolean> {
+  async isRoomActive(
+    groupId: `0x${string}`,
+    options?: { readonly fresh?: boolean },
+  ): Promise<boolean> {
     const cacheKey = groupId.toLowerCase();
-    const hit = this.rooms.get(cacheKey);
-    if (hit !== undefined && hit.expiresAt > Date.now()) return hit.value;
+    // `fresh` is how the send pipeline attributes a reverted batch to a specific
+    // drop. Answering that from the same cache that let the drop in would just
+    // re-confirm the stale value and blame nobody.
+    if (options?.fresh !== true) {
+      const hit = this.rooms.get(cacheKey);
+      if (hit !== undefined && hit.expiresAt > Date.now()) return hit.value;
+    }
 
     const active = await this.client.readContract({
       address: this.groupRegistry,

@@ -12,9 +12,10 @@ import Fastify, {
   type FastifyError,
   type FastifyInstance,
   type FastifyReply,
+  type FastifyServerOptions,
 } from 'fastify';
 import { z } from 'zod';
-import { loadConfig, type RelayConfig } from './config.js';
+import { BLOB_PRUNE_INTERVAL_MS, loadConfig, type RelayConfig } from './config.js';
 import { RelayDb, type DropRow } from './db.js';
 import { Indexer } from './indexer.js';
 import { buildSendPorts } from './sender-chain.js';
@@ -38,6 +39,12 @@ export interface BuildServerOptions {
   readonly env?: NodeJS.ProcessEnv;
   /** Test seam: replaces the live-chain send ports (gate + poster). */
   readonly sendPorts?: { gate: ChainGate; poster: BatchPoster } | null;
+  /**
+   * Test seam: where the logger writes. Supplying it also forces a live logger
+   * at `logLevel: 'silent'`, so a test can assert on what the relay logged —
+   * the boot-time reverse-proxy warning has no other observable form.
+   */
+  readonly logDestination?: { write(line: string): void };
 }
 
 export interface ErrorBody {
@@ -96,10 +103,48 @@ function firstIssue(error: z.ZodError): string {
 export async function buildServer(options: BuildServerOptions = {}): Promise<FastifyInstance> {
   const config = loadConfig(options.env ?? process.env, options.config ?? {});
 
+  const logger: FastifyServerOptions['logger'] =
+    options.logDestination !== undefined
+      ? {
+          level: config.logLevel === 'silent' ? 'warn' : config.logLevel,
+          stream: options.logDestination,
+        }
+      : config.logLevel === 'silent'
+        ? false
+        : { level: config.logLevel };
+
   const app = Fastify({
-    logger: config.logLevel === 'silent' ? false : { level: config.logLevel },
+    logger,
     bodyLimit: config.maxBlobBytes * 2,
-    trustProxy: true,
+    // Every rate limit below is keyed on `request.ip`. Trusting X-Forwarded-For
+    // unconditionally would let any caller mint a fresh bucket per request with
+    // one header, so the default trusts nothing and a deployment behind N proxies
+    // sets RELAY_TRUST_PROXY=N — which makes the IP the proxy saw authoritative.
+    trustProxy: config.trustProxyHops === 0 ? false : config.trustProxyHops,
+  });
+
+  /**
+   * Whether any request has arrived carrying `X-Forwarded-For`.
+   *
+   * With `trustProxyHops === 0` the relay is telling itself it is directly
+   * exposed, so `request.ip` is whatever socket connected. Behind a proxy that is
+   * the *proxy's* single address, and every per-IP ceiling below silently becomes
+   * a ceiling for the entire user base combined — 30 `/v1/stream` handshakes a
+   * minute for everyone, not per person. The knob to fix it (RELAY_TRUST_PROXY)
+   * is invisible until something announces it, so this does.
+   */
+  let forwardedHeaderSeen = false;
+  app.addHook('onRequest', async (request) => {
+    if (forwardedHeaderSeen) return; // latched: no per-request cost afterwards
+    if (request.headers['x-forwarded-for'] === undefined) return;
+    forwardedHeaderSeen = true;
+    if (config.trustProxyHops > 0) return;
+    app.log.warn(
+      { trustProxyHops: 0, envVar: 'RELAY_TRUST_PROXY' },
+      'X-Forwarded-For seen but RELAY_TRUST_PROXY=0: this relay is behind a proxy, ' +
+        'so every per-IP rate limit is keyed on the proxy address and applies to ALL ' +
+        'users combined. Set RELAY_TRUST_PROXY to the number of trusted proxy hops.',
+    );
   });
 
   // The only body this service accepts is an opaque ciphertext envelope, so every
@@ -114,6 +159,7 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     statsIntervalMs: config.statsBroadcastMs,
     stats: () => db.stats(),
     log: app.log,
+    maxClients: config.streamMaxClients,
   });
   const indexer = new Indexer({
     db,
@@ -152,9 +198,20 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     global: false,
     max: config.blobRateLimitMax,
     timeWindow: config.blobRateLimitWindow,
+    // Each route that opts in gets its own LRU of this many keys, so the bound is
+    // per route rather than global.
+    cache: 5_000,
   });
   app.register(websocket, {
-    options: { maxPayload: config.maxBlobBytes },
+    // The relay registers no 'message' handler — `/v1/stream` is push-only — so
+    // any inbound frame is discarded regardless. A 4 MiB allowance would only let
+    // a client make the server buffer 4 MiB per frame for nothing.
+    options: { maxPayload: 1_024 },
+  });
+
+  /** Per-route limiter config, `@fastify/rate-limit`'s `config.rateLimit` shape. */
+  const readLimit = (max: number): { rateLimit: { max: number; timeWindow: string } } => ({
+    rateLimit: { max, timeWindow: config.readRateLimitWindow },
   });
 
   const DropsQuery = z.object({
@@ -173,6 +230,9 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   const BlobParams = z.object({ ref: z.string().min(1) });
 
   const HEX_32B = /^0x[0-9a-fA-F]{64}$/;
+  const SendStatusParams = z.object({
+    blobRef: z.string().regex(HEX_32B, 'must be a 32-byte hex string'),
+  });
   const SendBody = z.object({
     sender: z.string().regex(/^0x[0-9a-fA-F]{40}$/, 'must be a 20-byte hex address'),
     signature: z.string().regex(/^0x[0-9a-fA-F]{128}$/, 'must be a 64-byte hex signature'),
@@ -233,53 +293,65 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       },
     );
 
-    instance.get('/v1/blob/:ref', async (request, reply) => {
-      const params = BlobParams.safeParse(request.params);
-      if (!params.success) {
-        return fail(reply, 400, 'invalid_ref', firstIssue(params.error));
-      }
-      const ref = normalizeBlobRef(params.data.ref);
-      if (ref === null) {
-        return fail(reply, 400, 'invalid_ref', 'blob ref must be 32 bytes of hex');
-      }
-      const blob = instance.db.getBlob(ref);
-      if (blob === null) {
-        return fail(reply, 404, 'not_found', `no blob stored for ${ref}`);
-      }
-      return reply
-        .code(200)
-        .header('content-type', 'application/octet-stream')
-        .header('content-length', String(blob.size))
-        // Content-addressed: the bytes behind a ref can never change.
-        .header('cache-control', 'public, max-age=31536000, immutable')
-        .send(Buffer.from(blob.bytes.buffer, blob.bytes.byteOffset, blob.bytes.byteLength));
-    });
+    instance.get(
+      '/v1/blob/:ref',
+      { config: readLimit(config.blobReadRateLimitMax) },
+      async (request, reply) => {
+        const params = BlobParams.safeParse(request.params);
+        if (!params.success) {
+          return fail(reply, 400, 'invalid_ref', firstIssue(params.error));
+        }
+        const ref = normalizeBlobRef(params.data.ref);
+        if (ref === null) {
+          return fail(reply, 400, 'invalid_ref', 'blob ref must be 32 bytes of hex');
+        }
+        const blob = instance.db.getBlob(ref);
+        if (blob === null) {
+          return fail(reply, 404, 'not_found', `no blob stored for ${ref}`);
+        }
+        return reply
+          .code(200)
+          .header('content-type', 'application/octet-stream')
+          .header('content-length', String(blob.size))
+          // Content-addressed: the bytes behind a ref can never change.
+          .header('cache-control', 'public, max-age=31536000, immutable')
+          .send(Buffer.from(blob.bytes.buffer, blob.bytes.byteOffset, blob.bytes.byteLength));
+      },
+    );
 
-    instance.get('/v1/drops', async (request, reply) => {
-      const query = DropsQuery.safeParse(request.query);
-      if (!query.success) {
-        return fail(reply, 400, 'invalid_query', firstIssue(query.error));
-      }
-      const { since, limit } = query.data;
-      return reply.code(200).send({
-        drops: instance.db.listDrops(since, limit),
-        head: instance.db.head(),
-      });
-    });
+    instance.get(
+      '/v1/drops',
+      { config: readLimit(config.dropsRateLimitMax) },
+      async (request, reply) => {
+        const query = DropsQuery.safeParse(request.query);
+        if (!query.success) {
+          return fail(reply, 400, 'invalid_query', firstIssue(query.error));
+        }
+        const { since, limit } = query.data;
+        return reply.code(200).send({
+          drops: instance.db.listDrops(since, limit),
+          head: instance.db.head(),
+        });
+      },
+    );
 
-    instance.get('/v1/drops/convo/:convoId', async (request, reply) => {
-      const params = ConvoParams.safeParse(request.params);
-      if (!params.success) {
-        return fail(reply, 400, 'invalid_convo_id', firstIssue(params.error));
-      }
-      const query = DropsQuery.safeParse(request.query);
-      if (!query.success) {
-        return fail(reply, 400, 'invalid_query', firstIssue(query.error));
-      }
-      const { since, limit } = query.data;
-      const convoId = params.data.convoId.toLowerCase();
-      return reply.code(200).send({ drops: instance.db.listDropsByConvo(convoId, since, limit) });
-    });
+    instance.get(
+      '/v1/drops/convo/:convoId',
+      { config: readLimit(config.dropsRateLimitMax) },
+      async (request, reply) => {
+        const params = ConvoParams.safeParse(request.params);
+        if (!params.success) {
+          return fail(reply, 400, 'invalid_convo_id', firstIssue(params.error));
+        }
+        const query = DropsQuery.safeParse(request.query);
+        if (!query.success) {
+          return fail(reply, 400, 'invalid_query', firstIssue(query.error));
+        }
+        const { since, limit } = query.data;
+        const convoId = params.data.convoId.toLowerCase();
+        return reply.code(200).send({ drops: instance.db.listDropsByConvo(convoId, since, limit) });
+      },
+    );
 
     /**
      * Gasless send. The client uploads its sealed blob first, then submits the
@@ -348,30 +420,89 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       },
     );
 
-    instance.get('/v1/stats', async (_request, reply) => {
-      return reply.code(200).send(instance.db.stats());
-    });
+    /**
+     * What became of a drop that `POST /v1/send` accepted.
+     *
+     * A 200 from `/v1/send` only means "queued", and a queued drop can still be
+     * abandoned — its room's rent lapses before the batch lands, or the relayer
+     * cannot reach the chain for `staleMs`. Without this route that outcome was
+     * a log line the sender could never see. Reveals nothing new: the caller
+     * already has to know the `blobRef` to ask, and `GET /v1/blob/:ref` already
+     * confirms a ref exists.
+     */
+    instance.get(
+      '/v1/send/:blobRef',
+      { config: readLimit(config.dropsRateLimitMax) },
+      async (request, reply) => {
+        const params = SendStatusParams.safeParse(request.params);
+        if (!params.success) {
+          return fail(reply, 400, 'invalid_blob_ref', firstIssue(params.error));
+        }
+        const blobRef = params.data.blobRef.toLowerCase() as `0x${string}`;
+        const status = instance.sendPipeline.statusOf(blobRef);
+        if (status.status === 'failed') {
+          return reply.code(200).send({
+            blobRef,
+            status: 'failed',
+            reason: status.failure.reason,
+            failedAt: status.failure.failedAt,
+          });
+        }
+        return reply.code(200).send({ blobRef, status: status.status });
+      },
+    );
 
-    instance.get('/v1/health', async (_request, reply) => {
-      const status = instance.indexer.status();
-      return reply.code(200).send({
-        ok: true,
-        chainId: status.chainId,
-        block: status.headBlock,
-        indexerLagBlocks: status.lagBlocks,
-        indexer: {
-          enabled: status.enabled,
-          running: status.running,
-          connected: status.connected,
-          indexedBlock: status.indexedBlock,
-          lastError: status.lastError,
-        },
-      });
-    });
+    instance.get(
+      '/v1/stats',
+      { config: readLimit(config.statsRateLimitMax) },
+      async (_request, reply) => {
+        return reply.code(200).send(instance.db.stats());
+      },
+    );
 
-    instance.get('/v1/stream', { websocket: true }, (socket) => {
-      instance.stream.add(socket);
-    });
+    instance.get(
+      '/v1/health',
+      { config: readLimit(config.healthRateLimitMax) },
+      async (_request, reply) => {
+        const status = instance.indexer.status();
+        return reply.code(200).send({
+          ok: true,
+          chainId: status.chainId,
+          block: status.headBlock,
+          indexerLagBlocks: status.lagBlocks,
+          indexer: {
+            enabled: status.enabled,
+            running: status.running,
+            connected: status.connected,
+            indexedBlock: status.indexedBlock,
+            lastError: status.lastError,
+          },
+          send: {
+            enabled: instance.sendPipeline.enabled(),
+            queued: instance.sendPipeline.size(),
+            // Non-zero means accepted messages were lost; it should be alerted on.
+            abandoned: instance.sendPipeline.failureCount(),
+          },
+          // `forwardedHeaderSeen: true` with `trustedProxyHops: 0` is the
+          // misconfiguration that turns every per-IP limit into a global one.
+          proxy: {
+            trustedProxyHops: config.trustProxyHops,
+            forwardedHeaderSeen,
+          },
+        });
+      },
+    );
+
+    // The limiter runs in `onRequest`, which fires before the upgrade is hijacked,
+    // so a throttled handshake is answered with a plain 429 and never becomes a
+    // socket. This caps upgrade *churn*; `streamMaxClients` caps live sockets.
+    instance.get(
+      '/v1/stream',
+      { websocket: true, config: readLimit(config.streamRateLimitMax) },
+      (socket) => {
+        instance.stream.add(socket);
+      },
+    );
   });
 
   app.setNotFoundHandler((request, reply) => {
@@ -392,12 +523,37 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     );
   });
 
+  /**
+   * Blob retention sweep. Armed here rather than in the indexer because the
+   * indexer only runs when a chain is configured, and disk pressure does not wait
+   * for that. `blobTtlDays === 0` means "keep forever", so the timer is never
+   * armed at the shipped default and this is a no-op until an operator opts in.
+   */
+  let pruneTimer: NodeJS.Timeout | null = null;
+
   app.addHook('onReady', async () => {
     if (config.indexerEnabled) indexer.start();
     sendPipeline.start();
+    if (config.blobTtlDays > 0) {
+      pruneTimer = setInterval(() => {
+        try {
+          const removed = db.pruneBlobs(Date.now() - config.blobTtlDays * 86_400_000);
+          // Deleting ciphertext is irreversible; a silent sweep would make lost
+          // messages impossible to explain after the fact.
+          if (removed > 0) app.log.info({ removed }, 'blob retention: pruned expired blobs');
+        } catch (error) {
+          app.log.error({ err: error }, 'blob retention: sweep failed');
+        }
+      }, BLOB_PRUNE_INTERVAL_MS);
+      pruneTimer.unref();
+    }
   });
 
   app.addHook('onClose', async () => {
+    if (pruneTimer !== null) {
+      clearInterval(pruneTimer);
+      pruneTimer = null;
+    }
     stream.close();
     await sendPipeline.stop();
     await indexer.stop();
@@ -409,6 +565,7 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   } catch (error) {
     // `onClose` never runs for an instance that failed to boot, so release the
     // resources this function opened before rethrowing.
+    if (pruneTimer !== null) clearInterval(pruneTimer);
     stream.close();
     await sendPipeline.stop();
     await indexer.stop();

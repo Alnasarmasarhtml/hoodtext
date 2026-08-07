@@ -39,19 +39,39 @@ import {
 const RPC = process.env['SMOKE_RPC'] ?? 'http://127.0.0.1:8545';
 const RELAY = process.env['SMOKE_RELAY'] ?? 'http://localhost:8787';
 
+/**
+ * The chain this run transacts on. Defaults to anvil's 31337; set `SMOKE_CHAIN_ID=4663` when the
+ * local node is started as `anvil --chain-id 4663`, which is what lets a browser wallet complete
+ * the identity ceremony locally (see IDENTITY_DOMAIN in @hoodgram/crypto). It is deliberately NOT
+ * fed into the EIP-712 identity domain — see step 1.
+ */
+function smokeChainId(): number {
+  const raw = process.env['SMOKE_CHAIN_ID'];
+  if (raw === undefined || raw.trim() === '') return 31337;
+  const parsed = Number.parseInt(raw.trim(), 10);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`SMOKE_CHAIN_ID must be a positive integer, got "${raw}"`);
+  }
+  return parsed;
+}
+const CHAIN_ID = smokeChainId();
+
 /** anvil account #2 — a publicly known test key. */
 const USER_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as Hex;
 /** anvil account #0 — the local treasury holding the full supply. */
 const TREASURY_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as Hex;
 
 const chain = defineChain({
-  id: 31337,
+  id: CHAIN_ID,
   name: 'anvil',
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
   rpcUrls: { default: { http: [RPC] } },
 });
 
-const deploymentsPath = resolve(import.meta.dirname, '../../../contracts/deployments/31337.json');
+const deploymentsPath = resolve(
+  import.meta.dirname,
+  `../../../contracts/deployments/${CHAIN_ID}.json`,
+);
 const deployment = JSON.parse(readFileSync(deploymentsPath, 'utf8')) as Record<string, Hex>;
 
 const abi = parseAbi([
@@ -97,8 +117,14 @@ async function write(
 }
 
 // 1 — identity, from the real EIP-712 ceremony
+//
+// IDENTITY_DOMAIN is signed VERBATIM, exactly as `useIdentity.ts` signs it. Do not spread it and
+// override `chainId` with `chain.id`: this script used to do that, so on any chain that is not
+// 4663 it derived a *different* identity than the browser for the same wallet, and messages sealed
+// to one could not be opened by the other. The domain is chain-independent on purpose — see the
+// comment on IDENTITY_DOMAIN in packages/crypto/src/identity.ts.
 const signature = await user.signTypedData({
-  domain: { ...IDENTITY_DOMAIN, chainId: chain.id },
+  domain: IDENTITY_DOMAIN,
   types: IDENTITY_TYPES,
   primaryType: 'Identity',
   message: IDENTITY_MESSAGE,

@@ -7,7 +7,17 @@
 
    The shell is exactly the height of the viewport minus the site header, so the
    page itself never scrolls: the rail, the log and the default pane each scroll
-   inside themselves and the composer stays on the floor. */
+   inside themselves and the composer stays on the floor.
+
+   That is the arithmetic half of the guarantee. The other half lives in
+   `AppShell.tsx`, which takes the shared refcounted lock from `lib/scroll-lock`
+   and pins `overflow: hidden` on the document while this route is mounted — so
+   even if the arithmetic below is ever wrong on some browser, the page still
+   cannot scroll.
+
+   Because the document cannot scroll, anything the shell pushes outside its own
+   box is not merely awkward, it is UNREACHABLE. So the shell owns its overflow
+   instead of exporting it: see `.shell`'s `overflow-y` and `--region-min-h`. */
 
 .shell {
   /* Everything above the shell, to the pixel. --header-h (60px) is the height
@@ -19,11 +29,62 @@
      page instead of the pane. */
   --chrome-offset: calc(var(--header-h) + 1px + 41px);
 
+  /* The smallest the scrollable region (`.gate` / `.desk`) is allowed to become
+     before the shell stops squeezing it and starts scrolling instead. Sized off
+     what a thread genuinely needs to stay operable: the 56px thread header, the
+     ~90px composer, and roughly two message rows under them. */
+  --region-min-h: 240px;
+
   display: flex;
   flex-direction: column;
   min-width: 0;
+
+  /* Two declarations, deliberately. `dvh` is the unit we want — it tracks a
+     mobile URL bar sliding in and out — but a browser that does not know the
+     unit discards the WHOLE declaration, `height` and all. The shell then has
+     no bounded height, the panes stop being scroll containers, and the page
+     scrolls instead: exactly the report we keep getting from the field, and
+     invisible in headless Chromium, which supports `dvh` and measures clean.
+     The `vh` line is what such a browser keeps; anything that understands
+     `dvh` overrides it on the very next line. The order IS the mechanism —
+     never swap these two, and never leave one without the other. */
+  height: calc(100vh - var(--chrome-offset));
   height: calc(100dvh - var(--chrome-offset));
-  min-height: 460px;
+
+  /* Still no `min-height` floor on the SHELL, and that part of the last change
+     was right: `min-height` beats `height`, so a 460px floor made the shell
+     taller than the space under the header on any short viewport — a landscape
+     phone leaves around 260px — and the surplus was page scroll, exactly what
+     this file exists to prevent.
+
+     But deleting the floor outright traded one bug for a worse one. The chrome
+     strip, the tamper banner and every notice strip are `flex: none`; the only
+     item that can give is the scrollable region, and with `min-height: 0` it
+     gives all the way to zero. Stack a tamper banner and two notices onto a
+     landscape phone and the desk is 0px tall — and because `AppShell.tsx` has
+     meanwhile made the document a non-scroll container, that content is not
+     merely off-screen, it is unreachable by any gesture.
+
+     The floor therefore belongs on the region (see `.gate` / `.desk`), and the
+     shell has to absorb what the floor no longer lets it squeeze. Hence
+     `overflow-y: auto` here: the shell's own BOX stays exactly
+     viewport-minus-header, so the document never gains scroll range and the
+     lock is never fighting the layout — but when the fixed chrome genuinely
+     cannot coexist with a usable region, the shell itself becomes the scroll
+     container and every strip stays reachable.
+
+     On any viewport with room to spare — which is nearly all of them — the
+     region's leftover height already exceeds the floor, the shell has zero
+     overflow, and this declaration changes nothing. It is a floor with a
+     pressure valve, not a new scroll surface. */
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /* Nothing chains out of the shell. The document is locked anyway, but this
+     also stops the overscroll rubber-band on mobile engines that treat a hidden
+     root as still bouncy. */
+  overscroll-behavior: contain;
+
   background-color: var(--void);
 }
 
@@ -105,7 +166,11 @@
 .gate {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 0;
+  /* The floor, not `0`. `flex-shrink: 1` would otherwise let the fixed strips
+     above squeeze the ceremony to nothing on a short viewport; at the floor the
+     shell overflows and scrolls instead. Shrinking below CONTENT height is
+     still allowed — that is what this element's own `overflow-y` is for. */
+  min-height: var(--region-min-h);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -118,7 +183,10 @@
   grid-template-rows: minmax(0, 1fr);
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 0;
+  /* Same floor, same reason as `.gate`. The inner `minmax(0, 1fr)` row keeps the
+     rail and the pane free to shrink below their content inside it, so the
+     internal scrolling this file depends on is untouched. */
+  min-height: var(--region-min-h);
 }
 
 .rail,

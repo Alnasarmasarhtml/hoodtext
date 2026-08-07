@@ -36,6 +36,51 @@ export const DROPS_DEFAULT_LIMIT = 200;
 /** Absolute ceiling on a `/v1/drops` page. */
 export const DROPS_MAX_LIMIT = 1000;
 
+/**
+ * Read-route rate limits, per IP per minute.
+ *
+ * Each number is sized against what the real web client does in its worst honest
+ * minute — a cold start — and then left there, so the ceiling a scraper hits is
+ * the same one an aggressive first sync never reaches.
+ */
+
+/**
+ * `/v1/drops` and `/v1/drops/convo/:convoId`. The client backfills in pages of
+ * 200 (`apps/web` BACKFILL_LIMIT) in a tight loop, so 240 pages/min lets a cold
+ * client pull 48k drops in its first minute and still caps a scraper at that.
+ */
+export const DROPS_RATE_MAX = 240;
+
+/**
+ * `/v1/blob/:ref`. One fetch per candidate drop — and a member joining a busy
+ * room fetches one per historical message — so this has to clear a cold sync,
+ * not just steady state. Shaped by bandwidth rather than CPU (a stored row reads
+ * in well under a millisecond); the ciphertext itself is worthless to a scraper.
+ */
+export const BLOB_READ_RATE_MAX = 600;
+
+/**
+ * `/v1/stats`. Nothing legitimate polls it faster than the 10s websocket
+ * broadcast that carries the same numbers; 30/min is 5× that cadence.
+ */
+export const STATS_RATE_MAX = 30;
+
+/** `/v1/health`. Uptime monitors poll on a 1–5s cadence; 120/min covers 2s. */
+export const HEALTH_RATE_MAX = 120;
+
+/**
+ * `WS /v1/stream` *handshakes*. A client opens one socket and holds it; even a
+ * pathological reconnect backoff needs a handful per minute. This bounds upgrade
+ * churn only — concurrent sockets are bounded separately by `streamMaxClients`.
+ */
+export const STREAM_RATE_MAX = 30;
+
+/** Hard cap on simultaneously connected `/v1/stream` subscribers. */
+export const STREAM_MAX_CLIENTS = 2_000;
+
+/** How often the blob retention sweep runs when `RELAY_BLOB_TTL_DAYS > 0`. */
+export const BLOB_PRUNE_INTERVAL_MS = 3_600_000;
+
 /** `apps/relay` — this file lives at `<pkg>/src/config.ts` (or `<pkg>/dist/config.js`). */
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -75,6 +120,32 @@ export interface RelayConfig {
   readonly maxBlobBytes: number;
   readonly blobRateLimitMax: number;
   readonly blobRateLimitWindow: string;
+  /** Per-IP-per-window ceiling on `/v1/drops` and `/v1/drops/convo/:convoId`. */
+  readonly dropsRateLimitMax: number;
+  /** Per-IP-per-window ceiling on `GET /v1/blob/:ref`. */
+  readonly blobReadRateLimitMax: number;
+  /** Per-IP-per-window ceiling on `GET /v1/stats`. */
+  readonly statsRateLimitMax: number;
+  /** Per-IP-per-window ceiling on `GET /v1/health`. */
+  readonly healthRateLimitMax: number;
+  /** Per-IP-per-window ceiling on `WS /v1/stream` *handshakes*. */
+  readonly streamRateLimitMax: number;
+  /** Window shared by every read-route limit. */
+  readonly readRateLimitWindow: string;
+  /** Hard cap on concurrent `/v1/stream` subscribers. */
+  readonly streamMaxClients: number;
+  /**
+   * Reverse-proxy hops to trust when deriving the client IP. `0` trusts nothing
+   * — the only safe posture for a directly-exposed relay, because every rate
+   * limit here is keyed on that IP.
+   */
+  readonly trustProxyHops: number;
+  /**
+   * Days a stored blob is retained. `0` means "keep forever" and disables the
+   * prune entirely — matching what `.env.example` ships and what the relay has
+   * always done.
+   */
+  readonly blobTtlDays: number;
   readonly dropsDefaultLimit: number;
   readonly dropsMaxLimit: number;
   readonly statsBroadcastMs: number;
@@ -136,6 +207,18 @@ const EnvSchema = z.object({
   RELAY_POLL_MS: z.coerce.number().int().min(250).max(600_000).default(4_000),
   RELAY_RPC_TIMEOUT_MS: z.coerce.number().int().min(250).max(600_000).default(10_000),
   RELAY_BLOB_RATE_MAX: z.coerce.number().int().min(1).max(100_000).default(60),
+  RELAY_DROPS_RATE_MAX: z.coerce.number().int().min(1).max(100_000).default(DROPS_RATE_MAX),
+  RELAY_BLOB_READ_RATE_MAX: z.coerce.number().int().min(1).max(100_000).default(BLOB_READ_RATE_MAX),
+  RELAY_STATS_RATE_MAX: z.coerce.number().int().min(1).max(100_000).default(STATS_RATE_MAX),
+  RELAY_HEALTH_RATE_MAX: z.coerce.number().int().min(1).max(100_000).default(HEALTH_RATE_MAX),
+  RELAY_STREAM_RATE_MAX: z.coerce.number().int().min(1).max(100_000).default(STREAM_RATE_MAX),
+  RELAY_STREAM_MAX_CLIENTS: z.coerce.number().int().min(1).max(1_000_000).default(STREAM_MAX_CLIENTS),
+  // Number of reverse-proxy hops in front of this relay, not a boolean: trusting
+  // *any* X-Forwarded-For makes every per-IP limit spoofable with one header.
+  RELAY_TRUST_PROXY: z.coerce.number().int().min(0).max(10).default(0),
+  // 0 = retain forever. Any positive value permanently deletes ciphertext that
+  // has been stored longer than that; see `RelayConfig.blobTtlDays`.
+  RELAY_BLOB_TTL_DAYS: z.coerce.number().int().min(0).max(3650).default(0),
 });
 
 const ENV_KEYS = Object.keys(EnvSchema.shape) as readonly (keyof typeof EnvSchema.shape)[];
@@ -228,6 +311,15 @@ export function loadConfig(
     maxBlobBytes: MAX_BLOB_BYTES,
     blobRateLimitMax: raw.RELAY_BLOB_RATE_MAX,
     blobRateLimitWindow: '1 minute',
+    dropsRateLimitMax: raw.RELAY_DROPS_RATE_MAX,
+    blobReadRateLimitMax: raw.RELAY_BLOB_READ_RATE_MAX,
+    statsRateLimitMax: raw.RELAY_STATS_RATE_MAX,
+    healthRateLimitMax: raw.RELAY_HEALTH_RATE_MAX,
+    streamRateLimitMax: raw.RELAY_STREAM_RATE_MAX,
+    readRateLimitWindow: '1 minute',
+    streamMaxClients: raw.RELAY_STREAM_MAX_CLIENTS,
+    trustProxyHops: raw.RELAY_TRUST_PROXY,
+    blobTtlDays: raw.RELAY_BLOB_TTL_DAYS,
     dropsDefaultLimit: DROPS_DEFAULT_LIMIT,
     dropsMaxLimit: DROPS_MAX_LIMIT,
     statsBroadcastMs: STATS_BROADCAST_MS,

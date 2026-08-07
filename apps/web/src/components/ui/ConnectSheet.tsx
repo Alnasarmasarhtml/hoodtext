@@ -6,6 +6,7 @@ import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi';
 
 import { ACTIVE_CHAIN_ID, activeChain, chainById, explorerAddressUrl } from '@/lib/chain';
 import { cx } from '@/lib/cx';
+import { lockDocumentScroll } from '@/lib/scroll-lock';
 import { useConnectSheet } from '@/lib/ui-store';
 import { Button } from './Button';
 import { Eyebrow } from './Label';
@@ -64,9 +65,17 @@ export function ConnectSheet(): ReactNode {
     };
     document.addEventListener('keydown', onKeyDown);
 
-    const root = document.documentElement;
-    const previousOverflow = root.style.overflow;
-    root.style.overflow = 'hidden';
+    /* The SHARED refcounted lock, never a private save/restore of
+       `documentElement.style.overflow`. This component is mounted app-wide by
+       `providers/index.tsx` and this effect keys on the store flag rather than
+       on mount, so the sheet can be open across a navigation into `/app`, where
+       the shell holds the same lock. A local save would read the shell's
+       `hidden` as "the original", hand it back on close, and quietly unfreeze
+       the messenger — the exact defect this replaces.
+
+       No `window.scrollTo` here: the sheet opens over whatever the reader was
+       looking at and must leave the page where it is. */
+    const releaseScroll = lockDocumentScroll();
 
     const raf = requestAnimationFrame(() => {
       panelRef.current?.focus();
@@ -74,7 +83,7 @@ export function ConnectSheet(): ReactNode {
 
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      root.style.overflow = previousOverflow;
+      releaseScroll();
       cancelAnimationFrame(raf);
     };
   }, [close, isOpen]);

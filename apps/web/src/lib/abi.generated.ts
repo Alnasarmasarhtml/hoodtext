@@ -906,7 +906,7 @@ export const revenueVaultAbi = [
   },
   {
     "type": "function",
-    "name": "GRAM",
+    "name": "THOOD",
     "inputs": [],
     "outputs": [
       {
@@ -1773,7 +1773,7 @@ export const activationAbi = [
   },
   {
     "type": "function",
-    "name": "GRAM",
+    "name": "THOOD",
     "inputs": [],
     "outputs": [
       {
@@ -2265,7 +2265,7 @@ export const groupRegistryAbi = [
   },
   {
     "type": "function",
-    "name": "GRAM",
+    "name": "THOOD",
     "inputs": [],
     "outputs": [
       {
@@ -3570,7 +3570,7 @@ export const perksAbi = [
   },
   {
     "type": "function",
-    "name": "GRAM",
+    "name": "THOOD",
     "inputs": [],
     "outputs": [
       {

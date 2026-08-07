@@ -36,6 +36,7 @@ import {
   useRelayStatus,
 } from '@/hooks';
 import { DEMO_ME } from '@/lib/demo';
+import { lockDocumentScroll } from '@/lib/scroll-lock';
 import { AccountBadge } from './AccountBadge';
 import { AppNotice } from './AppNotice';
 import { ConversationList } from './ConversationList';
@@ -67,6 +68,32 @@ export interface AppShellProps {
 export function AppShell({ children }: AppShellProps): ReactNode {
   const pathname = usePathname();
   const { isConnected } = useAccount();
+
+  /* The non-arithmetic half of the no-page-scroll guarantee.
+     `AppShell.module.css` already sizes the shell to the viewport minus the site
+     header, but arithmetic can be defeated — a browser that does not understand
+     a unit drops the whole declaration carrying it — so while the messenger is
+     mounted the document is simply not a scroll container, whatever the layout
+     ends up measuring.
+
+     Held for the whole life of this component, which is the whole life of the
+     `/app` segment since the layout mounts the shell once. The lock is the
+     shared refcounted one in `@/lib/scroll-lock`: the connect sheet holds the
+     same counter, so neither can restore the other's `overflow: hidden` as if it
+     were the original value. Leaving the segment spends this holder's release,
+     and `/` and `/access` get their scrolling back the moment nothing else
+     wants it. */
+  useEffect(() => {
+    /* Clamp before locking, not inside the lock — this is the messenger's
+       requirement, not the sheet's. Arriving mid-scroll and freezing at a
+       non-zero offset would strand the header off-screen with no way to reach
+       it, a worse bug than the one being fixed. The sheet, by contrast, opens
+       over mid-page content and must leave the offset alone. `hidden` (unlike
+       `clip`) keeps the viewport programmatically scrollable, so this still
+       works when the sheet already holds the lock. */
+    window.scrollTo(0, 0);
+    return lockDocumentScroll();
+  }, []);
 
   /* Demo resolves to true only in the browser, after hydration — every
      prerendered byte is the real interface. */
