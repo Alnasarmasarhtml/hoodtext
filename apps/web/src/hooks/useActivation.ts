@@ -32,7 +32,7 @@ export interface UseActivationResult {
   readonly isActivated: boolean;
   /** Unix seconds of activation. `0` when the wallet has never activated. */
   readonly activatedAt: number;
-  /** `quote()` — the live $5 in $THOOD wei, at today's rate. */
+  /** `quote()` — the live $5 in $GRAM wei, at today's rate. */
   readonly quote: bigint | null;
   /** `priceUsd()` — the activation price, 18-decimal USD. */
   readonly priceUsd: bigint | null;
@@ -45,7 +45,7 @@ export interface UseActivationResult {
 /**
  * Live activation state for one wallet.
  *
- * Activation is the whole economics of an account: $5 in $THOOD, once,
+ * Activation is the whole economics of an account: $5 in $GRAM, once,
  * forever. No tiers, no expiry, no renewals — so unlike the old subscription
  * read there is no countdown here and never will be. Nothing here gates
  * *reading*: an unactivated wallet keeps its keys, its history and the

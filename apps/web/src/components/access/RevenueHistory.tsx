@@ -170,7 +170,7 @@ export function RevenueHistory({ history }: RevenueHistoryProps): ReactNode {
         aside={
           data === undefined ? undefined : (
             <span className={s.headTotal}>
-              {formatToken(data.total, { digits: 2, symbol: 'THOOD' })}
+              {formatToken(data.total, { digits: 2, symbol: 'GRAM' })}
             </span>
           )
         }
@@ -209,7 +209,7 @@ export function RevenueHistory({ history }: RevenueHistoryProps): ReactNode {
                 role="img"
                 aria-label={`Cumulative revenue across ${formatCount(
                   data.entries.length,
-                )} payments, totalling ${formatToken(data.total, { digits: 2, symbol: 'THOOD' })}`}
+                )} payments, totalling ${formatToken(data.total, { digits: 2, symbol: 'GRAM' })}`}
               >
                 {/* baseline */}
                 <line
@@ -269,7 +269,7 @@ export function RevenueHistory({ history }: RevenueHistoryProps): ReactNode {
               <span className={cx(s.legendValue, s.legendStrong)}>
                 {formatToken(data.toHolders, { digits: 2 })}
               </span>
-              <span className={s.legendNote}>THOOD, half of the total</span>
+              <span className={s.legendNote}>GRAM, half of the total</span>
             </div>
 
             <div className={s.legendItem}>

@@ -12,7 +12,7 @@ export interface TokenMarkProps {
 }
 
 /**
- * The `$THOOD` wordmark.
+ * The `$GRAM` wordmark.
  *
  * One of the five places SPEC §7.1 permits green, so it is the only accent that
  * runs through body copy. Use `quiet` when the mark appears more than once in a
@@ -20,6 +20,6 @@ export interface TokenMarkProps {
  */
 export function TokenMark({ quiet = false, className }: TokenMarkProps): ReactNode {
   return (
-    <span className={cx(s.mark, quiet && s.quiet, className)}>$THOOD</span>
+    <span className={cx(s.mark, quiet && s.quiet, className)}>$GRAM</span>
   );
 }

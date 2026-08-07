@@ -177,7 +177,7 @@ export function HandlePanel({
       fieldHint = tierShort
         ? `${name.length}-character names need ${perkTierLabel(requiredTier)}. You are ${
             perks.tier === PerkTier.NONE ? 'below RESIDENT' : perkTierLabel(perks.tier)
-          } — hold more $THOOD through a weekly snapshot to unlock this length.`
+          } — hold more $GRAM through a weekly snapshot to unlock this length.`
         : `${name.length}-character names need ${perkTierLabel(requiredTier)} — your ${perkTierLabel(perks.tier)} tier covers it.`;
     } else if (availabilityCurrent && availability.available === true) {
       fieldHint = 'Available. Claiming costs one transaction — the name itself is free.';

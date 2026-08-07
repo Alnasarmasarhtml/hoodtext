@@ -102,7 +102,7 @@ export function formatFixed(value: bigint, options: FixedFormatOptions = {}): st
 /* ────────────────────────────────────────────────────────────── token ───── */
 
 export interface TokenFormatOptions extends FixedFormatOptions {
-  /** Appended after a hair space, e.g. `THOOD`. */
+  /** Appended after a hair space, e.g. `GRAM`. */
   readonly symbol?: string;
   /** Collapse ≥ 10,000 to `12.4K` / `3.10M` / `1.24B`. Default `false`. */
   readonly compact?: boolean;
@@ -130,10 +130,10 @@ function formatCompactWhole(int: bigint, negative: boolean): string | null {
 }
 
 /**
- * $THOOD / any 18-decimal ERC20 amount.
+ * $GRAM / any 18-decimal ERC20 amount.
  *
  * @example formatToken(1234567890123456789n) // "1.2346"
- * @example formatToken(25n * 10n ** 18n, { digits: 2, symbol: 'THOOD' }) // "25 THOOD"
+ * @example formatToken(25n * 10n ** 18n, { digits: 2, symbol: 'GRAM' }) // "25 GRAM"
  */
 export function formatToken(value: bigint, options: TokenFormatOptions = {}): string {
   const decimals = options.decimals ?? 18;

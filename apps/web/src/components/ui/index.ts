@@ -4,7 +4,7 @@
  * Every component here is bespoke: notched via `clip-path`, hairlined at 1px,
  * mono-labelled, tabular. Green only appears on primary CTAs, the active
  * nav/tab state, confirmed-on-chain status, the live subscription badge and the
- * $THOOD wordmark.
+ * $GRAM wordmark.
  */
 
 export { Button, SignalBars, buttonClassName } from './Button';

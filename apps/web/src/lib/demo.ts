@@ -263,9 +263,9 @@ export const DEMO_ROOMS: readonly DemoRoom[] = [
 
 /* ─────────────────────────────────────────── the access-page fixture state ── */
 
-/** All THOOD amounts are 18dp bigints, coherent with the 1,000 THOOD/$ demo rate. */
+/** All GRAM amounts are 18dp bigints, coherent with the 1,000 GRAM/$ demo rate. */
 export const DEMO_ACCESS = {
-  /** 1,000 THOOD per dollar. */
+  /** 1,000 GRAM per dollar. */
   thoodPerUsd: 1_000n * 10n ** 18n,
   activationQuote: 5_000n * 10n ** 18n,
   rentPerMonth: 10_000n * 10n ** 18n,

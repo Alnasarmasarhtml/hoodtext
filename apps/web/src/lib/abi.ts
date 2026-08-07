@@ -374,7 +374,7 @@ export const hoodGramTokenAbi = [
 
 /* ═════════════════════════════════════════════ 4.2 ManualPriceSource ════ */
 
-/** `thoodPerUsd()` — how many $THOOD (18dp) equal one US dollar. */
+/** `thoodPerUsd()` — how many $GRAM (18dp) equal one US dollar. */
 export const manualPriceSourceAbi = [
   {
     type: 'constructor',
@@ -422,8 +422,8 @@ export const manualPriceSourceAbi = [
 /* ═══════════════════════════════════════════════ 4.3 Activation ═════════ */
 
 /**
- * The $5 handshake. One payment, in $THOOD, and the account exists forever.
- * `activate` is NOT payable in ETH — it pulls $THOOD and sends 100% of it to
+ * The $5 handshake. One payment, in $GRAM, and the account exists forever.
+ * `activate` is NOT payable in ETH — it pulls $GRAM and sends 100% of it to
  * the vault, where the 50/50 holder split happens at receipt.
  */
 export const activationAbi = [
@@ -441,7 +441,7 @@ export const activationAbi = [
   /* — wiring — */
   {
     type: 'function',
-    name: 'THOOD',
+    name: 'GRAM',
     stateMutability: 'view',
     inputs: [],
     outputs: [{ name: '', type: 'address', internalType: 'contract IERC20' }],
@@ -640,7 +640,7 @@ export const groupRegistryAbi = [
   /* — wiring — */
   {
     type: 'function',
-    name: 'THOOD',
+    name: 'GRAM',
     stateMutability: 'view',
     inputs: [],
     outputs: [{ name: '', type: 'address', internalType: 'contract IERC20' }],
@@ -930,7 +930,7 @@ export const groupRegistryAbi = [
  * The 50/50 split, paid to holders by holdings.
  *
  * `claimable(user, epochId)` = `holderAmount * balanceOfAt(user, snapshot) /
- * eligibleSupply`. Holding $THOOD at the snapshot block is the entire
+ * eligibleSupply`. Holding $GRAM at the snapshot block is the entire
  * requirement — no deposit, no lock-up, no delegation.
  */
 export const revenueVaultAbi = [
@@ -977,7 +977,7 @@ export const revenueVaultAbi = [
   /* — wiring — */
   {
     type: 'function',
-    name: 'THOOD',
+    name: 'GRAM',
     stateMutability: 'view',
     inputs: [],
     outputs: [{ name: '', type: 'address', internalType: 'contract IERC20' }],
@@ -1535,7 +1535,7 @@ export const perksAbi = [
   },
   {
     type: 'function',
-    name: 'THOOD',
+    name: 'GRAM',
     stateMutability: 'view',
     inputs: [],
     outputs: [{ name: '', type: 'address', internalType: 'contract IERC20' }],
@@ -1743,7 +1743,7 @@ export interface PerkTierSpec {
   readonly supplyPct: string;
   /** Deploy-default threshold in basis points; the contract read wins. */
   readonly bps: number;
-  /** Threshold in $THOOD at the fixed 1B supply, for copy. */
+  /** Threshold in $GRAM at the fixed 1B supply, for copy. */
   readonly thood: number;
   /** What this rung unlocks, most important first. */
   readonly unlocks: readonly string[];

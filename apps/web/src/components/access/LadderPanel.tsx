@@ -58,8 +58,8 @@ function Rung({ spec, threshold, eligible, held, isCurrent }: RungProps): ReactN
   const progress = progressOf(eligible, threshold);
   const thresholdLabel =
     threshold === null
-      ? `${formatToken(BigInt(spec.thood) * 10n ** 18n, { digits: 0, compact: true })} THOOD`
-      : `${formatToken(threshold, { digits: 0, compact: true })} THOOD`;
+      ? `${formatToken(BigInt(spec.thood) * 10n ** 18n, { digits: 0, compact: true })} GRAM`
+      : `${formatToken(threshold, { digits: 0, compact: true })} GRAM`;
 
   return (
     <li className={cx(s.rung, held && s.rungHeld, isCurrent && s.rungCurrent)}>
@@ -125,7 +125,7 @@ export function LadderPanel({
               ? 'This build has no Perks address for the active chain.'
               : wrongNetwork
                 ? 'The ladder lives on Robinhood Chain. Your wallet is pointed somewhere else.'
-                : 'Four rungs, judged purely on how much $THOOD you hold — the revenue share itself needs no tier at all.'
+                : 'Four rungs, judged purely on how much $GRAM you hold — the revenue share itself needs no tier at all.'
           }
           action={
             contracts !== null && !wrongNetwork ? (
@@ -158,7 +158,7 @@ export function LadderPanel({
           <span className={s.rankBalance}>
             {eligible === null
               ? 'reading…'
-              : `eligible balance ${formatToken(eligible, { digits: 0, symbol: 'THOOD' })}`}
+              : `eligible balance ${formatToken(eligible, { digits: 0, symbol: 'GRAM' })}`}
           </span>
         </div>
 

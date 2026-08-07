@@ -3,7 +3,7 @@
 /**
  * Rooms (SPEC §4.4) — create, rent, roster.
  *
- * The economics: a room costs $10/month in $THOOD, paid by whoever runs it —
+ * The economics: a room costs $10/month in $GRAM, paid by whoever runs it —
  * members are free. Rent lapsing blocks NEW messages only; history, keys and
  * membership survive, and anyone may pay to reopen.
  *
@@ -163,7 +163,7 @@ export function useRoomChain(groupId: Hex | null): RoomChainState {
   };
 }
 
-/** Live `quoteRent(months)` — the $10/month priced in $THOOD right now. */
+/** Live `quoteRent(months)` — the $10/month priced in $GRAM right now. */
 export function useRentQuote(months: number): bigint | null {
   const demo = useDemoActive();
   const contracts = tryGetContracts(ACTIVE_CHAIN_ID);
@@ -407,7 +407,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
             chainId: ACTIVE_CHAIN_ID,
           });
           if (approveReceipt.status === 'reverted') {
-            return failWith('The $THOOD approval reverted on chain. Nothing was paid.');
+            return failWith('The $GRAM approval reverted on chain. Nothing was paid.');
           }
         }
 
@@ -558,7 +558,7 @@ export function usePayRent(groupId: Hex | null, payer: Address | null): UsePayRe
           });
           if (approveReceipt.status === 'reverted') {
             setPhase('error');
-            setError('The $THOOD approval reverted on chain. Nothing was paid.');
+            setError('The $GRAM approval reverted on chain. Nothing was paid.');
             return false;
           }
         }

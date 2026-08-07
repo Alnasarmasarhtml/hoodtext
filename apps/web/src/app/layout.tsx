@@ -30,7 +30,7 @@ const FAVICON =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2308090A'/%3E%3Cpath fill='%2300C805' fill-rule='evenodd' clip-rule='evenodd' d='M3 3H22L29 10V29H10L3 22ZM9 12.6H23V15.8H9ZM9 18.1H17V21.3H9Z'/%3E%3C/svg%3E";
 
 /** Where the static export is served from; makes the OG image URL absolute. */
-const SITE_URL = 'https://alnasarmasarhtml.github.io/hoodtext/';
+const SITE_URL = 'https://hoodgram.tech/';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -39,11 +39,11 @@ export const metadata: Metadata = {
     template: '%s — HoodGram',
   },
   description:
-    'HoodGram is an end-to-end encrypted messenger with every message anchored on Robinhood Chain. One $5 activation in $THOOD and your account exists forever. Messages are free — relayed with no gas, or self-posted for about a cent. Rooms cost $10/month, paid by whoever runs them; members are free. 50% of every payment goes to $THOOD holders, pro-rata by holdings, with no staking and no lock-up.',
+    'HoodGram is an end-to-end encrypted messenger with every message anchored on Robinhood Chain. One $5 activation in $GRAM and your account exists forever. Messages are free — relayed with no gas, or self-posted for about a cent. Rooms cost $10/month, paid by whoever runs them; members are free. 50% of every payment goes to $GRAM holders, pro-rata by holdings, with no staking and no lock-up.',
   applicationName: 'HoodGram',
   keywords: [
     'HoodGram',
-    'THOOD',
+    'GRAM',
     'Robinhood Chain',
     'encrypted messaging',
     'on-chain messaging',
@@ -59,14 +59,14 @@ export const metadata: Metadata = {
     siteName: 'HoodGram',
     title: 'HoodGram — pay $5 once, text forever',
     description:
-      'Message contents are unreadable by anyone but the recipient. Metadata is minimized, not eliminated. $5 activates your account forever; rooms are $10/month paid by their owner; half of every payment is shared with $THOOD holders.',
+      'Message contents are unreadable by anyone but the recipient. Metadata is minimized, not eliminated. $5 activates your account forever; rooms are $10/month paid by their owner; half of every payment is shared with $GRAM holders.',
     images: [{ url: 'brand/logo-primary.png', width: 3383, height: 912, alt: 'HOODGRAM' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'HoodGram — pay $5 once, text forever',
     description:
-      'Pay $5 once in $THOOD. Messages free, forever. Rooms $10/month, members free. 50% of revenue to holders, by holdings, with no staking.',
+      'Pay $5 once in $GRAM. Messages free, forever. Rooms $10/month, members free. 50% of revenue to holders, by holdings, with no staking.',
     images: ['brand/logo-primary.png'],
   },
   robots: {

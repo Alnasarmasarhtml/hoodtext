@@ -143,14 +143,14 @@ function RoomCard({
           functionName: 'approve',
           args: [contracts.groupRegistry, quote],
         }),
-      'Approving $THOOD',
+      'Approving $GRAM',
     );
     if (ok) {
       onRefresh();
       toast.push({
         kind: 'success',
         title: 'Approved',
-        body: `The room registry may now move ${formatToken(quote, { digits: 2, symbol: 'THOOD' })} — and not a wei more.`,
+        body: `The room registry may now move ${formatToken(quote, { digits: 2, symbol: 'GRAM' })} — and not a wei more.`,
       });
     }
   }, [approveTx, contracts, demo, onRefresh, quote, toast, writeContractAsync]);
@@ -270,10 +270,10 @@ function RoomCard({
 
           <div className={s.payQuote}>
             <span className={s.payQuoteLabel}>
-              {`${settledMonths} ${settledMonths === 1 ? 'month' : 'months'} in $THOOD`}
+              {`${settledMonths} ${settledMonths === 1 ? 'month' : 'months'} in $GRAM`}
             </span>
             <span className={cx(s.payQuoteValue, quoteStale && s.payQuoteStale)}>
-              {quote === null ? '—' : formatToken(quote, { digits: 2, symbol: 'THOOD' })}
+              {quote === null ? '—' : formatToken(quote, { digits: 2, symbol: 'GRAM' })}
             </span>
             <span className={s.payQuoteNote}>
               {pricing.rentUsdPerMonth === null
@@ -342,8 +342,8 @@ function RoomCard({
       {shortOnBalance && quote !== null && balance !== null && (
         <Notice
           tone="warn"
-          title="Not enough $THOOD"
-          body={`This term costs ${formatToken(quote, { digits: 2, symbol: 'THOOD' })} and your wallet holds ${formatToken(balance, { digits: 2, symbol: 'THOOD' })}. Pay fewer months or top up.`}
+          title="Not enough $GRAM"
+          body={`This term costs ${formatToken(quote, { digits: 2, symbol: 'GRAM' })} and your wallet holds ${formatToken(balance, { digits: 2, symbol: 'GRAM' })}. Pay fewer months or top up.`}
         />
       )}
 
@@ -426,7 +426,7 @@ export function RoomsPanel({
           body:
             amount === 0n
               ? 'No renewal can be funded now, whatever any toggle says.'
-              : `Rent payments and renewals may draw up to ${formatToken(amount, { digits: 2, symbol: 'THOOD' })} in total.`,
+              : `Rent payments and renewals may draw up to ${formatToken(amount, { digits: 2, symbol: 'GRAM' })} in total.`,
         });
       }
     },
@@ -544,7 +544,7 @@ export function RoomsPanel({
                 <span className={s.allowanceValue}>
                   {token.registryAllowance === null
                     ? '—'
-                    : formatToken(token.registryAllowance, { digits: 2, symbol: 'THOOD' })}
+                    : formatToken(token.registryAllowance, { digits: 2, symbol: 'GRAM' })}
                 </span>
               </div>
               <div className={s.allowanceRow}>

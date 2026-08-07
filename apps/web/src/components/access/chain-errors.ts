@@ -98,7 +98,7 @@ function amountOf(args: readonly unknown[] | undefined, index: number): string |
   if (args === undefined) return null;
   const value = args[index];
   return typeof value === 'bigint'
-    ? formatToken(value, { digits: 4, symbol: 'THOOD' })
+    ? formatToken(value, { digits: 4, symbol: 'GRAM' })
     : null;
 }
 
@@ -123,14 +123,14 @@ const REVERT_COPY: Readonly<Record<string, RevertCopy>> = {
   /* — ERC20 — */
   ERC20InsufficientBalance: {
     kind: 'insufficient-balance',
-    title: 'Not enough $THOOD',
-    detail: 'Your wallet holds less $THOOD than this payment requires.',
+    title: 'Not enough $GRAM',
+    detail: 'Your wallet holds less $GRAM than this payment requires.',
   },
   ERC20InsufficientAllowance: {
     kind: 'insufficient-allowance',
     title: 'Approval too small',
     detail:
-      'The contract is not approved to move this much $THOOD yet. Run the approve step again.',
+      'The contract is not approved to move this much $GRAM yet. Run the approve step again.',
   },
 
   /* — Activation — */
@@ -287,12 +287,12 @@ const REVERT_COPY: Readonly<Record<string, RevertCopy>> = {
     kind: 'reverted',
     title: 'Vault balance too low',
     detail:
-      'The vault does not hold enough $THOOD to back this epoch. This is a solvency failure — do not retry.',
+      'The vault does not hold enough $GRAM to back this epoch. This is a solvency failure — do not retry.',
   },
   InsufficientTreasury: {
     kind: 'reverted',
     title: 'Treasury balance too low',
-    detail: 'The treasury has not accrued that much $THOOD.',
+    detail: 'The treasury has not accrued that much $GRAM.',
   },
   TooManyExcluded: {
     kind: 'reverted',
@@ -337,7 +337,7 @@ const REVERT_COPY: Readonly<Record<string, RevertCopy>> = {
   SafeERC20FailedOperation: {
     kind: 'reverted',
     title: 'Token transfer failed',
-    detail: 'The $THOOD transfer did not succeed. Nothing was charged.',
+    detail: 'The $GRAM transfer did not succeed. Nothing was charged.',
   },
   InvalidRate: {
     kind: 'reverted',
@@ -349,7 +349,7 @@ const REVERT_COPY: Readonly<Record<string, RevertCopy>> = {
 /* ───────────────────────────────────────────────────────── public API ───── */
 
 export interface DescribeOptions {
-  /** What the user was doing, e.g. "Approving $THOOD". Used in fallback copy. */
+  /** What the user was doing, e.g. "Approving $GRAM". Used in fallback copy. */
   readonly action?: string;
 }
 

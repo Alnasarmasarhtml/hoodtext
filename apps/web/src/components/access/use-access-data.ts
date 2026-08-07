@@ -149,15 +149,15 @@ export function useAccessEnvironment(): AccessEnvironment {
 /* ════════════════════════════════════════════════════════════ pricing ═══ */
 
 export interface PricingState {
-  /** `Activation.quote()` — the $5, in $THOOD wei, right now. */
+  /** `Activation.quote()` — the $5, in $GRAM wei, right now. */
   readonly activationQuote: bigint | null;
   /** `Activation.priceUsd` — 18dp USD, deploy-default $5. */
   readonly activationUsd: bigint | null;
   /** `GroupRegistry.rentUsdPerMonth` — 18dp USD, deploy-default $10. */
   readonly rentUsdPerMonth: bigint | null;
-  /** `GroupRegistry.quoteRent(1)` — one month of rent in $THOOD wei. */
+  /** `GroupRegistry.quoteRent(1)` — one month of rent in $GRAM wei. */
   readonly rentMonthQuote: bigint | null;
-  /** `IPriceSource.thoodPerUsd()` — how many $THOOD equal one dollar. */
+  /** `IPriceSource.thoodPerUsd()` — how many $GRAM equal one dollar. */
   readonly thoodPerUsd: bigint | null;
   readonly monthSeconds: bigint;
   readonly maxMonths: number;
@@ -326,7 +326,7 @@ export interface PerksState {
   readonly tier: PerkTierId;
   /** `eligibleBalance(user)` — min(now, at last sealed snapshot). */
   readonly eligibleBalance: bigint | null;
-  /** `thresholdAmount(1..4)` — live thresholds in $THOOD wei, lowest first. */
+  /** `thresholdAmount(1..4)` — live thresholds in $GRAM wei, lowest first. */
   readonly thresholds: readonly (bigint | null)[];
   /** `RevenueVault.latestSnapshot()` — the block tiers are judged against. */
   readonly latestSnapshot: bigint | null;

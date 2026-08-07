@@ -14,12 +14,9 @@
   }
 }
 
-/* Only a light touch on the film. Dimming it hard made the whole frame flat
-   and the fade stopped reading as a fade — the point is a visible pool of
-   darkness that the copy sits in, with the footage bright around it. */
 /* A middle setting. Dimmed hard the frame went flat and the fade stopped
    reading as a fade; left bright, green type (mid-luminance) vanishes against
-   a near-white hood. This keeps the footage clearly lit while giving the pool
+   a near-white hood. This keeps the footage clearly lit while giving the fade
    something it can actually win against. */
 .film {
   filter: brightness(0.58) contrast(1.08);
@@ -87,7 +84,29 @@
   padding-block: clamp(26px, 4vh, 46px) clamp(30px, 5vh, 56px);
 }
 
+/* The soft fade, lifted straight from Viewfinder in the hero lab: one ellipse
+   that is dense at its centre and fully gone by 78% of its own radius, so it
+   dissolves into the frame instead of ending on an edge. It is a plain
+   positioned sibling that comes first in DOM order — the content below is
+   positioned too, so paint order alone puts the type on top. */
+.fade {
+  position: absolute;
+  left: -18%;
+  bottom: -14%;
+  width: 96%;
+  height: 92%;
+  background: radial-gradient(
+    ellipse 68% 78% at 30% 55%,
+    rgba(5, 6, 7, 0.95) 0%,
+    rgba(5, 6, 7, 0.82) 44%,
+    rgba(5, 6, 7, 0) 78%
+  );
+  pointer-events: none;
+}
+
+/* Positioned so it paints above the fade that precedes it. */
 .hudTop {
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -134,32 +153,6 @@
   align-items: flex-start;
   gap: var(--sp-4);
   max-width: 640px;
-}
-
-/* The soft fade. An ellipse of darkness that belongs to the copy and dissolves
-   into the frame — never a panel, never a hard edge, so the marching figure is
-   never boxed out. It reaches well past the text on every side, which is what
-   lets it stay soft and still beat a white hood behind it. */
-.block::before {
-  content: '';
-  position: absolute;
-  inset: clamp(-110px, -10vw, -64px) clamp(-300px, -28vw, -170px)
-    clamp(-120px, -11vw, -72px) clamp(-170px, -16vw, -100px);
-  z-index: -1;
-  /* Wide and flat-topped: the dense core has to span the full width of the
-     longest line, because green type is mid-luminance and dies the moment the
-     pool thins under it. Past the text it dissolves completely, which is what
-     keeps it reading as a fade and not a panel. */
-  background: radial-gradient(
-    ellipse 74% 64% at 38% 50%,
-    rgba(4, 5, 6, 0.99) 0%,
-    rgba(4, 5, 6, 0.98) 56%,
-    rgba(4, 5, 6, 0.9) 70%,
-    rgba(4, 5, 6, 0.56) 83%,
-    rgba(4, 5, 6, 0.18) 93%,
-    rgba(4, 5, 6, 0) 100%
-  );
-  pointer-events: none;
 }
 
 .kicker {
@@ -223,17 +216,18 @@
     gap: var(--sp-3);
   }
 
-  /* On a phone the block spans the full width and stacks tall, so the pool has
-     to be centred and cover far more vertically than it does on desktop. */
-  .block::before {
-    inset: -120px -70px -80px -70px;
+  /* On a phone the copy stacks full-width, so the ellipse centres and grows
+     rather than sitting a third of the way across. Same falloff shape. */
+  .fade {
+    left: -12%;
+    bottom: -10%;
+    width: 124%;
+    height: 74%;
     background: radial-gradient(
-      ellipse 82% 72% at 50% 54%,
-      rgba(4, 5, 6, 0.99) 0%,
-      rgba(4, 5, 6, 0.98) 62%,
-      rgba(4, 5, 6, 0.86) 76%,
-      rgba(4, 5, 6, 0.46) 89%,
-      rgba(4, 5, 6, 0) 100%
+      ellipse 60% 72% at 50% 58%,
+      rgba(5, 6, 7, 0.95) 0%,
+      rgba(5, 6, 7, 0.86) 44%,
+      rgba(5, 6, 7, 0) 82%
     );
   }
 

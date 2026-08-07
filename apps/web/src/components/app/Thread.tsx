@@ -101,12 +101,12 @@ function RentLapsedNotice({ room, chain }: RentLapsedNoticeProps): ReactNode {
           size="sm"
           variant="primary"
           loading={rent.isBusy}
-          loadingLabel={rent.phase === 'approving' ? 'Approving $THOOD' : 'Paying rent'}
+          loadingLabel={rent.phase === 'approving' ? 'Approving $GRAM' : 'Paying rent'}
           onClick={onPay}
         >
           {quote === null
             ? 'Pay 1 month'
-            : `Pay 1 month · ${formatToken(quote, { digits: 0, compact: true })} THOOD`}
+            : `Pay 1 month · ${formatToken(quote, { digits: 0, compact: true })} GRAM`}
         </Button>
       }
     />

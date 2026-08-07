@@ -16,7 +16,7 @@ import { AccessPage } from '@/components/access/AccessPage';
 export const metadata: Metadata = {
   title: 'Access & revenue',
   description:
-    'Activate your account for $5, once, forever — priced in dollars on chain, paid in $THOOD at the live rate. Rooms cost $10/month, paid by whoever runs them; members are free and messages are never charged. Half of every payment goes to $THOOD holders, pro-rata by holdings, with no staking, no lock-up and no deposit.',
+    'Activate your account for $5, once, forever — priced in dollars on chain, paid in $GRAM at the live rate. Rooms cost $10/month, paid by whoever runs them; members are free and messages are never charged. Half of every payment goes to $GRAM holders, pro-rata by holdings, with no staking, no lock-up and no deposit.',
   openGraph: {
     type: 'website',
     siteName: 'HoodGram',

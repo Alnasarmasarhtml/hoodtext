@@ -19,7 +19,7 @@ export interface EyebrowProps extends ComponentPropsWithoutRef<'span'> {
  * Uppercase Geist Mono at .06em — the system's section marker.
  *
  * `tone="green"` is reserved for the active state, confirmed-on-chain status,
- * the live subscription badge and the $THOOD wordmark.
+ * the live subscription badge and the $GRAM wordmark.
  */
 export function Eyebrow({
   tone = 'muted',

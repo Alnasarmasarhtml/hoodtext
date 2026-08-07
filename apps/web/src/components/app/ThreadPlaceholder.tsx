@@ -7,7 +7,7 @@
  * It has two faces:
  *
  *  · **Locked** — the account is not activated. The designed locked state
- *    explains the $5 one-time activation, quotes it live in $THOOD and links
+ *    explains the $5 one-time activation, quotes it live in $GRAM and links
  *    to `/access`. The rail beside it stays live, because reading and
  *    receiving are never gated on payment.
  *  · **Open** — a live readout of the scanner plus the four steps a drop takes,

@@ -45,7 +45,7 @@ export default function AccessError({ error, reset }: AccessErrorProps): ReactNo
 
           <p className={s.assurance}>
             This is a failure to <strong>read</strong>. No transaction was created, no
-            allowance changed, and no $THOOD moved. Your account, your keys and your
+            allowance changed, and no $GRAM moved. Your account, your keys and your
             history are exactly as they were.
           </p>
 

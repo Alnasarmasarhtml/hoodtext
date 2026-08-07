@@ -44,7 +44,7 @@
   min-width: 0;
 }
 
-/* The $THOOD wordmark — one of the five permitted green surfaces. */
+/* The $GRAM wordmark — one of the five permitted green surfaces. */
 .wordmark {
   color: var(--green);
   white-space: nowrap;

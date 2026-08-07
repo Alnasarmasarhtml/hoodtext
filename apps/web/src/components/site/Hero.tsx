@@ -39,6 +39,15 @@ export function Hero(): ReactNode {
       </div>
 
       <div className={cx('wrap', s.inner)}>
+        {/* The fade is a sibling, never a pseudo-element of the revealing block.
+            `[data-reveal]` sets `will-change: opacity` and then clears it to
+            `auto` once revealed — which destroys the stacking context it had
+            been creating, so a `z-index: -1` child escapes and paints behind
+            the video. That is exactly how this fade kept disappearing. Sitting
+            first in DOM order with the content positioned after it needs no
+            z-index at all. */}
+        <span className={s.fade} aria-hidden="true" />
+
         <div className={s.hudTop} data-reveal>
           <img
             className={s.logo}

@@ -288,7 +288,7 @@ export function EpochTable({
                         ? '—'
                         : formatToken(row.userShare, { digits: 4 })}
                     </span>
-                    <span className={s.cellNote}>THOOD</span>
+                    <span className={s.cellNote}>GRAM</span>
                   </Cell>
 
                   <Cell label="Status" className={s.cellStatus}>
@@ -306,7 +306,7 @@ export function EpochTable({
 
       <div className={s.foot}>
         <p className={s.footText}>
-          A share is fixed the moment an epoch seals: it depends only on your $THOOD
+          A share is fixed the moment an epoch seals: it depends only on your $GRAM
           balance at the snapshot block. Buying after the snapshot earns nothing from that
           epoch; selling after it changes nothing — the share is still yours.
         </p>

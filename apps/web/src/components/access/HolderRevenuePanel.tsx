@@ -6,7 +6,7 @@
  *
  * There is no staking contract, no lock-up and no deposit anywhere in this
  * product. Eligibility is a historical balance checkpoint (`balanceOfAt`) at
- * each epoch's snapshot block — holding $THOOD in your own wallet at that block
+ * each epoch's snapshot block — holding $GRAM in your own wallet at that block
  * is the entire requirement (SPEC §4.5).
  */
 
@@ -105,7 +105,7 @@ export function HolderRevenuePanel({
       toast.push({
         kind: 'success',
         title: 'Claimed — simulated',
-        body: `${formatToken(claimable, { digits: 2, symbol: 'THOOD' })} across ${formatCount(batch.length)} ${batch.length === 1 ? 'epoch' : 'epochs'}. In the live app this is one claimMany() transaction, straight to your wallet.`,
+        body: `${formatToken(claimable, { digits: 2, symbol: 'GRAM' })} across ${formatCount(batch.length)} ${batch.length === 1 ? 'epoch' : 'epochs'}. In the live app this is one claimMany() transaction, straight to your wallet.`,
       });
       return;
     }
@@ -125,7 +125,7 @@ export function HolderRevenuePanel({
       toast.push({
         kind: 'success',
         title: 'Claimed',
-        body: `${formatToken(claimable, { digits: 2, symbol: 'THOOD' })} from ${formatCount(batch.length)} ${batch.length === 1 ? 'epoch' : 'epochs'} is in your wallet.`,
+        body: `${formatToken(claimable, { digits: 2, symbol: 'GRAM' })} from ${formatCount(batch.length)} ${batch.length === 1 ? 'epoch' : 'epochs'} is in your wallet.`,
       });
     }
   }, [batch, claimTx, claimable, contracts, demo, onDemoClaimAll, onRefresh, toast, writeContractAsync]);
@@ -139,11 +139,11 @@ export function HolderRevenuePanel({
       <EmptyState
         eyebrow="Not connected"
         title="Connect to see your share"
-        body="Your share is computed from your own $THOOD balance at each snapshot block. Nothing to deposit, nothing to opt into — connect and it is already calculated."
+        body="Your share is computed from your own $GRAM balance at each snapshot block. Nothing to deposit, nothing to opt into — connect and it is already calculated."
         action={
           <Button
             variant="primary"
-            onClick={() => openWallet('Reading your $THOOD balance at each epoch snapshot.')}
+            onClick={() => openWallet('Reading your $GRAM balance at each epoch snapshot.')}
           >
             Connect wallet
           </Button>
@@ -180,8 +180,8 @@ export function HolderRevenuePanel({
         title={lifetime > 0n ? 'You are fully claimed up' : 'No share in the sealed epochs'}
         body={
           lifetime > 0n
-            ? `You have taken ${formatToken(lifetime, { digits: 2, symbol: 'THOOD' })} so far. The next epoch seals on the countdown below.`
-            : 'A share is your $THOOD balance at a snapshot block divided by the eligible supply at that block. Holding $THOOD before the next snapshot is all it takes.'
+            ? `You have taken ${formatToken(lifetime, { digits: 2, symbol: 'GRAM' })} so far. The next epoch seals on the countdown below.`
+            : 'A share is your $GRAM balance at a snapshot block divided by the eligible supply at that block. Holding $GRAM before the next snapshot is all it takes.'
         }
         mark={false}
       />
@@ -193,7 +193,7 @@ export function HolderRevenuePanel({
           className={s.claimStat}
           label="Claimable now"
           value={formatToken(claimable, { digits: 2, trim: false })}
-          unit="THOOD"
+          unit="GRAM"
           countUp={toDisplayNumber(claimable)}
           format={(value) => FRAME.format(value)}
           tone="green"
@@ -212,7 +212,7 @@ export function HolderRevenuePanel({
           disabled={!canClaim}
           onClick={() => void onClaim()}
         >
-          {`Claim ${formatToken(claimable, { digits: 2, symbol: 'THOOD' })}`}
+          {`Claim ${formatToken(claimable, { digits: 2, symbol: 'GRAM' })}`}
         </Button>
 
         {remainder > 0 && (
@@ -244,11 +244,11 @@ export function HolderRevenuePanel({
         <div className={s.heroText}>
           <h2 className={s.heroTitle}>
             Half of every payment goes to{' '}
-            <span className={s.wordmark}>$THOOD</span> holders.
+            <span className={s.wordmark}>$GRAM</span> holders.
           </h2>
           <p className={s.heroBody}>
             Every $5 activation and every $10 of room rent. Not to a staking pool, not
-            to anyone who locked tokens up — to whoever held $THOOD in their own wallet
+            to anyone who locked tokens up — to whoever held $GRAM in their own wallet
             at the moment an epoch was snapshotted, read straight off the token&apos;s
             balance checkpoints.
           </p>
@@ -299,7 +299,7 @@ export function HolderRevenuePanel({
                       ? '—'
                       : formatToken(totals.total, { digits: 2, trim: false })
                   }
-                  unit="THOOD"
+                  unit="GRAM"
                   size="md"
                   hint={
                     totals === undefined
@@ -314,7 +314,7 @@ export function HolderRevenuePanel({
                       ? '—'
                       : formatToken(totals.toHolders, { digits: 2, trim: false })
                   }
-                  unit="THOOD"
+                  unit="GRAM"
                   size="md"
                   tone="bone"
                   hint="Split off the moment each payment arrives"
@@ -326,7 +326,7 @@ export function HolderRevenuePanel({
                       ? '—'
                       : formatToken(totals.toTreasury, { digits: 2, trim: false })
                   }
-                  unit="THOOD"
+                  unit="GRAM"
                   size="md"
                   tone="muted"
                   hint="Funds the product, not the holders' half"
@@ -339,7 +339,7 @@ export function HolderRevenuePanel({
                   <span className={s.subValue}>
                     {vault.pendingHolders === null
                       ? '—'
-                      : formatToken(vault.pendingHolders, { digits: 2, symbol: 'THOOD' })}
+                      : formatToken(vault.pendingHolders, { digits: 2, symbol: 'GRAM' })}
                   </span>
                 </div>
                 <div className={s.subItem}>
@@ -347,25 +347,25 @@ export function HolderRevenuePanel({
                   <span className={s.subValue}>
                     {vault.sealedUnclaimed === null
                       ? '—'
-                      : formatToken(vault.sealedUnclaimed, { digits: 2, symbol: 'THOOD' })}
+                      : formatToken(vault.sealedUnclaimed, { digits: 2, symbol: 'GRAM' })}
                   </span>
                 </div>
                 <div className={s.subItem}>
                   <span className={s.subLabel}>Your lifetime claimed</span>
                   <span className={s.subValue}>
                     {isConnected
-                      ? formatToken(lifetime, { digits: 2, symbol: 'THOOD' })
+                      ? formatToken(lifetime, { digits: 2, symbol: 'GRAM' })
                       : 'not connected'}
                   </span>
                 </div>
                 <div className={s.subItem}>
-                  <span className={s.subLabel}>Your $THOOD balance</span>
+                  <span className={s.subLabel}>Your $GRAM balance</span>
                   <span className={s.subValue}>
                     {token.balance === null
                       ? isConnected
                         ? '—'
                         : 'not connected'
-                      : formatToken(token.balance, { digits: 2, symbol: 'THOOD' })}
+                      : formatToken(token.balance, { digits: 2, symbol: 'GRAM' })}
                   </span>
                 </div>
               </div>

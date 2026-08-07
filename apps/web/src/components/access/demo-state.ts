@@ -33,7 +33,7 @@ import type {
 
 const E18 = 10n ** 18n;
 
-/** The fixed 1,000,000,000 $THOOD supply (SPEC §4.1). */
+/** The fixed 1,000,000,000 $GRAM supply (SPEC §4.1). */
 const SUPPLY = 1_000_000_000n * E18;
 
 /** Perk thresholds in bps of supply: RESIDENT 5 / CAPTAIN 10 / DISTRICT 25 / KINGPIN 50. */
@@ -77,11 +77,11 @@ export interface DemoAccessWorld {
 /* ─────────────────────────────────────────────────────── revenue series ── */
 
 /**
- * Payment sizes, cycled. Units are "roughly a thousand THOOD": mostly $5
+ * Payment sizes, cycled. Units are "roughly a thousand GRAM": mostly $5
  * activations and single months of rent, with the occasional multi-month rent
  * prepay carrying the volume — which is how two fixed prices actually produce
  * a lumpy series. Window totals are distributed pro-rata over the cycle, so
- * amounts drift around the nominal quote exactly as a moving $/THOOD rate
+ * amounts drift around the nominal quote exactly as a moving $/GRAM rate
  * would make them.
  */
 const PAYMENT_WEIGHTS: readonly number[] = [

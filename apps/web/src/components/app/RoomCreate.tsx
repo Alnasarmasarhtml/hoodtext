@@ -3,7 +3,7 @@
 /**
  * `/app/rooms/new` — the create-room pane.
  *
- * A room is $10/month in $THOOD, paid by whoever runs it; members are free.
+ * A room is $10/month in $GRAM, paid by whoever runs it; members are free.
  * Creation is two wallet steps at most — approve (skipped when the allowance
  * already covers the rent) and `createGroup` — then this device mints the
  * epoch-0 group key, stores it, and the room opens. Members are added
@@ -74,7 +74,7 @@ export function RoomCreate(): ReactNode {
 
   const stepLabel =
     create.phase === 'approving'
-      ? 'Approving $THOOD'
+      ? 'Approving $GRAM'
       : create.phase === 'creating'
         ? 'Creating on chain'
         : 'Working';
@@ -133,7 +133,7 @@ export function RoomCreate(): ReactNode {
             </dd>
           </div>
           <div className={s.fact}>
-            <dt className={s.factKey}>In $THOOD today</dt>
+            <dt className={s.factKey}>In $GRAM today</dt>
             <dd className={s.factValue}>
               {quote === null ? (
                 <span className={s.factPending}>Reading price source…</span>
@@ -166,7 +166,7 @@ export function RoomCreate(): ReactNode {
           >
             {quote === null
               ? 'Approve + create'
-              : `Approve + create · ${formatToken(quote, { digits: 0, compact: true })} THOOD`}
+              : `Approve + create · ${formatToken(quote, { digits: 0, compact: true })} GRAM`}
           </Button>
           <span className={s.actionNote}>
             Two wallet steps at most — the approval is skipped when your allowance already
@@ -178,7 +178,7 @@ export function RoomCreate(): ReactNode {
         <ol className={s.steps} aria-label="What happens">
           <li className={cx(s.step, create.phase === 'approving' && s.stepActive)}>
             <span className={s.stepIndex}>01</span>
-            <span className={s.stepText}>Approve $THOOD for the rent, if needed.</span>
+            <span className={s.stepText}>Approve $GRAM for the rent, if needed.</span>
           </li>
           <li className={cx(s.step, create.phase === 'creating' && s.stepActive)}>
             <span className={s.stepIndex}>02</span>

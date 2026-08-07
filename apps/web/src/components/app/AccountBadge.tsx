@@ -26,7 +26,7 @@ export interface AccountBadgeProps {
  *
  * An activated account shows its @handle (or short address) and holder rank —
  * there is nothing to expire, so there is no countdown. An unactivated one
- * shows the $5 one-time price, quoted live in $THOOD, with `/access` always
+ * shows the $5 one-time price, quoted live in $GRAM, with `/access` always
  * one step away. If a room this wallet administers is inside its 3-day rent
  * window, a quiet warning appears — a prompt, never a gate: rent lapse blocks
  * new messages in that room and nothing else.
@@ -80,7 +80,7 @@ export function AccountBadge({
           <span className={s.actionLong}>
             {quote === null
               ? 'Activate · $5 once'
-              : `Activate · ${formatToken(quote, { digits: 0, compact: true })} THOOD`}
+              : `Activate · ${formatToken(quote, { digits: 0, compact: true })} GRAM`}
           </span>
           <span className={s.actionShort}>Activate</span>
         </Link>

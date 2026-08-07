@@ -134,14 +134,14 @@ export function ActivationPanel({
           functionName: 'approve',
           args: [contracts.activation, quote],
         }),
-      'Approving $THOOD',
+      'Approving $GRAM',
     );
     if (ok) {
       onRefresh();
       toast.push({
         kind: 'success',
         title: 'Approved',
-        body: `The Activation contract may now move ${formatToken(quote, { digits: 2, symbol: 'THOOD' })} — and not a wei more.`,
+        body: `The Activation contract may now move ${formatToken(quote, { digits: 2, symbol: 'GRAM' })} — and not a wei more.`,
       });
     }
   }, [approveTx, contracts, onRefresh, quote, toast, writeContractAsync]);
@@ -227,7 +227,7 @@ export function ActivationPanel({
         action={
           <Button
             variant="primary"
-            onClick={() => openWallet('HoodGram reads your activation status and $THOOD balance from the chain.')}
+            onClick={() => openWallet('HoodGram reads your activation status and $GRAM balance from the chain.')}
           >
             Connect wallet
           </Button>
@@ -253,7 +253,7 @@ export function ActivationPanel({
       <div className={s.sponsorHead}>
         <Eyebrow>Sponsor a friend</Eyebrow>
         <span className={s.sponsorPrice}>
-          {quote === null ? '—' : formatToken(quote, { digits: 2, symbol: 'THOOD' })}
+          {quote === null ? '—' : formatToken(quote, { digits: 2, symbol: 'GRAM' })}
         </span>
       </div>
 
@@ -416,7 +416,7 @@ export function ActivationPanel({
         note="One payment, once, ever"
         aside={
           <span className={s.headTotal}>
-            {quote === null ? '—' : formatToken(quote, { digits: 2, symbol: 'THOOD' })}
+            {quote === null ? '—' : formatToken(quote, { digits: 2, symbol: 'GRAM' })}
           </span>
         }
       />
@@ -429,7 +429,7 @@ export function ActivationPanel({
           <div className={s.pitchText}>
             <span className={s.pitchLead}>Once. Forever.</span>
             <p className={s.pitchCopy}>
-              One payment in <span className={s.wordmark}>$THOOD</span> and your account
+              One payment in <span className={s.wordmark}>$GRAM</span> and your account
               exists permanently. It is also the spam wall: every account on HoodGram
               cost somebody five dollars, so there are no bot floods to wade through.
             </p>
@@ -446,7 +446,7 @@ export function ActivationPanel({
           />
           <LedgerRow
             label="Cost now"
-            value={quote === null ? '—' : formatToken(quote, { digits: 4, symbol: 'THOOD' })}
+            value={quote === null ? '—' : formatToken(quote, { digits: 4, symbol: 'GRAM' })}
             note="Live quote() at the current rate, pulled once at purchase"
             strong
           />
@@ -457,11 +457,11 @@ export function ActivationPanel({
                 ? isConnected
                   ? '—'
                   : 'not connected'
-                : formatToken(balance, { digits: 2, symbol: 'THOOD' })
+                : formatToken(balance, { digits: 2, symbol: 'GRAM' })
             }
             note={
               shortOnBalance && quote !== null && balance !== null
-                ? `${formatToken(quote - balance, { digits: 2, symbol: 'THOOD' })} short`
+                ? `${formatToken(quote - balance, { digits: 2, symbol: 'GRAM' })} short`
                 : undefined
             }
           />
@@ -472,7 +472,7 @@ export function ActivationPanel({
                 ? isConnected
                   ? '—'
                   : 'not connected'
-                : formatToken(allowance, { digits: 2, symbol: 'THOOD' })
+                : formatToken(allowance, { digits: 2, symbol: 'GRAM' })
             }
             note="The most the Activation contract can ever move from your wallet"
           />
@@ -484,14 +484,14 @@ export function ActivationPanel({
               1
             </span>
             <div className={s.stepBody}>
-              <span className={s.stepTitle}>Approve $THOOD</span>
+              <span className={s.stepTitle}>Approve $GRAM</span>
               <span className={s.stepNote}>
                 {approveState === 'done'
                   ? 'Approved. The contract can move exactly this amount.'
                   : `One-off permission for the Activation contract to move ${
                       quote === null
                         ? 'the quoted amount'
-                        : formatToken(quote, { digits: 2, symbol: 'THOOD' })
+                        : formatToken(quote, { digits: 2, symbol: 'GRAM' })
                     }.`}
               </span>
             </div>
@@ -516,7 +516,7 @@ export function ActivationPanel({
               <span className={s.stepNote}>
                 {activateState === 'done'
                   ? 'Confirmed on chain.'
-                  : 'Pays the quote in $THOOD. 100% of it goes to the vault, where half is set aside for holders.'}
+                  : 'Pays the quote in $GRAM. 100% of it goes to the vault, where half is set aside for holders.'}
               </span>
             </div>
             <Button
@@ -535,8 +535,8 @@ export function ActivationPanel({
         {shortOnBalance && quote !== null && balance !== null && (
           <Notice
             tone="warn"
-            title="Not enough $THOOD"
-            body={`Activation costs ${formatToken(quote, { digits: 2, symbol: 'THOOD' })} right now and your wallet holds ${formatToken(balance, { digits: 2, symbol: 'THOOD' })}. Top up and the quote refreshes automatically.`}
+            title="Not enough $GRAM"
+            body={`Activation costs ${formatToken(quote, { digits: 2, symbol: 'GRAM' })} right now and your wallet holds ${formatToken(balance, { digits: 2, symbol: 'GRAM' })}. Top up and the quote refreshes automatically.`}
           />
         )}
 

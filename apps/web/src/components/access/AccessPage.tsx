@@ -4,7 +4,7 @@
  * `/access` — where the token model stops being a claim and becomes a number.
  *
  * Seven things, in the order they matter (SPEC §7.4):
- *   1. the $5 activation — once, forever, live-quoted in $THOOD
+ *   1. the $5 activation — once, forever, live-quoted in $GRAM
  *   2. your @handle — free, claimed against the tier rules
  *   3. the holder status ladder — status and capacity, never money
  *   4. the rooms you run and their $10/month rent
@@ -130,7 +130,7 @@ export function AccessPage(): ReactNode {
               HoodGram charges exactly two prices: $5, once, for an account that exists
               forever, and $10 a month for a room, paid by whoever runs it. Messages are
               never charged. Half of every payment goes to whoever holds{' '}
-              <span className={s.wordmark}>$THOOD</span> — no staking contract to enter,
+              <span className={s.wordmark}>$GRAM</span> — no staking contract to enter,
               nothing to lock up.
             </p>
           </div>
@@ -154,7 +154,7 @@ export function AccessPage(): ReactNode {
             <Stat
               label="Claimable"
               value={formatToken(epochs.totalClaimable, { digits: 2, trim: false })}
-              unit="THOOD"
+              unit="GRAM"
               size="sm"
               hint={
                 isConnected
@@ -169,7 +169,7 @@ export function AccessPage(): ReactNode {
                   ? '—'
                   : formatToken(history.data.toHolders, { digits: 2, trim: false })
               }
-              unit="THOOD"
+              unit="GRAM"
               size="sm"
               hint="50% of all revenue, to date"
             />
@@ -296,7 +296,7 @@ export function AccessPage(): ReactNode {
 
       <footer className={s.foot}>
         <p className={s.footText}>
-          Both prices are fixed in USD on chain and converted to $THOOD at the moment of
+          Both prices are fixed in USD on chain and converted to $GRAM at the moment of
           payment. <code className={s.code}>Anchors.post</code> is not payable — messages
           are relayed for free or self-posted for about a cent of gas, and nothing else
           in this system is ever metered. Revenue is shared by holdings through

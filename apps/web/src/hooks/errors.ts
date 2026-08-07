@@ -23,7 +23,7 @@ function trim(message: string): string {
 /** Custom errors from SPEC §4, in the wording the messenger should use. */
 const REVERT_COPY: Readonly<Record<string, string>> = {
   NotActivated:
-    'The chain rejected this: the account is not activated. Activation is $5 in $THOOD, once, forever — nothing was lost.',
+    'The chain rejected this: the account is not activated. Activation is $5 in $GRAM, once, forever — nothing was lost.',
   AlreadyActivated: 'This account is already activated — there is nothing to pay twice.',
   RoomInactive:
     'This room’s rent has lapsed, so new messages are blocked. Any member can pay rent to reopen it — history and membership are untouched.',
@@ -39,7 +39,7 @@ const REVERT_COPY: Readonly<Record<string, string>> = {
     'That name is not a valid handle: 2–15 characters, a–z, 0–9 and underscore, starting with a letter.',
   HandleTaken: 'That handle is already claimed.',
   TierTooLow:
-    'Short handles are reserved by perk tier — hold more $THOOD, or pick a longer name.',
+    'Short handles are reserved by perk tier — hold more $GRAM, or pick a longer name.',
   NoHandle: 'This address has no handle to release.',
   EmptyBatch: 'The relayer batch was empty.',
   BatchTooLarge: 'A relayer batch may carry at most 64 drops.',
@@ -47,9 +47,9 @@ const REVERT_COPY: Readonly<Record<string, string>> = {
   InvalidKey: 'The key registry rejected that public key.',
   ZeroAddress: 'The contract was given the zero address.',
   ERC20InsufficientBalance:
-    'This wallet does not hold enough $THOOD for that payment.',
+    'This wallet does not hold enough $GRAM for that payment.',
   ERC20InsufficientAllowance:
-    'The contract’s $THOOD allowance is too small — approve first, then pay.',
+    'The contract’s $GRAM allowance is too small — approve first, then pay.',
 };
 
 /**

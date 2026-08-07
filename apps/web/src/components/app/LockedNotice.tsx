@@ -22,15 +22,15 @@ function priceLine(activation: UseActivationResult): string {
     activation.priceUsd === null
       ? formatUsd(PRICES.activationUsd, 0)
       : formatUsd18(activation.priceUsd, 0);
-  if (activation.quote === null) return `${price}, once, paid in $THOOD`;
-  return `${price} once · ${formatToken(activation.quote, { digits: 2, symbol: 'THOOD' })} at today's rate`;
+  if (activation.quote === null) return `${price}, once, paid in $GRAM`;
+  return `${price} once · ${formatToken(activation.quote, { digits: 2, symbol: 'GRAM' })} at today's rate`;
 }
 
 /**
  * The designed locked state (SPEC §7.3).
  *
  * Never a dead end and never a wall in front of history: activation is $5 in
- * $THOOD, once, forever — no subscription, no expiry, nothing to renew. It
+ * $GRAM, once, forever — no subscription, no expiry, nothing to renew. It
  * quotes the price live, links to `/access`, and says plainly that reading
  * and receiving are unaffected. An unactivated wallet lacks the composer and
  * nothing else.
@@ -69,8 +69,8 @@ export function LockedNotice({
           $5. Once. Forever.
         </h2>
         <p className={s.lede}>
-          One payment in $THOOD activates this account for good — no subscription, no tiers, no
-          expiry, nothing to renew. The price is fixed in dollars on chain and converted to $THOOD
+          One payment in $GRAM activates this account for good — no subscription, no tiers, no
+          expiry, nothing to renew. The price is fixed in dollars on chain and converted to $GRAM
           at the moment you pay, so the dollar price is stable as the token moves.
         </p>
       </div>
@@ -86,14 +86,14 @@ export function LockedNotice({
           </dd>
         </div>
         <div className={s.fact}>
-          <dt className={s.factLabel}>In $THOOD today</dt>
+          <dt className={s.factLabel}>In $GRAM today</dt>
           <dd className={s.factValue}>
             {activation.quote === null ? (
               <span className={s.pendingQuote}>Reading price source…</span>
             ) : (
               <>
                 {formatToken(activation.quote, { digits: 2 })}
-                <span className={s.factUnit}>THOOD, at today&apos;s rate</span>
+                <span className={s.factUnit}>GRAM, at today&apos;s rate</span>
               </>
             )}
           </dd>
@@ -132,7 +132,7 @@ export function LockedNotice({
         <li className={s.rule}>
           <span className={s.ruleMark} aria-hidden="true" />
           <span>
-            Half of every payment goes to $THOOD holders, by holdings. No staking, no lock-up.
+            Half of every payment goes to $GRAM holders, by holdings. No staking, no lock-up.
           </span>
         </li>
       </ul>
