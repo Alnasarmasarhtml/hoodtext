@@ -84,19 +84,16 @@
   padding-block: clamp(26px, 4vh, 46px) clamp(30px, 5vh, 56px);
 }
 
-/* The soft fade, lifted straight from Viewfinder in the hero lab: one ellipse
-   that is dense at its centre and fully gone by 78% of its own radius, so it
-   dissolves into the frame instead of ending on an edge. It is a plain
-   positioned sibling that comes first in DOM order — the content below is
-   positioned too, so paint order alone puts the type on top. */
+/* The soft fade, lifted straight from Viewfinder in the hero lab: one ellipse,
+   dense at its centre and fully gone by 78% of its own radius, so it dissolves
+   into the frame instead of ending on an edge. Pinned to the hero at inset 0 —
+   it cannot bleed past the viewport, and everything after it paints on top
+   without a single z-index. */
 .fade {
   position: absolute;
-  left: -18%;
-  bottom: -14%;
-  width: 96%;
-  height: 92%;
+  inset: 0;
   background: radial-gradient(
-    ellipse 68% 78% at 30% 55%,
+    ellipse 48% 46% at 27% 76%,
     rgba(5, 6, 7, 0.95) 0%,
     rgba(5, 6, 7, 0.82) 44%,
     rgba(5, 6, 7, 0) 78%
@@ -216,15 +213,11 @@
     gap: var(--sp-3);
   }
 
-  /* On a phone the copy stacks full-width, so the ellipse centres and grows
-     rather than sitting a third of the way across. Same falloff shape. */
+  /* On a phone the copy stacks full-width at the bottom, so the ellipse
+     centres and widens. Same falloff shape. */
   .fade {
-    left: -12%;
-    bottom: -10%;
-    width: 124%;
-    height: 74%;
     background: radial-gradient(
-      ellipse 60% 72% at 50% 58%,
+      ellipse 72% 34% at 50% 82%,
       rgba(5, 6, 7, 0.95) 0%,
       rgba(5, 6, 7, 0.86) 44%,
       rgba(5, 6, 7, 0) 82%
