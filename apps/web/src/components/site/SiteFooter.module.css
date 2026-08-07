@@ -130,107 +130,6 @@
   color: var(--bone);
 }
 
-/* ── contracts ──────────────────────────────────────────────────────────── */
-
-.contracts {
-  min-width: 0;
-  padding-block: clamp(var(--sp-5), 3vw, var(--sp-6));
-}
-
-.contractsHead {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  min-width: 0;
-  padding-bottom: var(--sp-3);
-}
-
-.contractsLabel {
-  flex: none;
-  font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
-  font-weight: 500;
-  letter-spacing: var(--tr-eyebrow);
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.contractsRule {
-  flex: 1 1 auto;
-  min-width: 8px;
-  height: var(--hair);
-  background-color: var(--line);
-}
-
-.contractsNote {
-  flex: none;
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  letter-spacing: var(--tr-eyebrow);
-  text-transform: uppercase;
-  color: var(--dim);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.contractList {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  border-top: var(--hair) solid var(--line);
-}
-
-.contract {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) minmax(0, auto);
-  gap: var(--sp-4);
-  align-items: center;
-  min-width: 0;
-  padding-block: var(--sp-3);
-  border-bottom: var(--hair) solid var(--line);
-}
-
-.contractName {
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--bone);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.contractNote {
-  font-size: var(--fs-xs);
-  color: var(--dim);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.contractAddress {
-  justify-self: end;
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.contractMissing {
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  letter-spacing: var(--tr-eyebrow);
-  color: var(--dim);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-}
-
 /* ── base ───────────────────────────────────────────────────────────────── */
 
 .base {
@@ -274,15 +173,6 @@
 
   .meta {
     grid-column: auto;
-  }
-
-  .contract {
-    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
-    gap: var(--sp-2) var(--sp-3);
-  }
-
-  .contractNote {
-    display: none;
   }
 
   .metaRow {

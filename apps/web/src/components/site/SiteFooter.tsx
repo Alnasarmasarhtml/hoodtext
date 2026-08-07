@@ -3,15 +3,8 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import { Hex } from '@/components/ui/Hex';
 import { LogoMark } from '@/components/ui/Logo';
-import {
-  activeChain,
-  explorerAddressUrl,
-  tryGetContracts,
-  type ContractAddresses,
-  type ContractName,
-} from '@/lib/chain';
+import { activeChain } from '@/lib/chain';
 import { RELAY_URL } from '@/lib/relay';
 import s from './SiteFooter.module.css';
 import { TokenMark } from './TokenMark';
@@ -21,33 +14,17 @@ const LINKS: readonly { readonly href: string; readonly label: string }[] = [
   { href: '/access', label: 'Activate & claim' },
 ];
 
-interface ContractRow {
-  readonly key: ContractName;
-  readonly label: string;
-  readonly note: string;
-}
-
-/** All nine contracts (SPEC §4), in the order the money flows. */
-const CONTRACTS: readonly ContractRow[] = [
-  { key: 'token', label: 'HoodGramToken', note: '$THOOD — balance checkpoints' },
-  { key: 'priceSource', label: 'PriceSource', note: 'USD → $THOOD rate' },
-  { key: 'activation', label: 'Activation', note: '$5, once, forever' },
-  { key: 'groupRegistry', label: 'GroupRegistry', note: 'rooms · $10/month rent' },
-  { key: 'revenueVault', label: 'RevenueVault', note: '50/50 split · epochs · claims' },
-  { key: 'keyRegistry', label: 'KeyRegistry', note: 'free identity keys' },
-  { key: 'anchors', label: 'Anchors', note: 'the message log — not payable' },
-  { key: 'perks', label: 'Perks', note: 'holder status ladder' },
-  { key: 'handles', label: 'Handles', note: '@names' },
-];
-
 /**
- * Hairline colophon: the claim, the routes, and every contract address with an
- * explorer link. When the build has no addresses it says so instead of
- * printing zeroes.
+ * Hairline colophon: the claim, the routes and the chain facts.
+ *
+ * The nine contract addresses used to be printed here. They came out once the
+ * site went public: until the contracts are deployed to Robinhood Chain the
+ * build only has local dev addresses, and publishing throwaway addresses beside
+ * a real product reads as either a mistake or a trap. Put them back when there
+ * are mainnet addresses worth verifying.
  */
 export function SiteFooter(): ReactNode {
   const explorer = activeChain.blockExplorers?.default;
-  const contracts: ContractAddresses | null = tryGetContracts();
 
   return (
     <footer className={s.footer}>
@@ -106,44 +83,6 @@ export function SiteFooter(): ReactNode {
               </dd>
             </div>
           </dl>
-        </div>
-
-        {/* ── the nine contracts ─────────────────────────────────────────── */}
-        <div className={s.contracts}>
-          <div className={s.contractsHead}>
-            <span className={s.contractsLabel}>Contracts</span>
-            <span className={s.contractsRule} aria-hidden="true" />
-            <span className={s.contractsNote}>
-              {contracts === null
-                ? 'not deployed on this build'
-                : `${CONTRACTS.length} deployed · ${activeChain.name}`}
-            </span>
-          </div>
-
-          <ul className={s.contractList}>
-            {CONTRACTS.map((row) => {
-              const address = contracts?.[row.key] ?? null;
-              return (
-                <li className={s.contract} key={row.key}>
-                  <span className={s.contractName}>{row.label}</span>
-                  <span className={s.contractNote}>{row.note}</span>
-                  <span className={s.contractAddress}>
-                    {address === null ? (
-                      <span className={s.contractMissing}>awaiting deployment</span>
-                    ) : (
-                      <Hex
-                        value={address}
-                        label={`${row.label} contract`}
-                        href={explorerAddressUrl(address)}
-                        size="sm"
-                        tone="muted"
-                      />
-                    )}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
         </div>
 
         <div className={s.base}>
