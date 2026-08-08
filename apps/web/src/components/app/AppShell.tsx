@@ -161,7 +161,6 @@ export function AppShell({ children }: AppShellProps): ReactNode {
         <div className={s.chromeLeft}>
           <span className={s.deskMark} aria-hidden="true" />
           <span className={s.deskName}>Desk</span>
-          <span className={s.chromeRule} aria-hidden="true" />
           <RelayStatus relay={chromeRelay} drops={chromeDrops} />
         </div>
 

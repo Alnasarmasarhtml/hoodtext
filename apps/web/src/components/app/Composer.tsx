@@ -14,7 +14,6 @@
  * an observer learns is which of four classes it fell into — nothing finer.
  */
 
-import { BUCKETS } from '@hoodgram/crypto';
 import {
   useCallback,
   useEffect,
@@ -28,7 +27,7 @@ import {
 } from 'react';
 import type { Hex } from 'viem';
 
-import { Button, useToast } from '@/components/ui';
+import { useToast } from '@/components/ui';
 import {
   MAX_ATTACHMENT_BYTES,
   parseMediaPayload,
@@ -38,7 +37,7 @@ import {
   type UseSendMessageResult,
 } from '@/hooks';
 import { cx } from '@/lib/cx';
-import { formatBytes, formatCount } from '@/lib/format';
+import { formatBytes } from '@/lib/format';
 import { useSendPrefs } from '@/lib/ui-store';
 import s from './Composer.module.css';
 
@@ -202,17 +201,6 @@ export function Composer({
     [convoId, disabled, onCancelReply, replyTo, selfPost, send, toast],
   );
 
-  const stageTone =
-    send.stage === 'failed'
-      ? s.stageFailed
-      : send.stage === 'anchored'
-        ? s.stageAnchored
-        : send.stage === 'queued'
-          ? s.stageQueued
-          : send.isSending
-            ? s.stageWorking
-            : undefined;
-
   return (
     <form className={cx(s.composer, disabled && s.disabled, className)} onSubmit={onSubmit}>
       {replyTo !== null && (
@@ -234,7 +222,27 @@ export function Composer({
       )}
 
       <div className={s.fieldRow}>
-        <span className={s.gutter} aria-hidden="true" />
+        <button
+          type="button"
+          className={s.attach}
+          onClick={onPickFile}
+          disabled={disabled || send.isSending}
+          aria-label="Attach an image (encrypted, 4 MB max)"
+          title="Attach an image — encrypted under its own key, 4 MB max"
+        >
+          <svg className={s.attachGlyph} viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M13.5 6.5 7 13a2.5 2.5 0 0 0 3.5 3.5l6.5-6.5a4.5 4.5 0 0 0-6.4-6.3L4 10.4" />
+          </svg>
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className={s.fileInput}
+          onChange={onFileChange}
+          tabIndex={-1}
+          aria-hidden="true"
+        />
 
         <textarea
           ref={areaRef}
@@ -246,77 +254,34 @@ export function Composer({
           rows={1}
           spellCheck
           aria-label={`Message ${peerLabel}`}
-          placeholder={
-            disabled ? 'Sending is paused' : 'Write a message · Enter sends, Shift+Enter breaks'
-          }
+          placeholder={disabled ? 'Sending is paused' : 'Message'}
         />
 
-        <div className={s.send}>
-          <button
-            type="button"
-            className={s.attach}
-            onClick={onPickFile}
-            disabled={disabled || send.isSending}
-            aria-label="Attach an image (encrypted, 4 MB max)"
-            title="Attach an image — encrypted under its own key, 4 MB max"
-          >
-            <svg className={s.attachGlyph} viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M2.5 6.5 6 3a2.1 2.1 0 0 1 3 3L5.5 9.5a1.4 1.4 0 0 1-2-2L7 4" />
+        <button
+          type="submit"
+          className={s.sendKey}
+          disabled={!canSend}
+          aria-label={send.isSending ? STAGE_LABEL[send.stage] : 'Send'}
+          title={send.isSending ? STAGE_LABEL[send.stage] : 'Send · Enter'}
+        >
+          {send.isSending ? (
+            <svg className={s.sendGlyph} viewBox="0 0 16 16" aria-hidden="true">
+              <circle className={s.spinner} cx="8" cy="8" r="5.5" />
             </svg>
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className={s.fileInput}
-            onChange={onFileChange}
-            tabIndex={-1}
-            aria-hidden="true"
-          />
-          <Button
-            type="submit"
-            variant="primary"
-            size="md"
-            loading={send.isSending}
-            loadingLabel={STAGE_LABEL[send.stage]}
-            disabled={!canSend}
-          >
-            Send
-          </Button>
-        </div>
+          ) : (
+            <svg className={s.sendGlyph} viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M1 8 15 1.5 12 14.5 8.2 10.4 13 4 6.4 8.6z" />
+            </svg>
+          )}
+        </button>
       </div>
 
+      {/* What used to live here: a stage chip, four padding-bucket pips and a
+          "pad 256 B · body 41 B" readout. The tick on the message reports the
+          stage now, and nobody composing a sentence needs to watch it being
+          padded. The delivery path survives because it is a choice with a real
+          consequence — free and relayed, or your own wallet and gas. */}
       <div className={s.meter}>
-        <span className={cx(s.stage, stageTone)}>
-          <span className={s.stageDot} aria-hidden="true" />
-          {STAGE_LABEL[send.stage]}
-        </span>
-
-        <span className={s.buckets} aria-hidden="true">
-          {BUCKETS.map((bucket) => (
-            <span
-              key={bucket}
-              className={cx(
-                s.bucket,
-                preview.bucket !== null && bucket <= preview.bucket && s.bucketFilled,
-                preview.bucket === bucket && s.bucketHead,
-              )}
-            />
-          ))}
-        </span>
-
-        <span className={s.readout}>
-          <span className={s.readoutKey}>pad</span>
-          <span className={s.readoutValue}>
-            {preview.bucket === null ? 'over' : formatBytes(preview.bucket)}
-          </span>
-          <span className={s.readoutSep} aria-hidden="true">
-            ·
-          </span>
-          <span className={s.readoutKey}>body</span>
-          <span className={s.readoutValue}>{formatCount(preview.bytes)} B</span>
-        </span>
-
         <button
           type="button"
           className={cx(s.pathToggle, selfPost && s.pathToggleSelf)}

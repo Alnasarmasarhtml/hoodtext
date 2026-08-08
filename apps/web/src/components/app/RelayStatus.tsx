@@ -52,14 +52,22 @@ function readoutFor(relay: UseRelayStatusResult, drops: UseDropsResult): Readout
 }
 
 /**
- * Relay connectivity, stated plainly.
+ * Relay connectivity — and only when there is something to say about it.
  *
- * "Offline" is not a failure state for the user: anchors already scanned stay
- * on the device and stay readable, so the note says so rather than implying the
+ * Working is the default, so it needs no announcement: while the stream is
+ * live this renders nothing at all, exactly as every messenger people already
+ * use behaves. It appears when connecting, when the indexer falls behind, or
+ * when the relay is down. It used to sit there permanently reading
+ * "Live · seq 41,214", which told a user nothing they could act on.
+ *
+ * "Offline" is not a failure state either: anchors already scanned stay on the
+ * device and stay readable, so the note says so rather than implying the
  * messenger is broken.
  */
 export function RelayStatus({ relay, drops }: RelayStatusProps): ReactNode {
   const readout = readoutFor(relay, drops);
+
+  if (readout.tone === 'live') return null;
 
   return (
     <span className={cx(s.status, s[readout.tone])} role="status">

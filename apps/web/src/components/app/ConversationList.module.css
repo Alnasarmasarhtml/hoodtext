@@ -18,90 +18,93 @@
 
 /* ── head ───────────────────────────────────────────────────────────────── */
 
-/* 56px is the shared content-header height: this band and the thread header
-   start at the same y, so at any width over 1024 their bottom rules meet as one
-   unbroken line instead of stepping at the column seam. */
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  flex: none;
-  min-width: 0;
-  height: 56px;
-  padding-inline: var(--sp-4);
-  border-bottom: 1px solid var(--line-2);
-  background-color: var(--panel-2);
-  font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
-  letter-spacing: var(--tr-eyebrow);
-  text-transform: uppercase;
-}
-
-.headLabel {
-  color: var(--bone);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.headCount {
-  flex: none;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── opener ─────────────────────────────────────────────────────────────── */
-
+/* One row: a field and a plus. The label, the hint paragraph and the two
+   buttons under it used to take a quarter of the rail before a single
+   conversation was visible. */
 .opener {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
+  gap: 6px;
   flex: none;
   min-width: 0;
-  padding: var(--sp-4);
-  border-bottom: 1px solid var(--line-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--line);
 }
 
-.openerField {
-  min-width: 0;
-}
-
-.openerActions {
+.openerRow {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
+  gap: var(--sp-2);
   min-width: 0;
 }
 
-.openerSubmit {
-  flex: 1 1 auto;
+.openerInput {
+  flex: 1;
   min-width: 0;
+  height: 34px;
+  padding-inline: 11px;
+  background-color: var(--panel-2);
+  border: 1px solid var(--line-2);
+  color: var(--bone);
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color var(--dur-1) var(--ease);
 }
 
-/* Padding, not margin: an underlined text control still has to clear 24px of
-   hit height, and the rule reads as an underline offset rather than a gap. */
+.openerInput:focus-visible {
+  border-color: var(--green-edge);
+}
+
+.openerInput::placeholder {
+  color: var(--dim);
+}
+
+.openerInput:disabled {
+  color: var(--muted);
+}
+
 .newRoom {
   flex: none;
-  padding-block: var(--sp-1);
-  font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
-  letter-spacing: var(--tr-eyebrow);
-  text-transform: uppercase;
-  color: var(--muted);
-  border-bottom: 1px solid var(--line-2);
-  white-space: nowrap;
-  transition:
-    color var(--dur-1) var(--ease),
-    border-color var(--dur-1) var(--ease);
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background-color: var(--green);
+  color: var(--void);
+  transition: background-color var(--dur-1) var(--ease);
 }
 
 .newRoom:hover,
 .newRoom:focus-visible {
-  color: var(--bone);
-  border-bottom-color: var(--bone);
+  background-color: #2ee03a;
 }
+
+.newRoomGlyph {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+}
+
+.openerError {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--crimson);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 
 /* ── list ───────────────────────────────────────────────────────────────── */
 
@@ -129,16 +132,39 @@
   border-top: 1px solid var(--line);
 }
 
+/* Avatar left, two lines right — name and time on the first, preview on the
+   second. The disc does the recognising, so the eye never has to read a name to
+   know which row it is on; that is the whole reason it costs 46px. */
 .row {
   position: relative;
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
+  align-items: center;
+  gap: var(--sp-3);
   min-width: 0;
   min-height: 44px;
-  padding: var(--sp-3) var(--sp-4);
+  padding: 11px var(--sp-4);
   outline: none;
   transition: background-color var(--dur-1) var(--ease);
+}
+
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.rowTop,
+.rowBottom {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.rowTop {
+  align-items: baseline;
 }
 
 .row::before {
@@ -175,42 +201,20 @@
   background-color: var(--green);
 }
 
-.rowHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  min-width: 0;
-}
+/* A room's rent dot is gone: the avatar's square-versus-round shape already
+   says room-versus-person, and a lapsed room now says so in words on the second
+   line, where it can actually be read. */
 
-/* Rooms wear a rent dot before the name: green while current, crimson once
-   lapsed, hollow while the chain read is still out. */
-.roomDot {
-  align-self: center;
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border: 1px solid var(--muted);
-  clip-path: var(--path-notch-br);
-}
-
-.roomDotLive {
-  border-color: var(--green);
-  background-color: var(--green);
-}
-
-.roomDotLapsed {
-  border-color: var(--crimson);
-  background-color: var(--crimson);
-}
-
+/* Names stay in the site face — this is chrome, and Orbitron at 15px semibold
+   is perfectly legible for two or three words. Only the running text below it
+   moves to the UI face. */
 .name {
   flex: 1 1 auto;
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: var(--lh-snug);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  line-height: 1.25;
   color: var(--bone);
   min-width: 0;
   overflow: hidden;
@@ -235,73 +239,45 @@
 
 .time {
   flex: none;
+  margin-left: auto;
   font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
+  font-size: 11.5px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  color: var(--muted);
+  color: var(--dim);
 }
 
+/* The preview is running text someone reads at a glance forty rows deep, so it
+   takes the UI face. Everything framing it stays Orbitron. */
 .preview {
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  line-height: 1.4;
   color: var(--muted);
   min-width: 0;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-1) var(--sp-3);
-  min-width: 0;
-}
-
-/* Key/value pairs run muted label, bone value everywhere in the app — the
-   number is what is read, the label only says which number it is. */
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
-  min-width: 0;
+/* Only two states ever appear on a row, and both need acting on. Neither is a
+   count of anything routine. */
+.badge {
+  flex: none;
+  margin-left: auto;
+  padding: 2px 7px;
   font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
-  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-micro);
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--bone);
   white-space: nowrap;
 }
 
-.tagKey {
-  color: var(--muted);
-}
-
-.tagDot {
-  flex: none;
-  width: 4px;
-  height: 4px;
-  background-color: currentColor;
-}
-
-/* confirmed-on-chain — permitted green */
-.tagAnchored {
-  color: var(--green);
-}
-
-.tagPending {
-  color: var(--steel);
-}
-
-.tagFailed {
+.badgeFailed {
   color: var(--crimson);
-}
-
-.tagQuiet {
-  color: var(--muted);
+  border: 1px solid var(--crimson-edge);
+  background-color: var(--crimson-wash);
 }
 
 /* ── skeleton ───────────────────────────────────────────────────────────── */
@@ -415,40 +391,6 @@
   padding-inline: var(--sp-4);
   border-top: 1px solid var(--line-2);
   background-color: var(--panel-2);
-}
-
-.counters {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  min-width: 0;
-  overflow: hidden;
-}
-
-.counter {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--sp-1);
-  font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
-  font-variant-numeric: tabular-nums;
-  color: var(--bone);
-  white-space: nowrap;
-}
-
-.counterKey {
-  color: var(--muted);
-  letter-spacing: var(--tr-eyebrow);
-  text-transform: uppercase;
-}
-
-/* From 1024 up the rail is a fixed 318–352px column, and at 11px three
-   six-figure counters plus the rescan control no longer share one line. Below
-   1024 the rail is the whole viewport and all three fit. */
-@media (min-width: 1024px) {
-  .counterOptional {
-    display: none;
-  }
 }
 
 .rescan {

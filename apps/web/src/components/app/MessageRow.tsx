@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import type { Address } from 'viem';
 
 import { cx } from '@/lib/cx';
-import { formatClock, truncateAddress } from '@/lib/format';
+import { formatTimeShort, truncateAddress } from '@/lib/format';
 import {
   parseMediaPayload,
   useHandle,
@@ -70,35 +70,90 @@ function AuthorName({ address }: { readonly address: Address }): ReactNode {
   );
 }
 
+/**
+ * The delivery mark, on your own messages only.
+ *
+ * This is the whole of what replaced the metadata column, and it borrows an
+ * alphabet three billion people already read without being taught: one grey
+ * tick means the relay has it, two green ticks mean it is anchored on chain.
+ * That second state is the product's entire differentiator, and this teaches it
+ * without a word of copy.
+ */
+function DeliveryTick({ status }: { readonly status: MessageStatus }): ReactNode {
+  if (status === 'failed') {
+    return (
+      <svg
+        className={cx(s.tick, s.tickFailed)}
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        role="img"
+        aria-label="Not delivered"
+      >
+        <circle cx="8" cy="8" r="6" />
+        <path d="M8 4.6v4.2M8 11.1v.1" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (status === 'anchored') {
+    return (
+      <svg
+        className={cx(s.tick, s.tickAnchored)}
+        viewBox="0 0 20 12"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        role="img"
+        aria-label="On chain"
+      >
+        <path d="M1.5 6.5 5 10l7-8" />
+        <path d="M8.5 6.5 12 10l7-8" />
+      </svg>
+    );
+  }
+
+  if (status === 'queued' || status === 'pending') {
+    return (
+      <svg
+        className={s.tick}
+        viewBox="0 0 16 12"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        role="img"
+        aria-label="Sent"
+      >
+        <path d="M1.5 6.5 5 10l7-8" />
+      </svg>
+    );
+  }
+
+  /* sealing · uploading · signing — still on this device. */
+  return (
+    <svg
+      className={s.tick}
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      role="img"
+      aria-label="Sending"
+    >
+      <circle cx="8" cy="8" r="5.5" />
+      <path d="M8 5v3.2l2 1.2" />
+    </svg>
+  );
+}
+
 /** Shown in place of a body when the attachment descriptor will not parse. */
 const MEDIA_UNREADABLE = 'Attachment descriptor could not be read.';
-
-/* A box sheared by 9° has edges that cut inward by (H/2)·tan(9°) at the corner
-   where the first line starts and the corner where the last line ends, so a
-   taller body needs proportionally more inline padding before text meets the
-   slope. The step is derived from the text rather than measured: measuring
-   would cost a layout read per row on every scroll, and the padding only has
-   to be right to within a step. */
-/* Characters per line at the narrowest width the bubble is ever laid out at.
-   The body is set in Orbitron, a wide geometric face averaging ~0.62em of
-   advance — about 8px at 13px type. A 390px viewport leaves the bubble roughly
-   300px of measure once the row gutter, the direction mark and the lean
-   reserve are taken out, so ~34 characters fit, not the 40 a normal-width face
-   would give. Guessing high rounds the step DOWN and under-reserves exactly the
-   padding the step exists to provide, so this is deliberately conservative:
-   over-reserving costs a few pixels, under-reserving clips the text. */
-const LEAN_WRAP_CHARS = 34;
-
-function leanStep(text: string, hasQuote: boolean): 1 | 2 | 3 | 4 {
-  let lines = hasQuote ? 1 : 0;
-  for (const line of text.split('\n')) {
-    lines += Math.max(1, Math.ceil(line.length / LEAN_WRAP_CHARS));
-  }
-  if (lines >= 12) return 4;
-  if (lines >= 6) return 3;
-  if (lines >= 3) return 2;
-  return 1;
-}
 
 function quotedPreview(quoted: ChatMessage): string {
   if (quoted.kind === 'media') {
@@ -110,14 +165,19 @@ function quotedPreview(quoted: ChatMessage): string {
 }
 
 /**
- * One anchored message.
+ * One message.
  *
- * The body sits in the house parallelogram — the same skewX(-9deg) the buttons
- * carry, contents counter-sheared so nothing reads on a slant. Only the body
- * leans. The author line, the timestamp, the perk chip and the whole on-chain
- * metadata column stay square outside it, so the thing you are reading and the
- * thing that was anchored are still visibly the same object. `system` rows
- * collapse to a single quiet ruled line and never take a bubble.
+ * A rounded bubble with the clock tucked into its bottom corner, and on your own
+ * messages a delivery tick beside it. That is the entire row.
+ *
+ * It used to lean 9° like the buttons do. The shear was dropped because a
+ * slanted box cuts inward by (H/2)·tan(9°) at the corner where the first line
+ * starts and again where the last line ends, so every bubble needed side
+ * padding that grew with its own height — and a long paragraph still came out
+ * with a visibly ragged edge. The brand survives in the green, the chrome and
+ * the send key; it does not need to be in the shape of every sentence.
+ *
+ * `system` rows collapse to a single quiet ruled line and never take a bubble.
  */
 export function MessageRow({
   message,
@@ -139,7 +199,7 @@ export function MessageRow({
         <span className={s.systemRule} aria-hidden="true" />
         <span className={s.systemText}>{message.body}</span>
         <time className={s.systemTime} dateTime={new Date(message.sentAt * 1000).toISOString()}>
-          {formatClock(message.sentAt)}
+          {formatTimeShort(message.sentAt)}
         </time>
       </article>
     );
@@ -154,6 +214,10 @@ export function MessageRow({
     roomMembers.some((member) => member.toLowerCase() === message.poster?.toLowerCase());
 
   const mediaPayload = message.kind === 'media' ? parseMediaPayload(message.body) : null;
+
+  /* A name over every bubble is only information in a room, and only on
+     somebody else's message. */
+  const showAuthor = !outbound && roomMembers !== null;
 
   const canReply = onReply !== undefined && message.blobRef !== null;
   const canReact = onReact !== undefined && message.blobRef !== null;
@@ -175,54 +239,60 @@ export function MessageRow({
       className={cx(s.row, outbound ? s.out : s.in, s[tone])}
       data-status={message.status}
     >
-      <span className={s.mark} aria-hidden="true" />
-
       <div className={s.main}>
-        <header className={s.who}>
-          {outbound ? (
-            <span className={s.author}>You</span>
-          ) : message.poster === null ? (
-            <span className={s.author}>Unattributed</span>
-          ) : roomMembers !== null && !inRoomRoster ? (
-            <span className={s.author} title={message.poster}>
-              Member
-            </span>
-          ) : (
-            <AuthorName address={message.poster} />
-          )}
-          <time className={s.time} dateTime={new Date(message.sentAt * 1000).toISOString()}>
-            {formatClock(message.sentAt)}
-          </time>
-          {message.integrity === 'unverified' && (
-            <span className={s.unverified} title="This browser could not recompute the blob hash.">
-              Unverified
-            </span>
-          )}
-        </header>
+        {/* The author line only appears where it carries information: in a room,
+            on somebody else's message. A one-to-one thread already has the name
+            in the bar above it, and repeating it over every bubble is the noise
+            this redesign exists to remove. */}
+        {showAuthor && (
+          <header className={s.who}>
+            {message.poster === null ? (
+              <span className={s.author}>Unattributed</span>
+            ) : roomMembers !== null && !inRoomRoster ? (
+              <span className={s.author} title={message.poster}>
+                Member
+              </span>
+            ) : (
+              <AuthorName address={message.poster} />
+            )}
+            {message.integrity === 'unverified' && (
+              <span
+                className={s.unverified}
+                title="This browser could not recompute the blob hash."
+              >
+                Unverified
+              </span>
+            )}
+          </header>
+        )}
 
         {mediaPayload === null ? (
-          <div
-            className={s.bubble}
-            data-lean={leanStep(
-              message.kind === 'media' ? MEDIA_UNREADABLE : message.body,
-              quoted !== null,
-            )}
-          >
-            <div className={s.bubbleInner}>
-              {quoteStrip}
-              <p className={s.body}>
-                {message.kind === 'media' ? (
-                  <span className={s.bodyDim}>{MEDIA_UNREADABLE}</span>
-                ) : (
-                  message.body
-                )}
-              </p>
-            </div>
+          <div className={s.bubble}>
+            {quoteStrip}
+            <p className={s.body}>
+              {message.kind === 'media' ? (
+                <span className={s.bodyDim}>{MEDIA_UNREADABLE}</span>
+              ) : (
+                message.body
+              )}
+            </p>
+            <span className={s.stamp}>
+              <time className={s.time} dateTime={new Date(message.sentAt * 1000).toISOString()}>
+                {formatTimeShort(message.sentAt)}
+              </time>
+              {outbound && <DeliveryTick status={message.status} />}
+            </span>
           </div>
         ) : (
           <>
             {quoteStrip}
             <MediaAttachment payload={mediaPayload} className={s.media} />
+            <span className={cx(s.stamp, s.stampBare)}>
+              <time className={s.time} dateTime={new Date(message.sentAt * 1000).toISOString()}>
+                {formatTimeShort(message.sentAt)}
+              </time>
+              {outbound && <DeliveryTick status={message.status} />}
+            </span>
           </>
         )}
 

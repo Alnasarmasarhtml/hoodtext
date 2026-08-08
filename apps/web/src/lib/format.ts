@@ -416,3 +416,19 @@ export function formatClock(input: number | bigint | Date): string {
   const d = new Date(ms);
   return `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}:${pad2(d.getUTCSeconds())}`;
 }
+
+/**
+ * `HH:MM`, in the reader's own timezone — the messenger's clock.
+ *
+ * Two differences from `formatClock`, both deliberate. Seconds are dropped
+ * because nobody reading a chat needs to know a message landed at :42, and a
+ * third number on every bubble is exactly the noise this redesign removes.
+ * Local time rather than UTC because a person judging "did they reply before
+ * lunch" is thinking in their own day, not the chain's.
+ */
+export function formatTimeShort(input: number | bigint | Date): string {
+  const ms = toMillis(input);
+  if (Number.isNaN(ms)) return '--:--';
+  const d = new Date(ms);
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}

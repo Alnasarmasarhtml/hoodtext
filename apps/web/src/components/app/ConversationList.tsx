@@ -26,7 +26,7 @@ import {
 import type { Hex } from 'viem';
 import { useReadContracts } from 'wagmi';
 
-import { Button, Field } from '@/components/ui';
+import { Button } from '@/components/ui';
 import {
   demoRoomChain,
   parseMediaPayload,
@@ -41,13 +41,14 @@ import { groupRegistryAbi } from '@/lib/abi';
 import { ACTIVE_CHAIN_ID, tryGetContracts } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import {
-  formatClock,
+  formatTimeShort,
   formatCount,
   formatDateTime,
   truncateAddress,
   truncateRef,
 } from '@/lib/format';
 import { AppNotice } from './AppNotice';
+import { Avatar } from './Avatar';
 import { useAppSession } from './session';
 import s from './ConversationList.module.css';
 
@@ -74,28 +75,63 @@ interface RowProps {
   readonly roomActive: boolean | null;
 }
 
-function RowTitle({ conversation }: { readonly conversation: Conversation }): ReactNode {
+/** What the row is called, and what its avatar is derived from. */
+function useRowIdentity(conversation: Conversation): {
+  readonly name: string;
+  readonly seed: string;
+  readonly title: string | undefined;
+  readonly quiet: boolean;
+} {
   const handle = useHandle(conversation.room === null ? conversation.peerAddress : null);
 
   if (conversation.room !== null) {
-    return <span className={s.name}>{conversation.room.name}</span>;
+    return {
+      name: conversation.room.name,
+      seed: conversation.room.groupId,
+      title: undefined,
+      quiet: false,
+    };
   }
   if (conversation.unattributed) {
-    return <span className={cx(s.name, s.nameQuiet)}>Unattributed drops</span>;
+    return {
+      name: 'Unattributed drops',
+      seed: conversation.convoId,
+      title: undefined,
+      quiet: true,
+    };
   }
   if (conversation.peerAddress !== null) {
-    return (
-      <span className={s.name} title={conversation.peerAddress}>
-        {handle === null ? truncateAddress(conversation.peerAddress) : `@${handle}`}
-      </span>
-    );
+    return {
+      name: handle === null ? truncateAddress(conversation.peerAddress) : `@${handle}`,
+      seed: conversation.peerAddress,
+      title: conversation.peerAddress,
+      quiet: false,
+    };
   }
-  return <span className={s.name}>{truncateRef(conversation.convoId)}</span>;
+  return {
+    name: truncateRef(conversation.convoId),
+    seed: conversation.convoId,
+    title: undefined,
+    quiet: false,
+  };
 }
 
 function ConversationRow({ conversation, active, roomActive }: RowProps): ReactNode {
   const last = conversation.lastMessage;
   const room = conversation.room;
+  const identity = useRowIdentity(conversation);
+
+  /* Counts of messages, anchors and in-flight drops used to hang under every
+     row. A conversation list answers four questions — who, what last, when, is
+     there anything new — and nothing else earns the space. The two states that
+     survive are the two that need acting on: a failed send, and a room whose
+     rent has lapsed and is therefore refusing new messages. */
+  const alert =
+    conversation.failedCount > 0
+      ? 'failed'
+      : room !== null && roomActive === false
+        ? 'lapsed'
+        : null;
 
   return (
     <li className={s.item}>
@@ -104,76 +140,45 @@ function ConversationRow({ conversation, active, roomActive }: RowProps): ReactN
         className={cx(s.row, active && s.rowActive)}
         aria-current={active ? 'page' : undefined}
       >
-        <span className={s.rowHead}>
-          {room !== null && (
+        <Avatar
+          seed={identity.seed}
+          label={identity.quiet ? '' : identity.name}
+          size="lg"
+          square={room !== null}
+        />
+
+        <span className={s.rowBody}>
+          <span className={s.rowTop}>
             <span
-              className={cx(
-                s.roomDot,
-                roomActive === true && s.roomDotLive,
-                roomActive === false && s.roomDotLapsed,
-              )}
+              className={cx(s.name, identity.quiet && s.nameQuiet)}
+              title={identity.title}
+            >
+              {identity.name}
+            </span>
+            <time
+              className={s.time}
+              dateTime={new Date(conversation.lastActivity * 1000).toISOString()}
               title={
-                roomActive === null
-                  ? 'Room — reading rent state'
-                  : roomActive
-                    ? 'Room — rent current'
-                    : 'Room — rent lapsed; new messages blocked until anyone pays'
+                conversation.lastActivity > 0
+                  ? formatDateTime(conversation.lastActivity)
+                  : undefined
               }
-              aria-hidden="true"
-            />
-          )}
-          <RowTitle conversation={conversation} />
-          <time
-            className={s.time}
-            dateTime={new Date(conversation.lastActivity * 1000).toISOString()}
-            title={
-              conversation.lastActivity > 0 ? formatDateTime(conversation.lastActivity) : undefined
-            }
-          >
-            {conversation.lastActivity > 0 ? formatClock(conversation.lastActivity) : '--:--:--'}
-          </time>
-        </span>
-
-        <span className={s.preview}>{previewOf(last)}</span>
-
-        <span className={s.tags}>
-          {room !== null && (
-            <span className={s.tag}>
-              <span className={s.tagKey}>members</span>
-              {formatCount(room.members.length)}
-            </span>
-          )}
-          {room !== null && roomActive === false && (
-            <span className={cx(s.tag, s.tagFailed)}>
-              <span className={s.tagDot} aria-hidden="true" />
-              rent lapsed
-            </span>
-          )}
-          <span className={s.tag}>
-            <span className={s.tagKey}>msg</span>
-            {formatCount(conversation.messageCount)}
+            >
+              {conversation.lastActivity > 0 ? formatTimeShort(conversation.lastActivity) : '—'}
+            </time>
           </span>
-          {conversation.anchoredCount > 0 && (
-            <span className={cx(s.tag, s.tagAnchored)}>
-              <span className={s.tagDot} aria-hidden="true" />
-              {formatCount(conversation.anchoredCount)} on chain
-            </span>
-          )}
-          {conversation.pendingCount > 0 && (
-            <span className={cx(s.tag, s.tagPending)}>
-              <span className={s.tagDot} aria-hidden="true" />
-              {formatCount(conversation.pendingCount)} in flight
-            </span>
-          )}
-          {conversation.failedCount > 0 && (
-            <span className={cx(s.tag, s.tagFailed)}>
-              <span className={s.tagDot} aria-hidden="true" />
-              {formatCount(conversation.failedCount)} failed
-            </span>
-          )}
-          {!conversation.canReply && !conversation.unattributed && room === null && (
-            <span className={cx(s.tag, s.tagQuiet)}>read only</span>
-          )}
+
+          <span className={s.rowBottom}>
+            <span className={s.preview}>{previewOf(last)}</span>
+            {alert === 'failed' && (
+              <span className={cx(s.badge, s.badgeFailed)}>
+                {formatCount(conversation.failedCount)} failed
+              </span>
+            )}
+            {alert === 'lapsed' && (
+              <span className={cx(s.badge, s.badgeFailed)}>rent lapsed</span>
+            )}
+          </span>
         </span>
       </Link>
     </li>
@@ -194,7 +199,7 @@ export function ConversationList({
 }: ConversationListProps): ReactNode {
   const router = useRouter();
   const session = useAppSession();
-  const { conversations, isHydrated, totalMessages } = useConversations();
+  const { conversations, isHydrated } = useConversations();
   const start = useStartConversation({
     owner: session.address,
     myX25519Pub: session.x25519Pub,
@@ -272,44 +277,34 @@ export function ConversationList({
 
   return (
     <div className={cx(s.rail, className)}>
-      <div className={s.head}>
-        <span className={s.headLabel}>Conversations</span>
-        <span className={s.headCount}>{formatCount(conversations.length)}</span>
-      </div>
-
+      {/* One line: type a handle or an address, or start a room. It used to be a
+          labelled field with a hint paragraph and two buttons under it, which
+          took a quarter of the rail before a single conversation was visible.
+          The explanation moved into the placeholder, and the error still shows
+          under the field when a lookup fails. */}
       <form className={s.opener} onSubmit={onSubmit} noValidate>
-        <Field
-          label="Open a conversation"
-          labelHint="free read"
-          mono
-          spellCheck={false}
-          autoComplete="off"
-          autoCorrect="off"
-          inputMode="text"
-          placeholder="@handle or 0x…"
-          value={peer}
-          onChange={onChange}
-          error={start.error ?? undefined}
-          hint="A handle or wallet address. They must have registered keys — that is free and takes one visit."
-          disabled={start.isBusy}
-          className={s.openerField}
-        />
-        <div className={s.openerActions}>
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            loading={start.isBusy}
-            loadingLabel="Resolving"
-            disabled={peer.trim() === ''}
-            className={s.openerSubmit}
-          >
-            Look up key
-          </Button>
-          <Link href="/app/rooms/new" className={s.newRoom}>
-            New room
+        <div className={s.openerRow}>
+          <input
+            type="text"
+            className={s.openerInput}
+            spellCheck={false}
+            autoComplete="off"
+            autoCorrect="off"
+            inputMode="text"
+            aria-label="Open a conversation by handle or address"
+            placeholder="Search or paste an address"
+            value={peer}
+            onChange={onChange}
+            disabled={start.isBusy}
+          />
+          <Link href="/app/rooms/new" className={s.newRoom} title="Start a room">
+            <svg viewBox="0 0 16 16" aria-hidden="true" className={s.newRoomGlyph}>
+              <path d="M8 2.6v10.8M2.6 8h10.8" />
+            </svg>
+            <span className={s.srOnly}>New room</span>
           </Link>
         </div>
+        {start.error !== null && <p className={s.openerError}>{start.error}</p>}
       </form>
 
       <nav className={s.list} aria-label="Conversations">
@@ -368,21 +363,12 @@ export function ConversationList({
         />
       )}
 
+      {/* Scanned / matched / message counters used to sit along this edge. They
+          were a live readout of the scanner, and nobody scrolling their chats
+          is auditing it. Rescan stays: it is the one repair a user can perform
+          themselves, and it is the answer when a thread does not come back
+          after clearing site data. */}
       <footer className={s.foot}>
-        <div className={s.counters}>
-          <span className={s.counter}>
-            <span className={s.counterKey}>scanned</span>
-            {formatCount(drops.scanned)}
-          </span>
-          <span className={s.counter}>
-            <span className={s.counterKey}>matched</span>
-            {formatCount(drops.matched)}
-          </span>
-          <span className={cx(s.counter, s.counterOptional)}>
-            <span className={s.counterKey}>msgs</span>
-            {formatCount(totalMessages)}
-          </span>
-        </div>
         <button
           type="button"
           className={s.rescan}

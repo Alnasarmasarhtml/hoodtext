@@ -3,18 +3,18 @@
 /**
  * One thread (SPEC §7.3) — a DM or a room.
  *
- * Rows are hairline-separated with their on-chain metadata set beside them —
- * block, view tag, padded bucket — never a rounded chat bubble and never a
- * gradient. Reading is unconditional: an unactivated account loses the
- * composer and nothing else, and a room whose rent lapsed keeps its history
- * while new messages wait for anyone to pay.
+ * Rounded bubbles, a clock in the corner and a delivery tick — the on-chain
+ * metadata that used to sit beside every row is gone (client call, 9 Aug 2026).
+ * Reading is unconditional: an unactivated account loses the composer and
+ * nothing else, and a room whose rent lapsed keeps its history while new
+ * messages wait for anyone to pay.
  */
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { isHex, type Hex } from 'viem';
 
-import { Button, Countdown, Eyebrow, Hex as HexValue } from '@/components/ui';
+import { Button, Countdown, Eyebrow } from '@/components/ui';
 import {
   parseReactionPayload,
   useConversation,
@@ -30,11 +30,11 @@ import {
   type RoomChainState,
   type RoomRecord,
 } from '@/hooks';
-import { explorerAddressUrl } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import { SECONDS_PER_DAY, formatCount, formatToken, truncateAddress, truncateRef } from '@/lib/format';
 import { usePrefersReducedMotion } from '@/lib/use-prefers-reduced-motion';
 import { AppNotice } from './AppNotice';
+import { Avatar } from './Avatar';
 import { Composer } from './Composer';
 import { LockedNotice } from './LockedNotice';
 import { MessageRow, type ReactionSummary } from './MessageRow';
@@ -115,32 +115,30 @@ function RentLapsedNotice({ room, chain }: RentLapsedNoticeProps): ReactNode {
 
 /* ══════════════════════════════════════════════════ thread headers ══════ */
 
+/**
+ * Who you are talking to, and nothing else.
+ *
+ * The bar used to carry an eyebrow ("Thread" / "Room"), a message count, an
+ * anchor count and an in-flight count. A messenger's header answers one
+ * question, and the avatar's shape already says whether this is a person or a
+ * room, so the label was saying what the picture had said.
+ */
 function DmHeaderName({ conversation }: { readonly conversation: Conversation }): ReactNode {
   const handle = useHandle(conversation.peerAddress);
 
-  if (conversation.peerAddress === null) {
-    return (
-      <span className={s.headName}>
-        {conversation.unattributed
-          ? 'Drops with no known sender'
-          : truncateRef(conversation.convoId)}
-      </span>
-    );
-  }
-  if (handle !== null) {
-    return (
-      <span className={s.headName} title={conversation.peerAddress}>
-        @{handle}
-      </span>
-    );
-  }
+  const name =
+    conversation.peerAddress === null
+      ? conversation.unattributed
+        ? 'Drops with no known sender'
+        : truncateRef(conversation.convoId)
+      : handle !== null
+        ? `@${handle}`
+        : truncateAddress(conversation.peerAddress);
+
   return (
-    <HexValue
-      value={conversation.peerAddress}
-      label="Peer address"
-      href={explorerAddressUrl(conversation.peerAddress)}
-      className={s.headHex}
-    />
+    <span className={s.headName} title={conversation.peerAddress ?? undefined}>
+      {name}
+    </span>
   );
 }
 
@@ -296,10 +294,14 @@ function Thread({ convoId }: ThreadProps): ReactNode {
           <span>All</span>
         </Link>
 
+        <Avatar
+          seed={isRoom ? room.groupId : (conversation.peerAddress ?? conversation.convoId)}
+          label={isRoom ? room.name : peerLabelOf(conversation)}
+          size="md"
+          square={isRoom}
+        />
+
         <div className={s.headMain}>
-          <span className={s.headEyebrow}>
-            {isRoom ? 'Room' : conversation.unattributed ? 'Unattributed' : 'Thread'}
-          </span>
           {isRoom ? (
             <span className={s.headName} title={room.groupId}>
               {room.name}
@@ -310,6 +312,9 @@ function Thread({ convoId }: ThreadProps): ReactNode {
         </div>
 
         <div className={s.headStats}>
+          {/* Rooms keep two things and only two: the roster, because it is a
+              control rather than a statistic, and the rent, because a lapsed
+              room silently refuses new messages and that has to be visible. */}
           {isRoom ? (
             <>
               <button
@@ -318,39 +323,25 @@ function Thread({ convoId }: ThreadProps): ReactNode {
                 onClick={() => setShowMembers((value) => !value)}
                 aria-expanded={showMembers}
               >
-                <span className={s.statKey}>members</span>
-                {formatCount(room.members.length)}
+                {formatCount(room.members.length)} members
               </button>
-              <span className={cx(s.stat, rentLapsed ? s.statFailed : s.statAnchored)}>
-                <span className={s.statKey}>rent</span>
-                {roomChain.exists && roomChain.paidUntil > 0 ? (
-                  rentLapsed ? (
-                    'lapsed'
-                  ) : (
-                    <Countdown
-                      to={roomChain.paidUntil}
-                      size="sm"
-                      warnSeconds={3 * SECONDS_PER_DAY}
-                      expiredLabel="lapsed"
-                      className={s.rentClock}
-                    />
-                  )
-                ) : (
-                  '—'
-                )}
-              </span>
+              {rentLapsed && (
+                <span className={cx(s.stat, s.statFailed)}>rent lapsed</span>
+              )}
+              {!rentLapsed && roomChain.exists && roomChain.paidUntil > 0 && (
+                <Countdown
+                  to={roomChain.paidUntil}
+                  size="sm"
+                  warnSeconds={3 * SECONDS_PER_DAY}
+                  expiredLabel="lapsed"
+                  className={s.rentClock}
+                />
+              )}
             </>
           ) : null}
-          {/* Message, anchor and in-flight counts used to sit here. They are
-              bookkeeping, not something anyone opens a chat to read. Rent stays
-              because a room that lapses stops working, and members stays
-              because it is a control that opens the roster, not a statistic.
-              Failures stay too — a failure is the one count that needs acting
-              on. */}
           {conversation.failedCount > 0 && (
             <span className={cx(s.stat, s.statFailed)}>
-              <span className={s.statKey}>failed</span>
-              {formatCount(conversation.failedCount)}
+              {formatCount(conversation.failedCount)} failed
             </span>
           )}
         </div>

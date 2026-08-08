@@ -57,6 +57,18 @@
        no monospaced cut, so using it there would break those columns. */
     --font-mono: var(--font-geist-mono, ui-monospace), "SF Mono", "JetBrains Mono",
       Menlo, monospace;
+    /* The messenger's reading face, and ONLY the messenger's.
+       Orbitron is a display face: wide, geometric, weak ascenders, and l/I/1
+       nearly identical. That is fine for a headline and wrong for a wall of
+       14px chat text someone reads for an hour — a paragraph set in it runs
+       about a fifth wider and slows down noticeably at reading size. So the
+       chat log, the conversation previews and the composer use the platform's
+       own UI face, and everything that frames them — names, headers, buttons,
+       labels — stays Orbitron. The brand lives in the chrome, the green and
+       the shapes, not in the message bodies. Ships nothing: every one of these
+       is already on the device. */
+    --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+      Arial, sans-serif;
 
     --fs-micro: 10px;
     --fs-eyebrow: 11px;

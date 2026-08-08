@@ -1,49 +1,31 @@
-/* A message row: the body sits in the house parallelogram — skewX(-9deg), the
-   same shear the buttons carry — while the author line, the timestamp and the
-   whole on-chain metadata column stay square outside it. Metadata sets beside
-   the body on wide screens and beneath it on narrow ones.
+/* A message row.
+   Rounded bubble, clock tucked into its bottom corner, delivery tick on your own
+   messages. Nothing else.
 
-   Green now appears twice: solid on confirmed-on-chain status, and as a 6%
-   wash on inbound bubbles. The wash is deliberately an order of magnitude
-   below the status chip so the accent still resolves to one thing. */
+   The 9° shear that used to carry the body is gone. It overhung its layout box
+   by (H/2)·tan(9°) on both sides and cut inward at the corner where the first
+   line starts and the corner where the last line ends, so every bubble needed
+   inline padding that grew with its own height — four stepped variants of it —
+   and a long paragraph still finished with a visibly ragged edge. Rounding
+   costs one property and behaves at any length. The brand is carried by the
+   green, the chrome type and the send key instead.
+
+   Green appears twice and means one thing both times: it is your side of the
+   conversation, and it is the tick that says the message is on chain. */
 
 .row {
-  display: grid;
-  grid-template-columns: 10px minmax(0, 1fr) minmax(0, 186px);
-  align-items: start;
-  gap: var(--sp-4);
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  padding: var(--sp-4) var(--sp-5);
-  /* A sheared box is wider than its layout box, and the log scrolls: without
-     this a tall bubble's corner would hand the scroller a horizontal axis.
-     `clip` (not `hidden`) so it never becomes a scroll container itself, and
-     only on the inline axis so focus rings above and below survive. */
-  overflow-x: clip;
-  overflow-y: visible;
+  padding: 3px var(--sp-5);
 }
 
-/* ── direction mark ─────────────────────────────────────────────────────── */
-
-.mark {
-  margin-top: 6px;
-  width: 8px;
-  height: 8px;
-  flex: none;
+.out {
+  align-items: flex-end;
 }
 
-.out .mark {
-  background-color: var(--bone);
-  clip-path: var(--path-notch-br);
-}
-
-.in .mark {
-  border: 1px solid var(--muted);
-  clip-path: var(--path-notch-br);
-}
-
-.failed .mark {
-  background-color: var(--crimson);
-  border-color: var(--crimson);
+.in {
+  align-items: flex-start;
 }
 
 /* ── body column ────────────────────────────────────────────────────────── */
@@ -51,42 +33,32 @@
 .main {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: inherit;
+  gap: 3px;
   min-width: 0;
+  max-width: min(560px, 82%);
 }
 
+/* Only rendered in rooms, on somebody else’s message — see MessageRow.tsx. */
 .who {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: var(--sp-3);
+  gap: var(--sp-2);
   min-width: 0;
+  padding-inline: 3px;
 }
 
 .author {
-  font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
-  font-weight: 500;
-  letter-spacing: var(--tr-eyebrow);
-  text-transform: uppercase;
-  color: var(--bone);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--steel);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.out .author {
-  color: var(--muted);
-}
-
-.time {
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: var(--tr-eyebrow);
-  color: var(--dim);
-  flex: none;
 }
 
 .unverified {
@@ -98,133 +70,112 @@
   flex: none;
 }
 
+/* The one place in the whole app that is read for minutes at a time, so it is
+   the one place that takes the UI face rather than Orbitron. */
 .body {
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
+  font-family: var(--font-ui);
+  font-size: 14.5px;
+  line-height: 1.45;
   color: var(--bone);
   min-width: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
-.working .body {
-  color: var(--muted);
-}
-
-.failed .body {
-  color: var(--muted);
-}
-
 .bodyDim {
   color: var(--dim);
 }
 
-/* An attachment is already a framed, notched object. Tilting it would stack
-   two shapes and crop the image inside a parallelogram, so media stays square
-   and sits beside the bubble language rather than inside it. */
 .media {
   margin-top: 2px;
 }
 
-/* ── the bubble ─────────────────────────────────────────────────────────────
-   Two numbers drive everything here. A box sheared by 9° overhangs its layout
-   box by (H/2)·tan(9°) ≈ 0.079·H on each side, and its edges cut inward by the
-   same amount at the top-left and bottom-right — where the first line starts
-   and the last line ends. So both the inline padding (text-to-slope clearance)
-   and the outboard reserve (slope-to-container clearance) have to grow with
-   height. `data-lean` steps them together off an estimated line count. */
+/* ── the bubble ─────────────────────────────────────────────────────────── */
 
 .bubble {
-  /* Lifted verbatim off Button.module.css: the shear IS the shape, which is
-     why nothing here is also notched or rounded. */
-  --skew: -9deg;
-  --lean-pad: 14px;
-  --lean-gap: 6px;
-  --bubble-fill: var(--bone-wash);
-  --bubble-edge: var(--line-2);
-
-  align-self: flex-start;
+  position: relative;
   min-width: 0;
-  /* The shear overhangs on BOTH sides — top-right goes right, bottom-left goes
-     left — so clearance is reserved on both. Reserving only the right let a
-     tall bubble slide its bottom-left corner under the direction mark, and at
-     390px pushed it into the row's clip. The margin moves the box inward and
-     the max-width term accounts for the space that margin consumed. */
-  margin-inline: var(--lean-gap);
-  max-width: min(
-    calc(68ch + 2 * var(--lean-pad)),
-    calc(100% - 2 * var(--lean-gap))
-  );
-  padding: 10px var(--lean-pad);
-  /* `ch` resolves against the element's own font. Without this the bubble
-     inherits 15px from body while the text inside is 13px, so the measure
-     silently ran ~15% wide. */
-  font-size: var(--fs-sm);
-  border: 1px solid var(--bubble-edge);
-  background-color: var(--bubble-fill);
-  /* Both fill and edge are translucent; without this the border would paint
-     over the fill and read as a third, darker hue. */
-  background-clip: padding-box;
-  transform: skewX(var(--skew));
+  width: fit-content;
+  max-width: 100%;
+  padding: 7px 11px 6px;
+  border-radius: 16px;
+  background-color: var(--panel-2);
+  /* The stamp floats to the end of the last line when it fits, and drops onto
+     its own line when it does not — the same behaviour every messenger has, and
+     it falls straight out of inline layout. */
+  display: flow-root;
 }
 
-/* Counter-shear. One wrapper carries every text part a message can have, so
-   the rule cannot be outgrown by adding a part. Block padding must stay
-   symmetric: an uneven vertical centre offsets the two shears against each
-   other and slides the text sideways. Inline padding is free to differ. */
-.bubble > * {
-  transform: skewX(calc(-1 * var(--skew)));
-}
-
-.bubbleInner {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.bubble[data-lean='2'] {
-  --lean-pad: 20px;
-  --lean-gap: 12px;
-}
-
-.bubble[data-lean='3'] {
-  --lean-pad: 30px;
-  --lean-gap: 20px;
-}
-
-.bubble[data-lean='4'] {
-  --lean-pad: 40px;
-  --lean-gap: 28px;
-}
-
-/* Sent: white. Above --bone-wash (5%), because at that alpha the sent and
-   received fills measured three points apart and the two directions were not
-   tellable at a glance — which is the one job the fills have. Still well below
-   opaque, so the plate stays a wash rather than a card. */
-.out .bubble {
-  --bubble-fill: rgba(232, 234, 235, 0.085);
-  --bubble-edge: rgba(255, 255, 255, 0.2);
-}
-
-/* Received: green. Held to --green-wash (10%) rather than pushed past it —
-   this fill repeats on every inbound message down the whole log, and the wash
-   token is already sized for a single focused surface. 10% is enough to read
-   as green beside the white one without the log turning into a flood.
-
-   The edge sits under the outbound edge's alpha on purpose: green carries
-   chroma that bone does not, so matching numbers would make the inbound edges
-   visibly heavier than the outbound ones. Measured side by side, this is where
-   the two weigh the same. */
 .in .bubble {
-  --bubble-fill: rgba(0, 200, 5, 0.1);
-  --bubble-edge: rgba(0, 200, 5, 0.26);
+  border-bottom-left-radius: 5px;
 }
 
-/* A failed send keeps its direction fill — the crimson belongs on the edge,
-   next to the crimson mark and the error line, not flooding the body. */
+/* Your side. A dark green plate rather than the accent at full strength: this
+   fill repeats down the entire log, and --green at 100% would drown the one
+   green that is supposed to mean something. */
+.out .bubble {
+  background-color: #12351a;
+  border: 1px solid rgba(0, 200, 5, 0.24);
+  border-bottom-right-radius: 5px;
+}
+
 .failed .bubble {
-  --bubble-edge: var(--crimson-edge);
+  border: 1px solid var(--crimson-edge);
+}
+
+/* ── clock + tick ───────────────────────────────────────────────────────── */
+
+.stamp {
+  float: right;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 10px;
+  /* Sits on the baseline of the last line rather than under it. */
+  margin-top: 4px;
+  transform: translateY(3px);
+  user-select: none;
+}
+
+/* Media has its own frame, so the stamp goes beneath it instead of inside. */
+.stampBare {
+  float: none;
+  align-self: flex-end;
+  margin: 2px 3px 0 0;
+  transform: none;
+}
+
+.time {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  color: var(--dim);
+  flex: none;
+}
+
+.out .time {
+  color: rgba(210, 255, 220, 0.5);
+}
+
+.tick {
+  flex: none;
+  width: 14px;
+  height: 11px;
+  color: rgba(210, 255, 220, 0.55);
+}
+
+/* Two ticks, and they are green: the only state on this screen that says the
+   message is anchored on a public chain. */
+.tickAnchored {
+  width: 17px;
+  color: var(--green);
+}
+
+.tickFailed {
+  width: 12px;
+  height: 12px;
+  color: var(--crimson);
 }
 
 /* ── system rows: one quiet ruled line ──────────────────────────────────────
@@ -453,175 +404,16 @@
   color: var(--dim);
 }
 
-/* ── metadata column ────────────────────────────────────────────────────── */
-
-.meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  min-width: 0;
-  padding-top: 2px;
-  text-align: right;
-}
-
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  letter-spacing: var(--tr-eyebrow);
-  text-transform: uppercase;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.statusDot {
-  flex: none;
-  width: 5px;
-  height: 5px;
-  background-color: var(--dim);
-}
-
-.status-anchored {
-  color: var(--green);
-}
-
-.status-anchored .statusDot {
-  background-color: var(--green);
-}
-
-.status-working {
-  color: var(--steel);
-}
-
-.status-working .statusDot {
-  background-color: var(--steel);
-  animation: tick 1.1s var(--ease-in-out) infinite;
-}
-
-.status-failed {
-  color: var(--crimson);
-}
-
-.status-failed .statusDot {
-  background-color: var(--crimson);
-}
-
-.status-received .statusDot {
-  background-color: var(--muted);
-}
-
-.metaLine {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 5px;
-  min-width: 0;
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  color: var(--muted);
-  white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.metaKey {
-  color: var(--dim);
-  text-transform: uppercase;
-  letter-spacing: var(--tr-eyebrow);
-}
-
-.metaSep {
-  color: var(--dim);
-}
-
-.metaDim {
-  color: var(--dim);
-}
-
-.metaLink {
-  color: var(--muted);
-  border-bottom: 1px solid transparent;
-  transition: color var(--dur-1) var(--ease);
-}
-
-.metaLink:hover,
-.metaLink:focus-visible {
-  color: var(--bone);
-  border-bottom-color: var(--line-2);
-}
-
-.metaHex {
-  max-width: 100%;
-}
-
-.metaTx {
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  letter-spacing: var(--tr-eyebrow);
-  text-transform: uppercase;
-  color: var(--dim);
-  transition: color var(--dur-1) var(--ease);
-}
-
-.metaTx:hover,
-.metaTx:focus-visible {
-  color: var(--muted);
-}
-
-@keyframes tick {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.25;
-  }
-}
-
-/* ── narrow: metadata drops under the body ──────────────────────────────── */
-
 @media (max-width: 1023px) {
   .row {
-    grid-template-columns: 10px minmax(0, 1fr);
-    gap: var(--sp-3);
-    padding: var(--sp-4);
+    padding-inline: var(--sp-4);
+  }
+
+  .main {
+    max-width: 86%;
   }
 
   .systemRow {
     padding-inline: var(--sp-4);
-  }
-
-  /* A narrow column wraps more lines, so the same text leans further and by
-     rights wants more clearance — but 40px a side inside a 336px column would
-     leave a 24-character measure. Below the desktop breakpoint line length
-     wins and the top-left gap is allowed to close up. The outboard reserve is
-     not relaxed: that one is load-bearing against horizontal overflow. */
-  .bubble[data-lean='3'] {
-    --lean-pad: 24px;
-  }
-
-  .bubble[data-lean='4'] {
-    --lean-pad: 30px;
-  }
-
-  .meta {
-    grid-column: 2;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-start;
-    gap: var(--sp-2) var(--sp-3);
-    text-align: left;
-    padding-top: 2px;
-  }
-
-  .metaTx {
-    display: none;
   }
 }
