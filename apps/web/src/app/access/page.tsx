@@ -26,14 +26,14 @@ export const metadata: Metadata = {
     /* Declaring an openGraph block here replaces the root one wholesale rather
        than merging, so the card image has to be repeated or a shared /access
        link unfurls as a large card with an empty picture well. */
-    images: [{ url: 'brand/og-card-hood.jpg', width: 1200, height: 630, alt: 'HoodGram' }],
+    images: [{ url: 'brand/og-card-messenger.jpg', width: 1200, height: 630, alt: 'HoodGram' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Access & revenue — HoodGram',
     description:
       'Pay $5 once, text forever. Rooms $10/month, members free. 50% of revenue to holders, by holdings, with no staking.',
-    images: ['brand/og-card-hood.jpg'],
+    images: ['brand/og-card-messenger.jpg'],
   },
 };
 

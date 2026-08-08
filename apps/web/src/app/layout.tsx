@@ -45,7 +45,12 @@ const SHARE_DESCRIPTION =
 
 /* Relative on purpose: metadataBase makes it absolute for the crawler, and the
    1200×630 is what both X and Open Graph want for a large card. */
-const SHARE_IMAGE = 'brand/og-card-hood.jpg';
+const SHARE_IMAGE = 'brand/og-card-messenger.jpg';
+
+/* The headline a pasted link shows. Deliberately not the price: a preview is
+   the first thing anyone sees, and leading with "$5" makes the product sound
+   like a purchase before it sounds like anything. This is the site's own H2. */
+const SHARE_TITLE = 'HoodGram — a messenger that cannot be switched off';
 
 /**
  * Content Security Policy, delivered as a <meta> tag.
@@ -165,13 +170,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'HoodGram',
-    title: 'HoodGram — pay $5 once, text forever',
+    title: SHARE_TITLE,
     description: SHARE_DESCRIPTION,
     images: [{ url: SHARE_IMAGE, width: 1200, height: 630, alt: 'HoodGram' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'HoodGram — pay $5 once, text forever',
+    title: SHARE_TITLE,
     description: SHARE_DESCRIPTION,
     images: [SHARE_IMAGE],
   },
