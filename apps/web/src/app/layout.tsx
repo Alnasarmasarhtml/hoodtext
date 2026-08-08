@@ -45,7 +45,7 @@ const SHARE_DESCRIPTION =
 
 /* Relative on purpose: metadataBase makes it absolute for the crawler, and the
    1200×630 is what both X and Open Graph want for a large card. */
-const SHARE_IMAGE = 'brand/og-card.jpg';
+const SHARE_IMAGE = 'brand/og-card-hood.jpg';
 
 /**
  * Content Security Policy, delivered as a <meta> tag.
