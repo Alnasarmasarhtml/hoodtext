@@ -71,84 +71,46 @@ function AuthorName({ address }: { readonly address: Address }): ReactNode {
 }
 
 /**
- * The delivery mark, on your own messages only.
+ * The delivery state, in words, on your own messages only.
  *
- * This is the whole of what replaced the metadata column, and it borrows an
- * alphabet three billion people already read without being taught: one grey
- * tick means the relay has it, two green ticks mean it is anchored on chain.
- * That second state is the product's entire differentiator, and this teaches it
- * without a word of copy.
+ * This was a tick and then two green ticks. It was replaced because that
+ * alphabet already means something else: everywhere people have learned it, a
+ * second tick means *seen*. HoodGram has no read receipts and never will — it
+ * cannot know whether a message was opened — so borrowing the mark would have
+ * been claiming a capability the product does not have. A word cannot be
+ * misread that way.
+ *
+ * Four states and no more. "On chain" is the one that carries the product, and
+ * saying it in two words is also the plainest way to teach what the product
+ * does that nothing else does.
  */
-function DeliveryTick({ status }: { readonly status: MessageStatus }): ReactNode {
-  if (status === 'failed') {
-    return (
-      <svg
-        className={cx(s.tick, s.tickFailed)}
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        role="img"
-        aria-label="Not delivered"
-      >
-        <circle cx="8" cy="8" r="6" />
-        <path d="M8 4.6v4.2M8 11.1v.1" strokeLinecap="round" />
-      </svg>
-    );
-  }
+const DELIVERY_LABEL: Readonly<Record<MessageStatus, string | null>> = {
+  sealing: 'sending',
+  uploading: 'sending',
+  signing: 'sending',
+  queued: 'sent',
+  pending: 'sent',
+  anchored: 'on chain',
+  failed: 'not sent',
+  /* Inbound messages never show one; the map is total so a new status cannot
+     silently fall through to a blank. */
+  received: null,
+};
 
-  if (status === 'anchored') {
-    return (
-      <svg
-        className={cx(s.tick, s.tickAnchored)}
-        viewBox="0 0 20 12"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        role="img"
-        aria-label="On chain"
-      >
-        <path d="M1.5 6.5 5 10l7-8" />
-        <path d="M8.5 6.5 12 10l7-8" />
-      </svg>
-    );
-  }
+function DeliveryState({ status }: { readonly status: MessageStatus }): ReactNode {
+  const label = DELIVERY_LABEL[status];
+  if (label === null) return null;
 
-  if (status === 'queued' || status === 'pending') {
-    return (
-      <svg
-        className={s.tick}
-        viewBox="0 0 16 12"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        role="img"
-        aria-label="Sent"
-      >
-        <path d="M1.5 6.5 5 10l7-8" />
-      </svg>
-    );
-  }
-
-  /* sealing · uploading · signing — still on this device. */
   return (
-    <svg
-      className={s.tick}
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      role="img"
-      aria-label="Sending"
+    <span
+      className={cx(
+        s.state,
+        status === 'anchored' && s.stateAnchored,
+        status === 'failed' && s.stateFailed,
+      )}
     >
-      <circle cx="8" cy="8" r="5.5" />
-      <path d="M8 5v3.2l2 1.2" />
-    </svg>
+      {label}
+    </span>
   );
 }
 
@@ -280,7 +242,7 @@ export function MessageRow({
               <time className={s.time} dateTime={new Date(message.sentAt * 1000).toISOString()}>
                 {formatTimeShort(message.sentAt)}
               </time>
-              {outbound && <DeliveryTick status={message.status} />}
+              {outbound && <DeliveryState status={message.status} />}
             </span>
           </div>
         ) : (
@@ -291,7 +253,7 @@ export function MessageRow({
               <time className={s.time} dateTime={new Date(message.sentAt * 1000).toISOString()}>
                 {formatTimeShort(message.sentAt)}
               </time>
-              {outbound && <DeliveryTick status={message.status} />}
+              {outbound && <DeliveryState status={message.status} />}
             </span>
           </>
         )}

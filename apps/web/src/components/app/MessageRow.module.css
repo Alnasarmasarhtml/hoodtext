@@ -158,23 +158,24 @@
   color: rgba(210, 255, 220, 0.5);
 }
 
-.tick {
+/* The delivery word. Mono so "sending" and "on chain" do not reflow the corner
+   of the bubble as a message settles, and small enough that the default state
+   is quiet — only the two that matter take colour. */
+.state {
   flex: none;
-  width: 14px;
-  height: 11px;
-  color: rgba(210, 255, 220, 0.55);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: rgba(210, 255, 220, 0.45);
+  white-space: nowrap;
 }
 
-/* Two ticks, and they are green: the only state on this screen that says the
-   message is anchored on a public chain. */
-.tickAnchored {
-  width: 17px;
+/* The one state worth a colour: this is the product, said in two words. */
+.stateAnchored {
   color: var(--green);
 }
 
-.tickFailed {
-  width: 12px;
-  height: 12px;
+.stateFailed {
   color: var(--crimson);
 }
 
