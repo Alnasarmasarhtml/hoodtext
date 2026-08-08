@@ -34,9 +34,9 @@ export function SiteFooter(): ReactNode {
           <div className={s.brand}>
             <img
               className={s.mark}
-              src={asset('/brand/mark-hg-512.png')}
+              src={asset('/brand/mark-hood-512.png')}
               alt=""
-              width={512}
+              width={358}
               height={512}
               loading="lazy"
               decoding="async"

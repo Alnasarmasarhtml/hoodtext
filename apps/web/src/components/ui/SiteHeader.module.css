@@ -32,13 +32,15 @@
   outline: none;
 }
 
-/* 24px, not the 17px the flat SVG used: the rendered mark carries bevels and a
-   green inner edge that turn to mush below about 20px. */
+/* Sized by height, width auto: the mark is portrait, and forcing it into a
+   square either crops the hood or shrinks it to a smudge. 38px in a 60px bar is
+   as large as the mark can go without crowding the rule under it — and it needs
+   the room, because below about 30px the green eye disappears and the figure
+   collapses into a white blob. */
 .mark {
   flex: none;
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+  height: 38px;
+  width: auto;
   transition: opacity var(--dur-2) var(--ease);
 }
 

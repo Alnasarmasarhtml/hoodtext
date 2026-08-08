@@ -27,14 +27,15 @@ import './globals.css';
 /** Where the static export is served from; makes the OG image URL absolute. */
 const SITE_URL = 'https://hoodgram.tech/';
 
-/* The rendered platinum HG shield. Three sizes because each is a different
-   drawing problem: 32 keeps only the silhouette, 180 is the iOS home screen,
-   512 is what everything else scales down from. They go through asset() because
-   a relative icon href resolves against the current route — /access/brand/… —
-   and 404s on every page but the root. */
-const ICON_32 = asset('/brand/mark-hg-32.png');
-const ICON_180 = asset('/brand/mark-hg-180.png');
-const ICON_512 = asset('/brand/mark-hg-512.png');
+/* The hooded mark, squared up with transparent padding — a tab icon has to be
+   square, and the artwork is portrait. Three sizes because each is a different
+   drawing problem: 32 keeps the silhouette and the eye, 180 is the iOS home
+   screen, 512 is what everything else scales down from. They go through asset()
+   because a relative icon href resolves against the current route —
+   /access/brand/… — and 404s on every page but the root. */
+const ICON_32 = asset('/brand/icon-hood-32.png');
+const ICON_180 = asset('/brand/icon-hood-180.png');
+const ICON_512 = asset('/brand/icon-hood-512.png');
 
 /* What a pasted hoodgram.tech link unfurls into, on X and everywhere else.
    Client copy, 2026-08-08 — do not paraphrase it. X truncates its card blurb

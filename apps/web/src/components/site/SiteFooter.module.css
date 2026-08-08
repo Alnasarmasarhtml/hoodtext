@@ -21,19 +21,18 @@
 
 .brand {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
+  /* auto, not a fixed track: the mark is portrait and sized by height, so its
+     width is whatever the aspect gives — pinning the column would letterbox it. */
+  grid-template-columns: auto minmax(0, 1fr);
   gap: var(--sp-2) var(--sp-3);
   align-items: center;
   min-width: 0;
 }
 
-/* The rendered mark, not the old 14px flat glyph — its bevels and green inner
-   edge go muddy below about 20px, and the grid column above holds it. */
 .mark {
   flex: none;
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
+  height: 30px;
+  width: auto;
 }
 
 .wordmark {
