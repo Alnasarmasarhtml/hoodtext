@@ -49,23 +49,20 @@ export function Hero(): ReactNode {
 
       <div className={cx('wrap', s.inner)}>
         <div className={s.hudTop} data-reveal>
-          {/* Set, not shipped as a picture. The rendered banner this replaced
-              had the wordmark in it twice — a clean one with a second, garbled
-              one drawn across it — because the generator wrote the letters
-              itself. Real type in the site's own face also stays sharp at every
-              width and costs 2 MB less. */}
-          <div className={s.logo}>
-            <img
-              className={s.logoMark}
-              src={asset('/brand/mark-hg-512.png')}
-              alt=""
-              width={512}
-              height={512}
-              decoding="async"
-              fetchPriority="high"
-            />
-            <span className={s.logoWord}>HOODGRAM</span>
-          </div>
+          {/* The rendered lockup, kept deliberately: the second, angular
+              wordmark under the clean one is the look the client wants here.
+              I replaced it with set type once — don't do it again. The header,
+              footer and share card use the bare mark instead; this is the one
+              surface that carries the full drawn lockup. */}
+          <img
+            className={s.logo}
+            src={asset('/brand/logo-primary.png')}
+            alt="HOODGRAM"
+            width={3383}
+            height={912}
+            decoding="async"
+            fetchPriority="high"
+          />
           <p className={s.hudMeta}>
             <span className={s.hudDot} aria-hidden="true" />
             Chain {ACTIVE_CHAIN_ID} · Live

@@ -12,6 +12,7 @@ import { TokenMark } from './TokenMark';
 const LINKS: readonly { readonly href: string; readonly label: string }[] = [
   { href: '/app', label: 'Messenger' },
   { href: '/access', label: 'Activate & claim' },
+  { href: '/record', label: 'The Record' },
 ];
 
 /**

@@ -1,0 +1,436 @@
+/* The Record — a dossier, not an argument.
+   Cards carry the same -9deg shear as every control on the site, applied to the
+   plate only; the text inside is counter-sheared so it stays upright and
+   readable at paragraph length. */
+
+.page {
+  min-width: 0;
+}
+
+/* ── hero ───────────────────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  padding-block: clamp(var(--sp-8), 9vw, var(--sp-10)) clamp(var(--sp-7), 6vw, var(--sp-9));
+  border-bottom: var(--hair) solid var(--line);
+  overflow: hidden;
+}
+
+/* A faint ledger rule behind the title — the page is a file, and files have
+   ruled paper. Sits under everything and never touches contrast. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.028) 0 1px,
+    transparent 1px 34px
+  );
+  pointer-events: none;
+}
+
+.eyebrow {
+  position: relative;
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: var(--sp-5);
+}
+
+.title {
+  position: relative;
+  max-width: 20ch;
+  font-size: var(--fs-3xl);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.012em;
+  color: var(--bone);
+  text-wrap: balance;
+}
+
+.titleDim {
+  color: var(--muted);
+}
+
+.lede {
+  position: relative;
+  max-width: 62ch;
+  margin-top: var(--sp-5);
+  font-size: var(--fs-md);
+  line-height: 1.62;
+  color: var(--muted);
+}
+
+.stats {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: clamp(var(--sp-6), 5vw, var(--sp-8));
+  background-color: var(--line);
+  border: var(--hair) solid var(--line);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: var(--sp-4) var(--sp-5);
+  background-color: var(--void);
+}
+
+.statLabel {
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.statValue {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── how to read this ───────────────────────────────────────────────────── */
+
+.method {
+  padding-block: clamp(var(--sp-6), 5vw, var(--sp-7));
+  border-bottom: var(--hair) solid var(--line);
+  background-color: var(--panel);
+}
+
+.methodInner {
+  min-width: 0;
+}
+
+.methodTitle {
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: var(--sp-5);
+}
+
+.methodGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-5);
+}
+
+.methodItem {
+  min-width: 0;
+  padding-left: var(--sp-4);
+  border-left: 2px solid var(--line-2);
+  font-size: var(--fs-sm);
+  line-height: 1.66;
+  color: var(--muted);
+}
+
+.methodStrong {
+  display: block;
+  font-weight: 700;
+  color: var(--bone);
+}
+
+/* ── sections ───────────────────────────────────────────────────────────── */
+
+.section {
+  padding-block: clamp(var(--sp-7), 7vw, var(--sp-9));
+  border-bottom: var(--hair) solid var(--line);
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  margin-bottom: clamp(var(--sp-5), 4vw, var(--sp-7));
+  padding-bottom: var(--sp-4);
+  border-bottom: var(--hair) solid var(--line-2);
+}
+
+.sectionTitle {
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.sectionNote {
+  max-width: 68ch;
+  font-size: var(--fs-sm);
+  line-height: 1.64;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-5);
+}
+
+/* ── entry ──────────────────────────────────────────────────────────────── */
+
+/* Flex column so the source link can be pushed to the bottom edge: two cards in
+   the same grid row are rarely the same length, and aligning the links is what
+   stops the row looking broken. */
+.entry {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(var(--sp-5), 3vw, var(--sp-6));
+  background-color: var(--panel);
+  border: var(--hair) solid var(--line-2);
+  /* Same corner cut as every panel on the site. */
+  clip-path: var(--path-notch-tr);
+  scroll-margin-top: calc(var(--header-h) + var(--sp-5));
+}
+
+.entryHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  min-width: 0;
+  margin-bottom: var(--sp-4);
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+
+.jurisdiction {
+  min-width: 0;
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+/* Status chips carry the shear the rest of the site's controls do. The colour
+   encodes force, not brand: green is reserved and deliberately not used here,
+   because "in force" is not a thing this site is pleased about. */
+.kind {
+  margin-left: auto;
+  flex: none;
+  padding: 4px 11px;
+  transform: skewX(-9deg);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.kindForce {
+  color: var(--crimson);
+  background-color: var(--crimson-wash);
+  border: var(--hair) solid var(--crimson-edge);
+}
+
+.kindProposed {
+  color: var(--muted);
+  background-color: var(--bone-wash);
+  border: var(--hair) solid var(--line-2);
+}
+
+.kindCourt {
+  color: var(--steel);
+  background-color: var(--steel-wash);
+  border: var(--hair) solid rgba(143, 163, 176, 0.3);
+}
+
+.kindBlocked {
+  color: var(--crimson);
+  background-color: transparent;
+  border: var(--hair) solid var(--crimson-edge);
+}
+
+.kindBreach {
+  color: var(--void);
+  background-color: var(--crimson);
+  border: var(--hair) solid var(--crimson);
+}
+
+.date {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.01em;
+  color: var(--dim);
+  margin-bottom: var(--sp-2);
+}
+
+.entryTitle {
+  max-width: 42ch;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1.24;
+  color: var(--bone);
+  text-wrap: balance;
+  margin-bottom: var(--sp-4);
+}
+
+.body {
+  max-width: 72ch;
+  font-size: var(--fs-sm);
+  line-height: 1.72;
+  color: var(--muted);
+}
+
+/* The honest half of every entry. Given its own plate so it cannot be skimmed
+   past — it is the part that makes the rest believable. */
+.not {
+  margin-top: var(--sp-5);
+  padding: var(--sp-4);
+  background-color: var(--void);
+  border-left: 2px solid var(--green-edge);
+}
+
+.notLabel {
+  display: block;
+  margin-bottom: var(--sp-2);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.notBody {
+  max-width: 72ch;
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  color: var(--bone);
+}
+
+.caveat {
+  max-width: 72ch;
+  margin-top: var(--sp-4);
+  padding-left: var(--sp-4);
+  border-left: var(--hair) solid var(--line-2);
+  font-size: var(--fs-sm);
+  line-height: 1.68;
+  font-style: italic;
+  color: var(--steel);
+}
+
+.source {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  /* auto pushes it to the card's bottom edge; the padding keeps a real gap when
+     the card is short enough that auto resolves to zero. */
+  margin-top: auto;
+  padding-top: var(--sp-5);
+  align-self: flex-start;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  border-bottom: var(--hair) solid var(--line-2);
+  padding-bottom: 3px;
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.source:hover,
+.source:focus-visible {
+  color: var(--green);
+  border-bottom-color: var(--green-edge);
+}
+
+.sourceText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sourceArrow {
+  flex: none;
+}
+
+/* ── the other side ─────────────────────────────────────────────────────── */
+
+.other .sectionTitle {
+  color: var(--bone);
+}
+
+/* ── close ──────────────────────────────────────────────────────────────── */
+
+.close {
+  padding-block: clamp(var(--sp-8), 8vw, var(--sp-10));
+}
+
+.closeInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  min-width: 0;
+  max-width: 74ch;
+}
+
+.closeLead {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: 1.34;
+  color: var(--bone);
+  text-wrap: balance;
+}
+
+.closeBody {
+  font-size: var(--fs-base);
+  line-height: 1.74;
+  color: var(--muted);
+}
+
+.closeNote {
+  padding-top: var(--sp-4);
+  border-top: var(--hair) solid var(--line);
+  font-size: var(--fs-sm);
+  line-height: 1.66;
+  color: var(--dim);
+}
+
+/* ── wider ──────────────────────────────────────────────────────────────── */
+
+@media (min-width: 700px) {
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .methodGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1020px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sectionHead {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-6);
+  }
+
+  .sectionNote {
+    max-width: 54ch;
+    text-align: right;
+  }
+}

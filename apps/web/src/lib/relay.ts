@@ -276,6 +276,10 @@ export const RELAY_IS_PUBLIC: boolean =
   RELAY_URL !== '' && !/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(RELAY_URL);
 
 function defaultWsUrl(httpUrl: string): string {
+  /* No relay configured means no stream. Returning `/v1/stream` here would give
+     WebSocket a relative URL, which it rejects — producing a console error and
+     a reconnect loop on a page that has nothing to connect to. */
+  if (httpUrl === '') return '';
   if (httpUrl.startsWith('https://')) return `wss://${httpUrl.slice('https://'.length)}/v1/stream`;
   if (httpUrl.startsWith('http://')) return `ws://${httpUrl.slice('http://'.length)}/v1/stream`;
   return `${httpUrl}/v1/stream`;
@@ -328,6 +332,14 @@ async function request(
   init: RequestInit,
   options?: RequestOptions,
 ): Promise<Response> {
+  /* With no relay configured, `${RELAY_URL}${route}` is a same-origin path —
+     so every call would quietly fetch our own static host and 404. Fail here
+     instead, with a message that says what is actually wrong; every caller
+     already handles RelayError by degrading into its empty state. */
+  if (RELAY_URL === '') {
+    throw new RelayError('No relay is configured for this build', { route });
+  }
+
   const { signal, done } = withTimeout(options);
   try {
     const response = await fetch(`${RELAY_URL}${route}`, { ...init, signal });
@@ -635,6 +647,14 @@ export function subscribeRelayStream(
   const maxDelay = options.maxDelayMs ?? 15_000;
 
   if (typeof WebSocket === 'undefined') {
+    handlers.onStatus?.('unsupported');
+    return () => undefined;
+  }
+
+  /* No relay is configured for this build. Report it the same way as a browser
+     without WebSocket — the UI already has a designed state for that — rather
+     than opening a socket to nothing and retrying forever. */
+  if (url === '') {
     handlers.onStatus?.('unsupported');
     return () => undefined;
   }
