@@ -3,16 +3,8 @@
 import type { ReactNode } from 'react';
 import type { Address } from 'viem';
 
-import { Hex as HexValue } from '@/components/ui';
-import { explorerBlockUrl, explorerTxUrl } from '@/lib/chain';
 import { cx } from '@/lib/cx';
-import {
-  formatBlock,
-  formatBytes,
-  formatClock,
-  formatDateTime,
-  truncateAddress,
-} from '@/lib/format';
+import { formatClock, truncateAddress } from '@/lib/format';
 import {
   parseMediaPayload,
   useHandle,
@@ -51,17 +43,6 @@ export interface MessageRowProps {
   readonly onReact?: (message: ChatMessage, emoji: string) => void;
 }
 
-const STATUS_LABEL: Readonly<Record<MessageStatus, string>> = {
-  sealing: 'Sealing',
-  uploading: 'Uploading',
-  signing: 'Signing',
-  queued: 'Queued · relay',
-  pending: 'Pending',
-  anchored: 'Anchored',
-  failed: 'Failed',
-  received: 'Received',
-};
-
 function statusTone(status: MessageStatus): string {
   switch (status) {
     case 'anchored':
@@ -73,11 +54,6 @@ function statusTone(status: MessageStatus): string {
     default:
       return 'working';
   }
-}
-
-function viewTagLabel(viewTag: number | null): string {
-  if (viewTag === null) return '··';
-  return viewTag.toString(16).toUpperCase().padStart(2, '0');
 }
 
 /** Resolved author line: @handle or address, with the holder rank beside it. */
@@ -155,9 +131,6 @@ export function MessageRow({
 }: MessageRowProps): ReactNode {
   const outbound = message.direction === 'out';
   const tone = statusTone(message.status);
-  const blockUrl =
-    message.blockNumber === null ? null : explorerBlockUrl(message.blockNumber);
-  const txUrl = message.txHash === null ? null : explorerTxUrl(message.txHash);
 
   /* ── system rows: one quiet line, no metadata column ─────────────────── */
   if (message.kind === 'system') {
@@ -311,62 +284,6 @@ export function MessageRow({
         )}
       </div>
 
-      <div className={s.meta}>
-        <span className={cx(s.status, s[`status-${tone}`])}>
-          <span className={s.statusDot} aria-hidden="true" />
-          {STATUS_LABEL[message.status]}
-        </span>
-
-        <span className={s.metaLine} title={formatDateTime(message.sentAt)}>
-          {message.blockNumber === null ? (
-            <span className={s.metaDim}>
-              {message.status === 'queued' ? 'awaiting anchor' : 'no block yet'}
-            </span>
-          ) : blockUrl === null ? (
-            <span>{formatBlock(message.blockNumber)}</span>
-          ) : (
-            <a className={s.metaLink} href={blockUrl} target="_blank" rel="noreferrer noopener">
-              {formatBlock(message.blockNumber)}
-            </a>
-          )}
-        </span>
-
-        <span className={s.metaLine}>
-          <span className={s.metaKey}>tag</span>
-          <span>{viewTagLabel(message.viewTag)}</span>
-          <span className={s.metaSep} aria-hidden="true">
-            ·
-          </span>
-          <span className={s.metaKey}>pad</span>
-          <span>{message.size === null ? '—' : formatBytes(message.size)}</span>
-        </span>
-
-        {message.blobRef !== null && (
-          <HexValue
-            value={message.blobRef}
-            label="Blob reference"
-            lead={6}
-            tail={4}
-            tone="dim"
-            size="sm"
-            href={null}
-            className={s.metaHex}
-          />
-        )}
-
-        {message.seq !== null && (
-          <span className={s.metaLine}>
-            <span className={s.metaKey}>seq</span>
-            <span>{message.seq}</span>
-          </span>
-        )}
-
-        {txUrl !== null && (
-          <a className={s.metaTx} href={txUrl} target="_blank" rel="noreferrer noopener">
-            View transaction
-          </a>
-        )}
-      </div>
     </article>
   );
 }

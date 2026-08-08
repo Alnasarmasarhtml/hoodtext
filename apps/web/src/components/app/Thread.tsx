@@ -340,24 +340,13 @@ function Thread({ convoId }: ThreadProps): ReactNode {
                 )}
               </span>
             </>
-          ) : (
-            <>
-              <span className={s.stat}>
-                <span className={s.statKey}>msgs</span>
-                {formatCount(conversation.messageCount)}
-              </span>
-              <span className={cx(s.stat, conversation.anchoredCount > 0 && s.statAnchored)}>
-                <span className={s.statKey}>on chain</span>
-                {formatCount(conversation.anchoredCount)}
-              </span>
-            </>
-          )}
-          {conversation.pendingCount > 0 && (
-            <span className={cx(s.stat, s.statPending)}>
-              <span className={s.statKey}>in flight</span>
-              {formatCount(conversation.pendingCount)}
-            </span>
-          )}
+          ) : null}
+          {/* Message, anchor and in-flight counts used to sit here. They are
+              bookkeeping, not something anyone opens a chat to read. Rent stays
+              because a room that lapses stops working, and members stays
+              because it is a control that opens the roster, not a statistic.
+              Failures stay too — a failure is the one count that needs acting
+              on. */}
           {conversation.failedCount > 0 && (
             <span className={cx(s.stat, s.statFailed)}>
               <span className={s.statKey}>failed</span>

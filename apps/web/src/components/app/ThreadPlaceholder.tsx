@@ -10,15 +10,16 @@
  *    explains the $5 one-time activation, quotes it live in $GRAM and links
  *    to `/access`. The rail beside it stays live, because reading and
  *    receiving are never gated on payment.
- *  · **Open** — a live readout of the scanner plus the four steps a drop takes,
- *    so an empty desk still tells you what the product is doing on your behalf.
+ *  · **Open** — the four steps a drop takes, so an empty desk still says what
+ *    the product does on your behalf. The scanner readout that used to sit
+ *    above them came out: true figures, but nobody opens a messenger to read
+ *    them.
  */
 
 import type { ReactNode } from 'react';
 
 import { Eyebrow } from '@/components/ui';
 import { useConversations } from '@/hooks';
-import { formatCount } from '@/lib/format';
 import { LockedNotice } from './LockedNotice';
 import { useAppSession } from './session';
 import s from './ThreadPlaceholder.module.css';
@@ -59,8 +60,7 @@ const DROP_STEPS: readonly Step[] = [
 
 export function ThreadPlaceholder(): ReactNode {
   const session = useAppSession();
-  const { conversations, isHydrated, totalMessages } = useConversations();
-  const drops = session.drops;
+  const { conversations } = useConversations();
 
   if (!session.activation.isActivated) {
     return (
@@ -93,34 +93,9 @@ export function ThreadPlaceholder(): ReactNode {
         </p>
       </header>
 
-      <dl className={s.readout}>
-        <div className={s.metric}>
-          <dt className={s.metricKey}>Anchors scanned</dt>
-          <dd className={s.metricValue}>{formatCount(drops.scanned)}</dd>
-          <dd className={s.metricNote}>this session</dd>
-        </div>
-        <div className={s.metric}>
-          <dt className={s.metricKey}>View-tag hits</dt>
-          <dd className={s.metricValue}>{formatCount(drops.matched)}</dd>
-          <dd className={s.metricNote}>≈1 in 256 by chance</dd>
-        </div>
-        <div className={s.metric}>
-          <dt className={s.metricKey}>Log position</dt>
-          <dd className={s.metricValue}>
-            {formatCount(Math.max(drops.head, drops.scannedSeq))}
-          </dd>
-          <dd className={s.metricNote}>
-            {drops.isBackfilling ? `backfilling from ${formatCount(drops.scannedSeq)}` : 'up to date'}
-          </dd>
-        </div>
-        <div className={s.metric}>
-          <dt className={s.metricKey}>Messages held</dt>
-          <dd className={s.metricValue}>
-            {isHydrated ? formatCount(totalMessages) : '—'}
-          </dd>
-          <dd className={s.metricNote}>on this device only</dd>
-        </div>
-      </dl>
+      {/* A four-cell readout — anchors scanned, view-tag hits, log position,
+          messages held — used to sit here. Every figure was true, and none of
+          it was anyone's reason for opening a messenger. */}
 
       <section className={s.steps} aria-label="How a drop works">
         <span className={s.stepsLabel}>How a drop works</span>
