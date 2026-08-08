@@ -17,12 +17,12 @@ const FIELDS: readonly (keyof Deployment)[] = [
 ];
 
 describe('DEPLOYMENTS', () => {
-  it('has entries for the local chain and Robinhood Chain', () => {
-    expect(Object.keys(DEPLOYMENTS).sort()).toEqual(['31337', '4663']);
+  it('has entries for the local chain, Robinhood Chain and its testnet', () => {
+    expect(Object.keys(DEPLOYMENTS).sort()).toEqual(['31337', '4663', '46630']);
   });
 
   it('exposes exactly the nine contract fields on every entry', () => {
-    for (const chainId of [31337, 4663]) {
+    for (const chainId of [31337, 4663, 46630]) {
       const deployment = DEPLOYMENTS[chainId];
       expect(deployment).toBeDefined();
       expect(Object.keys(deployment ?? {}).sort()).toEqual([...FIELDS].sort());

@@ -1,7 +1,14 @@
 import { cookieStorage, createConfig, createStorage, http } from 'wagmi';
 import { injected } from 'wagmi/connectors';
 
-import { ACTIVE_CHAIN_ID, anvil, robinhoodChain, rpcUrlFor } from '@/lib/chain';
+import {
+  ACTIVE_CHAIN_ID,
+  anvil,
+  robinhoodChain,
+  robinhoodTestnet,
+  rpcUrlFor,
+  SUPPORTED_CHAINS,
+} from '@/lib/chain';
 
 /**
  * Chains, ordered so the build's ACTIVE chain is always first.
@@ -11,11 +18,25 @@ import { ACTIVE_CHAIN_ID, anvil, robinhoodChain, rpcUrlFor } from '@/lib/chain';
  * one. If the active chain were not first, every contract read would be silently discarded for
  * visitors who have not connected — /access would render "price unavailable" while the chain, the
  * contracts and the RPC were all perfectly healthy.
+ *
+ * Written out per active chain rather than derived, because wagmi types `chains` as a tuple of
+ * literal chain types and a `.filter()` widens every member to `Chain`, which it rejects. The
+ * cost of writing it out is that a new chain must be added in each arm — so the assertion below
+ * makes forgetting a compile error instead of the silent read failure described above.
  */
 const CHAINS =
   ACTIVE_CHAIN_ID === robinhoodChain.id
-    ? ([robinhoodChain, anvil] as const)
-    : ([anvil, robinhoodChain] as const);
+    ? ([robinhoodChain, robinhoodTestnet, anvil] as const)
+    : ACTIVE_CHAIN_ID === robinhoodTestnet.id
+      ? ([robinhoodTestnet, robinhoodChain, anvil] as const)
+      : ([anvil, robinhoodChain, robinhoodTestnet] as const);
+
+/** Fails the build if any supported chain is missing from every arm above. */
+type AssertTrue<T extends true> = T;
+type ChainsCoverSupported = AssertTrue<
+  (typeof SUPPORTED_CHAINS)[number]['id'] extends (typeof CHAINS)[number]['id'] ? true : false
+>;
+export type { ChainsCoverSupported };
 
 /**
  * wagmi configuration.
@@ -35,6 +56,7 @@ export const wagmiConfig = createConfig({
   connectors: [injected({ shimDisconnect: true })],
   transports: {
     [robinhoodChain.id]: http(rpcUrlFor(robinhoodChain.id)),
+    [robinhoodTestnet.id]: http(rpcUrlFor(robinhoodTestnet.id)),
     [anvil.id]: http(rpcUrlFor(anvil.id)),
   },
   ssr: true,

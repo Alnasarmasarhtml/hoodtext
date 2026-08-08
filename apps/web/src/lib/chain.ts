@@ -22,6 +22,32 @@ export const robinhoodChain = defineChain({
   testnet: false,
 });
 
+/**
+ * Robinhood Chain testnet — public, operated by Robinhood. Verified live
+ * 2026-08-08: `eth_chainId` → `0xb626`, head block ~98.2M, gas 0.01 gwei.
+ *
+ * This is where a release gets rehearsed. Anvil proves the logic but says
+ * nothing about real gas, sequencer behaviour or RPC reliability, and mainnet
+ * costs real money to get wrong. Gas comes from
+ * `faucet.testnet.chain.robinhood.com`, which is human-gated behind Cloudflare
+ * Turnstile — an account has to be funded by hand before a run.
+ */
+export const robinhoodTestnet = defineChain({
+  id: 46630,
+  name: 'Robinhood Chain Testnet',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://rpc.testnet.chain.robinhood.com'] },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Blockscout',
+      url: 'https://explorer.testnet.chain.robinhood.com',
+    },
+  },
+  testnet: true,
+});
+
 /** Local development chain (SPEC §1). */
 export const anvil = defineChain({
   id: 31337,
@@ -34,7 +60,7 @@ export const anvil = defineChain({
 });
 
 /** Every chain this app will talk to, in priority order. */
-export const SUPPORTED_CHAINS = [robinhoodChain, anvil] as const;
+export const SUPPORTED_CHAINS = [robinhoodChain, robinhoodTestnet, anvil] as const;
 
 export type SupportedChainId = (typeof SUPPORTED_CHAINS)[number]['id'];
 
@@ -66,8 +92,12 @@ export const ACTIVE_CHAIN_ID: SupportedChainId = parseChainId(
 );
 
 /** The chain this build targets. */
-export const activeChain: Chain =
-  ACTIVE_CHAIN_ID === robinhoodChain.id ? robinhoodChain : anvil;
+/* A lookup, not a ternary. While this read `=== robinhood ? robinhood : anvil`
+   any third chain resolved silently to anvil — a build could be configured for
+   the testnet, report the testnet everywhere in the UI, and quietly sign and
+   send against localhost. `chainById` is exhaustive over SUPPORTED_CHAINS, so
+   adding a chain can never reintroduce that. */
+export const activeChain: Chain = chainById(ACTIVE_CHAIN_ID) ?? anvil;
 
 function envRpc(raw: string | undefined, fallback: string): string {
   return raw !== undefined && raw.trim() !== '' ? raw.trim() : fallback;
