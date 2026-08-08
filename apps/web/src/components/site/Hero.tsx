@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 
 import { buttonClassName } from '@/components/ui/Button';
 import { asset } from '@/lib/asset';
+import { ACTIVE_CHAIN_ID } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import { MediaLoop } from './MediaLoop';
 import { TokenMark } from './TokenMark';
@@ -48,18 +49,26 @@ export function Hero(): ReactNode {
 
       <div className={cx('wrap', s.inner)}>
         <div className={s.hudTop} data-reveal>
-          <img
-            className={s.logo}
-            src={asset('/brand/logo-primary.png')}
-            alt="HOODGRAM"
-            width={3383}
-            height={912}
-            decoding="async"
-            fetchPriority="high"
-          />
+          {/* Set, not shipped as a picture. The rendered banner this replaced
+              had the wordmark in it twice — a clean one with a second, garbled
+              one drawn across it — because the generator wrote the letters
+              itself. Real type in the site's own face also stays sharp at every
+              width and costs 2 MB less. */}
+          <div className={s.logo}>
+            <img
+              className={s.logoMark}
+              src={asset('/brand/mark-hg-512.png')}
+              alt=""
+              width={512}
+              height={512}
+              decoding="async"
+              fetchPriority="high"
+            />
+            <span className={s.logoWord}>HOODGRAM</span>
+          </div>
           <p className={s.hudMeta}>
             <span className={s.hudDot} aria-hidden="true" />
-            Chain 4663 · Live
+            Chain {ACTIVE_CHAIN_ID} · Live
           </p>
         </div>
 

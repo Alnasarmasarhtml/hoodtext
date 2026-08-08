@@ -20,17 +20,31 @@ const orbitron = localFont({
 
 import { SignalField } from '@/components/site/SignalField';
 import { SiteHeader } from '@/components/ui/SiteHeader';
+import { asset } from '@/lib/asset';
 import { Providers } from '@/providers';
 import './globals.css';
 
-/* The HoodGram mark on void — a double-notched block with two redacted lines
-   knocked out of it. Same geometry as <LogoMark />, inlined so the tab icon
-   needs no network request. */
-const FAVICON =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2308090A'/%3E%3Cpath fill='%2300C805' fill-rule='evenodd' clip-rule='evenodd' d='M3 3H22L29 10V29H10L3 22ZM9 12.6H23V15.8H9ZM9 18.1H17V21.3H9Z'/%3E%3C/svg%3E";
-
 /** Where the static export is served from; makes the OG image URL absolute. */
 const SITE_URL = 'https://hoodgram.tech/';
+
+/* The rendered platinum HG shield. Three sizes because each is a different
+   drawing problem: 32 keeps only the silhouette, 180 is the iOS home screen,
+   512 is what everything else scales down from. They go through asset() because
+   a relative icon href resolves against the current route — /access/brand/… —
+   and 404s on every page but the root. */
+const ICON_32 = asset('/brand/mark-hg-32.png');
+const ICON_180 = asset('/brand/mark-hg-180.png');
+const ICON_512 = asset('/brand/mark-hg-512.png');
+
+/* What a pasted hoodgram.tech link unfurls into, on X and everywhere else.
+   Client copy, 2026-08-08 — do not paraphrase it. X truncates its card blurb
+   near 200 characters, so the sentence that has to survive alone is first. */
+const SHARE_DESCRIPTION =
+  'HoodGram is an end-to-end encrypted messenger that lives on the open web and settles on Robinhood Chain. Every message becomes a permanent, verifiable anchor on a public network — proof it was sent, readable by no one but the recipient. There is no store to remove it from and no subscription to cancel. You buy in once.';
+
+/* Relative on purpose: metadataBase makes it absolute for the crawler, and the
+   1200×630 is what both X and Open Graph want for a large card. */
+const SHARE_IMAGE = 'brand/og-card.jpg';
 
 /**
  * Content Security Policy, delivered as a <meta> tag.
@@ -56,23 +70,37 @@ const CSP_ORIGINS: readonly string[] = (() => {
   /* Mirrors the fallbacks in lib/relay.ts and lib/chain.ts. Reading the env
      directly rather than importing those modules keeps viem out of this file;
      the values must stay in step, so any change there belongs here too. */
-  const relayHttp = process.env.NEXT_PUBLIC_RELAY_URL?.trim() || 'http://localhost:8787';
+  const relayFallback = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8787';
+  const relayHttp = process.env.NEXT_PUBLIC_RELAY_URL?.trim() || relayFallback;
   const relayWs =
     process.env.NEXT_PUBLIC_RELAY_WS?.trim() ||
-    relayHttp.replace(/^http/, 'ws');
+    (relayHttp === '' ? '' : relayHttp.replace(/^http/, 'ws'));
   const rpc = process.env.NEXT_PUBLIC_RPC_URL?.trim() || '';
 
   const origins = new Set<string>([
     'https://rpc.mainnet.chain.robinhood.com',
     'https://robinhoodchain.blockscout.com',
-    /* the local chain and relay, so a dev build is not silently strangled */
-    'http://127.0.0.1:8545',
-    'http://localhost:8545',
-    'http://127.0.0.1:8787',
-    'http://localhost:8787',
-    'ws://127.0.0.1:8787',
-    'ws://localhost:8787',
   ]);
+
+  /* Loopback is allowed only when this build is actually pointed at a local
+     chain or relay. A production build that also permits connections to
+     127.0.0.1 hands any injected script a free local-port scanner, and the
+     public site has no use for it — but `next build && next start` against
+     anvil does, so the permission follows the configuration rather than being
+     unconditional. */
+  const LOOPBACK = /^(https?|wss?):\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i;
+  if ([relayHttp, relayWs, rpc].some((url) => LOOPBACK.test(url))) {
+    for (const local of [
+      'http://127.0.0.1:8545',
+      'http://localhost:8545',
+      'http://127.0.0.1:8787',
+      'http://localhost:8787',
+      'ws://127.0.0.1:8787',
+      'ws://localhost:8787',
+    ]) {
+      origins.add(local);
+    }
+  }
   for (const url of [relayHttp, relayWs, rpc]) {
     if (url === '') continue;
     try {
@@ -126,23 +154,25 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'HoodGram' }],
   icons: {
-    icon: [{ url: FAVICON, type: 'image/svg+xml' }],
-    shortcut: [{ url: FAVICON, type: 'image/svg+xml' }],
+    icon: [
+      { url: ICON_32, type: 'image/png', sizes: '32x32' },
+      { url: ICON_512, type: 'image/png', sizes: '512x512' },
+    ],
+    shortcut: [{ url: ICON_32, type: 'image/png' }],
+    apple: [{ url: ICON_180, sizes: '180x180' }],
   },
   openGraph: {
     type: 'website',
     siteName: 'HoodGram',
     title: 'HoodGram — pay $5 once, text forever',
-    description:
-      'Message contents are unreadable by anyone but the recipient. Metadata is minimized, not eliminated. $5 activates your account forever; rooms are $10/month paid by their owner; half of every payment is shared with $GRAM holders.',
-    images: [{ url: 'brand/logo-primary.png', width: 3383, height: 912, alt: 'HOODGRAM' }],
+    description: SHARE_DESCRIPTION,
+    images: [{ url: SHARE_IMAGE, width: 1200, height: 630, alt: 'HoodGram' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'HoodGram — pay $5 once, text forever',
-    description:
-      'Pay $5 once in $GRAM. Messages free, forever. Rooms $10/month, members free. 50% of revenue to holders, by holdings, with no staking.',
-    images: ['brand/logo-primary.png'],
+    description: SHARE_DESCRIPTION,
+    images: [SHARE_IMAGE],
   },
   robots: {
     index: true,

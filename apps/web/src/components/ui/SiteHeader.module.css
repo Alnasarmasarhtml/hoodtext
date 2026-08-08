@@ -32,15 +32,19 @@
   outline: none;
 }
 
+/* 24px, not the 17px the flat SVG used: the rendered mark carries bevels and a
+   green inner edge that turn to mush below about 20px. */
 .mark {
   flex: none;
-  color: var(--green);
-  transition: color var(--dur-2) var(--ease);
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: opacity var(--dur-2) var(--ease);
 }
 
 .brand:hover .mark,
 .brand:focus-visible .mark {
-  background-color: var(--muted);
+  opacity: 0.75;
 }
 
 .wordmark {

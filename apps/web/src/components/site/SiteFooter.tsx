@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import { LogoMark } from '@/components/ui/Logo';
+import { asset } from '@/lib/asset';
 import { activeChain } from '@/lib/chain';
-import { RELAY_URL } from '@/lib/relay';
+import { RELAY_IS_PUBLIC, RELAY_URL } from '@/lib/relay';
 import s from './SiteFooter.module.css';
 import { TokenMark } from './TokenMark';
 
@@ -31,7 +31,15 @@ export function SiteFooter(): ReactNode {
       <div className="wrap">
         <div className={s.top}>
           <div className={s.brand}>
-            <LogoMark size={15} className={s.mark} />
+            <img
+              className={s.mark}
+              src={asset('/brand/mark-hg-512.png')}
+              alt=""
+              width={512}
+              height={512}
+              loading="lazy"
+              decoding="async"
+            />
             <span className={s.wordmark}>HOODGRAM</span>
             <p className={s.claim}>
               Only the recipient can read your messages. Every one of them lands on
@@ -63,7 +71,11 @@ export function SiteFooter(): ReactNode {
             </div>
             <div className={s.metaRow}>
               <dt className={s.metaLabel}>Relay</dt>
-              <dd className={s.metaValue}>{RELAY_URL}</dd>
+              {/* Never print the loopback fallback here: on the public site it
+                  reads as a broken deploy, and it is one. */}
+              <dd className={s.metaValue}>
+                {RELAY_IS_PUBLIC ? RELAY_URL : 'not public yet'}
+              </dd>
             </div>
             <div className={s.metaRow}>
               <dt className={s.metaLabel}>Explorer</dt>

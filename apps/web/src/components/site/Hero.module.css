@@ -110,9 +110,34 @@
   gap: var(--sp-5);
 }
 
+/* Sized in em off the wordmark so the mark and the letters scale as one lockup
+   and the old 180–300px footprint is preserved. */
 .logo {
-  width: clamp(180px, 21vw, 300px);
-  height: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42em;
+  min-width: 0;
+  font-size: clamp(22px, 2.6vw, 37px);
+}
+
+.logoMark {
+  flex: none;
+  width: 1.28em;
+  height: 1.28em;
+  object-fit: contain;
+}
+
+.logoWord {
+  font-family: var(--font-sans);
+  font-weight: 900;
+  font-size: 1em;
+  line-height: 1;
+  letter-spacing: 0.045em;
+  color: var(--bone);
+  white-space: nowrap;
+  /* The film behind runs bright in places; a tight shadow keeps the letters
+     off it without putting a plate under the lockup. */
+  text-shadow: 0 2px 18px rgba(5, 6, 7, 0.85);
 }
 
 /* Top right is the one corner the scrim deliberately leaves bright, so this

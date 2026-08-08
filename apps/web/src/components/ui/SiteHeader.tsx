@@ -5,12 +5,12 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useAccount } from 'wagmi';
 
+import { asset } from '@/lib/asset';
 import { ACTIVE_CHAIN_ID, activeChain } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import { truncateAddress } from '@/lib/format';
 import { useConnectSheet } from '@/lib/ui-store';
 import { Button } from './Button';
-import { LogoMark } from './Logo';
 import s from './SiteHeader.module.css';
 
 interface NavItem {
@@ -79,7 +79,17 @@ export function SiteHeader(): ReactNode {
     <header className={s.header}>
       <div className={s.bar}>
         <Link href="/" className={s.brand} aria-label="HoodGram — home">
-          <LogoMark size={17} className={s.mark} />
+          {/* The rendered platinum mark, not the old drawn glyph. It carries
+              real material and a green inner edge, so it needs more than the
+              17px the flat SVG lived at to read at all. */}
+          <img
+            className={s.mark}
+            src={asset('/brand/mark-hg-512.png')}
+            alt=""
+            width={512}
+            height={512}
+            decoding="async"
+          />
           <span className={s.wordmark}>HoodGram</span>
         </Link>
 

@@ -252,8 +252,28 @@ function readEnv(raw: string | undefined, fallback: string): string {
   return raw !== undefined && raw.trim() !== '' ? trimSlash(raw.trim()) : fallback;
 }
 
-/** HTTP origin of the relay, e.g. `http://localhost:8787`. */
-export const RELAY_URL = readEnv(process.env.NEXT_PUBLIC_RELAY_URL, 'http://localhost:8787');
+/**
+ * HTTP origin of the relay, e.g. `http://localhost:8787`.
+ *
+ * The loopback default is a DEVELOPMENT convenience only. It used to apply
+ * everywhere, which meant an unconfigured production build shipped a page that
+ * printed `http://localhost:8787` in its footer and made every visitor's browser
+ * connect to a port on their own machine. A production build with nothing
+ * configured now resolves to the empty string: requests fall back to the site's
+ * own origin and fail cleanly, which is the correct behaviour for "there is no
+ * relay yet".
+ */
+export const RELAY_URL = readEnv(
+  process.env.NEXT_PUBLIC_RELAY_URL,
+  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8787',
+);
+
+/**
+ * Whether `RELAY_URL` names something a stranger could actually reach. Check
+ * this before printing the relay anywhere on a public page.
+ */
+export const RELAY_IS_PUBLIC: boolean =
+  RELAY_URL !== '' && !/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(RELAY_URL);
 
 function defaultWsUrl(httpUrl: string): string {
   if (httpUrl.startsWith('https://')) return `wss://${httpUrl.slice('https://'.length)}/v1/stream`;
