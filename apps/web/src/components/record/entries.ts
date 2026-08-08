@@ -435,5 +435,10 @@ export const COUNTERWEIGHT: readonly Entry[] = [
   },
 ];
 
+/**
+ * Total entries across every section. Nothing renders it since the hero's stats
+ * strip came out — kept because it is derived, so it can never disagree with the
+ * page, and the page description still quotes a number that has to match.
+ */
 export const ENTRY_COUNT: number =
   SECTIONS.reduce((total, section) => total + section.entries.length, 0) + COUNTERWEIGHT.length;

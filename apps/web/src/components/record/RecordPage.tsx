@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { cx } from '@/lib/cx';
-import { COUNTERWEIGHT, ENTRY_COUNT, SECTIONS } from './entries';
+import { COUNTERWEIGHT, SECTIONS } from './entries';
 import type { Entry, EntryKind } from './entries';
 import s from './RecordPage.module.css';
 
@@ -89,25 +89,6 @@ export function RecordPage(): ReactNode {
             measured network block. Each entry says what it does, what it does not do, and links to
             the source so you can read it without us in the way.
           </p>
-
-          <dl className={s.stats}>
-            <div className={s.stat}>
-              <dt className={s.statLabel}>Entries</dt>
-              <dd className={s.statValue}>{ENTRY_COUNT}</dd>
-            </div>
-            <div className={s.stat}>
-              <dt className={s.statLabel}>Jurisdictions</dt>
-              <dd className={s.statValue}>9</dd>
-            </div>
-            <div className={s.stat}>
-              <dt className={s.statLabel}>Compiled</dt>
-              <dd className={s.statValue}>8 Aug 2026</dd>
-            </div>
-            <div className={s.stat}>
-              <dt className={s.statLabel}>Sourced</dt>
-              <dd className={s.statValue}>Every one</dd>
-            </div>
-          </dl>
         </div>
       </section>
 

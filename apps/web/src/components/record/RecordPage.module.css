@@ -9,9 +9,12 @@
 
 /* ── hero ───────────────────────────────────────────────────────────────── */
 
+/* Bottom padding is deliberately shorter than the top: the stats strip that
+   used to close the hero is gone, and keeping its allowance leaves a hole that
+   reads as a deletion rather than as space. */
 .hero {
   position: relative;
-  padding-block: clamp(var(--sp-8), 9vw, var(--sp-10)) clamp(var(--sp-7), 6vw, var(--sp-9));
+  padding-block: clamp(var(--sp-8), 9vw, var(--sp-10)) clamp(var(--sp-6), 4vw, var(--sp-7));
   border-bottom: var(--hair) solid var(--line);
   overflow: hidden;
 }
@@ -62,39 +65,6 @@
   font-size: var(--fs-md);
   line-height: 1.62;
   color: var(--muted);
-}
-
-.stats {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  margin-top: clamp(var(--sp-6), 5vw, var(--sp-8));
-  background-color: var(--line);
-  border: var(--hair) solid var(--line);
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-  padding: var(--sp-4) var(--sp-5);
-  background-color: var(--void);
-}
-
-.statLabel {
-  font-size: var(--fs-micro);
-  letter-spacing: var(--tr-eyebrow);
-  text-transform: uppercase;
-  color: var(--dim);
-}
-
-.statValue {
-  font-size: var(--fs-lg);
-  font-weight: 700;
-  color: var(--bone);
-  font-variant-numeric: tabular-nums;
 }
 
 /* ── how to read this ───────────────────────────────────────────────────── */
@@ -408,10 +378,6 @@
 /* ── wider ──────────────────────────────────────────────────────────────── */
 
 @media (min-width: 700px) {
-  .stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
   .methodGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
