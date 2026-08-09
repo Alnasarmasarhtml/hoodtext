@@ -27,7 +27,7 @@ const NAV: readonly NavItem[] = [
 ];
 
 /** The project's account. Change here and it changes everywhere it appears. */
-const X_URL = 'https://x.com/hoodgram';
+const X_URL = 'https://x.com/rhoodgram';
 
 /** The X glyph, drawn rather than loaded, so the bar needs no icon dependency. */
 function XMark(): ReactNode {
