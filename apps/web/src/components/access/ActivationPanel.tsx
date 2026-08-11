@@ -430,7 +430,6 @@ export function ActivationPanel({
             </div>
             <div className={s.veilLabel}>
               <span className={s.veilTitle}>Payments open at launch</span>
-              <span className={s.veilNote}>The flow is built. The switch is ours.</span>
             </div>
           </div>
         </div>

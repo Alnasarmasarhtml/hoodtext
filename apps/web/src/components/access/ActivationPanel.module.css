@@ -523,8 +523,3 @@
   color: var(--bone);
 }
 
-.veilNote {
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--muted);
-}
