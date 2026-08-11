@@ -112,7 +112,7 @@ export function ThreadPlaceholder(): ReactNode {
 
       <p className={s.footnote}>
         Message contents are unreadable by anyone but the recipients. Metadata is minimized, not
-        eliminated — a global observer still sees that an anchor was posted, and when.
+        eliminated: a global observer still sees that an anchor was posted, and when.
       </p>
     </div>
   );
