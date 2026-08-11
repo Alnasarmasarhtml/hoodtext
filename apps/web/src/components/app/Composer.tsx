@@ -228,7 +228,7 @@ export function Composer({
           onClick={onPickFile}
           disabled={disabled || send.isSending}
           aria-label="Attach an image (encrypted, 4 MB max)"
-          title="Attach an image — encrypted under its own key, 4 MB max"
+          title="Attach an image. Encrypted under its own key, 4 MB max"
         >
           <svg className={s.attachGlyph} viewBox="0 0 20 20" aria-hidden="true">
             <path d="M13.5 6.5 7 13a2.5 2.5 0 0 0 3.5 3.5l6.5-6.5a4.5 4.5 0 0 0-6.4-6.3L4 10.4" />
@@ -290,7 +290,7 @@ export function Composer({
           title={
             selfPost
               ? 'Self-post: your wallet anchors each message (gas only). Click for the free relay path.'
-              : 'Relay path: the relay anchors for you — free, no wallet popup. Click to self-post instead.'
+              : 'Relay path: the relay anchors for you. Free, no wallet popup. Click to self-post instead.'
           }
         >
           <span className={s.pathDot} aria-hidden="true" />

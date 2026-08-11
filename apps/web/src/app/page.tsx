@@ -26,23 +26,23 @@ const NOSCRIPT_REVEAL = '[data-reveal]{opacity:1!important;transform:none!import
  * thing this page must not get wrong.
  */
 const WIRE_LAW: readonly string[] = [
-  "9 JULY 2026 — CHAT CONTROL 1.0 BACK IN FORCE. PARLIAMENT'S REJECTION FAILED: 361 VOTES NEEDED, NOT REACHED.",
+  "9 JULY 2026: CHAT CONTROL 1.0 BACK IN FORCE. PARLIAMENT'S REJECTION FAILED: 361 VOTES NEEDED, NOT REACHED.",
   'UNENCRYPTED MESSAGING MAY NOW BE SCANNED WITHOUT ANY SUSPICION.',
-  'SEPTEMBER 2026 — CSAR RETURNS TO TRILOGUE. THE MANDATORY ONE. THE PERMANENT ONE.',
+  'SEPTEMBER 2026: CSAR RETURNS TO TRILOGUE. THE MANDATORY ONE. THE PERMANENT ONE.',
   'CSAR IS THE VENUE WHERE CLIENT-SIDE SCANNING COULD REACH INSIDE ENCRYPTION.',
   'THEY CARVED OUT ENCRYPTION THIS ROUND. NEXT ROUND STARTS IN SEPTEMBER.',
 ];
 
 const WIRE_ID: readonly string[] = [
-  'UK ONLINE SAFETY ACT — OFCOM MAY ORDER PLATFORMS TO DEPLOY "ACCREDITED TECHNOLOGY" TO SCAN PRIVATE MESSAGES.',
+  'UK ONLINE SAFETY ACT: OFCOM MAY ORDER PLATFORMS TO DEPLOY "ACCREDITED TECHNOLOGY" TO SCAN PRIVATE MESSAGES.',
   '25+ US STATES NOW REQUIRE ID TO ACCESS ORDINARY WEBSITES.',
-  'OCTOBER 2025 — 70,000 ID PHOTOS LEAKED FROM A SINGLE AGE-VERIFICATION BREACH.',
+  'OCTOBER 2025: 70,000 ID PHOTOS LEAKED FROM A SINGLE AGE-VERIFICATION BREACH.',
   'IRELAND OPENED A GOVERNMENT DIGITAL WALLET PILOT IN APRIL 2026.',
   'GOOGLE IS BRINGING DIGITAL ID TO ANDROID IN THE UK.',
 ];
 
 const WIRE_PLATFORM: readonly string[] = [
-  '3–4 AUGUST 2026 — TELEGRAM REMOVED FROM THE APP STORE WORLDWIDE.',
+  '3–4 AUGUST 2026: TELEGRAM REMOVED FROM THE APP STORE WORLDWIDE.',
   "A BILLION-USER MESSENGER VANISHED ON ONE COMPANY'S DECISION.",
   'HOODGRAM IS A WEB APP. THERE IS NO STORE TO REMOVE IT FROM.',
 ];
@@ -63,17 +63,17 @@ export default function HomePage(): ReactNode {
         {/* 01 — full-viewport hero under the rain */}
         <Hero />
 
-        <NewsTicker items={WIRE_LAW} ariaLabel="The record — EU scanning law" />
+        <NewsTicker items={WIRE_LAW} ariaLabel="The record. EU scanning law" />
 
         {/* 02 — the whole product, over the crowd */}
         <WhatThisIs />
 
-        <NewsTicker items={WIRE_ID} ariaLabel="The record — identity checks and their leaks" />
+        <NewsTicker items={WIRE_ID} ariaLabel="The record. Identity checks and their leaks" />
 
         {/* 03 — the encryption, text left / cage right */}
         <Encryption />
 
-        <NewsTicker items={WIRE_PLATFORM} ariaLabel="The record — platform removals" />
+        <NewsTicker items={WIRE_PLATFORM} ariaLabel="The record. Platform removals" />
 
         {/* 04 — the procession, one line and the CTA */}
         <Procession />

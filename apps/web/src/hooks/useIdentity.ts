@@ -234,7 +234,7 @@ export function useIdentity(): UseIdentityResult {
           isDomainChainMismatch(signError)
             ? `Your wallet refused to sign because it is on chain ${String(chainId ?? 'unknown')}, ` +
               `while HoodGram identities are always derived on chain ${String(IDENTITY_DOMAIN.chainId)}. ` +
-              'This is deliberate — an identity must not change when you switch networks. Switch your wallet to Robinhood Chain.'
+              'This is deliberate. An identity must not change when you switch networks. Switch your wallet to Robinhood Chain.'
             : describeChainError(signError, 'The identity signature was not completed.'),
         );
       } finally {

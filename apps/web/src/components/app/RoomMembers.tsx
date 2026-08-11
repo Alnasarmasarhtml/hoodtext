@@ -126,7 +126,7 @@ export function RoomMembers({ room, chain, className }: RoomMembersProps): React
       if (demo) {
         /* Simulated: adding wraps + delivers the room key in the live app. */
         setDemoNote(
-          'Simulated — in the live app this wraps the room key to their registered key and delivers it inside an encrypted drop.',
+          'Simulated. In the live app this wraps the room key to their registered key and delivers it inside an encrypted drop.',
         );
         return;
       }
@@ -149,7 +149,7 @@ export function RoomMembers({ room, chain, className }: RoomMembersProps): React
       if (demo) {
         /* Simulated: removal rotates the epoch on chain in the live app. */
         setDemoNote(
-          'Simulated — in the live app removing a member mints a fresh key and rotates the epoch on chain.',
+          'Simulated. In the live app removing a member mints a fresh key and rotates the epoch on chain.',
         );
         return;
       }

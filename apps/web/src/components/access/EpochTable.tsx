@@ -133,10 +133,10 @@ export function EpochTable({
     : !dueByTime
       ? 'Epochs are at least 7 days apart. Sealing opens when the countdown reaches zero.'
       : !isConnected
-        ? 'Connect a wallet to send the transaction. Any address may seal — it does not have to be yours.'
+        ? 'Connect a wallet to send the transaction. Any address may seal. It does not have to be yours.'
         : wrongNetwork
           ? 'Switch to Robinhood Chain to send the transaction.'
-          : 'Ready. Anyone may seal — it costs only gas and pays the caller nothing.';
+          : 'Ready. Anyone may seal. It costs only gas and pays the caller nothing.';
 
   return (
     <Panel as="section" tone="raised" notch="tr" className={s.panel}>
@@ -308,7 +308,7 @@ export function EpochTable({
         <p className={s.footText}>
           A share is fixed the moment an epoch seals: it depends only on your $GRAM
           balance at the snapshot block. Buying after the snapshot earns nothing from that
-          epoch; selling after it changes nothing — the share is still yours.
+          epoch; selling after it changes nothing. The share is still yours.
         </p>
         {vault.claimWindowSeconds !== null && (
           <p className={s.footText}>

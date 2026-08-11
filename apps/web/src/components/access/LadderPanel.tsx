@@ -27,6 +27,7 @@ import { useConnectSheet } from '@/lib/ui-store';
 import { Button, Eyebrow, Panel, PanelHeader } from '@/components/ui';
 import { EmptyState } from './Notice';
 import type { PerksState } from './use-access-data';
+import { PRELAUNCH } from '@/lib/launch';
 import s from './LadderPanel.module.css';
 
 export interface LadderPanelProps {
@@ -105,10 +106,24 @@ export function LadderPanel({
 }: LadderPanelProps): ReactNode {
   const openWallet = useConnectSheet((state) => state.open);
 
+  if (PRELAUNCH && !demo) {
+    return (
+      <Panel as="section" tone="raised" notch="tr" className={s.panel}>
+        <PanelHeader label="Status ladder" note="Status and capacity, never money" />
+        <EmptyState
+          eyebrow="At launch"
+          title="Four rungs, judged on holdings"
+          body="Resident, Block Captain, District and Kingpin. Each is read from how much $GRAM an address holds at the revenue snapshots. Tiers unlock shorter handles and bigger rooms. The revenue share itself needs no tier at all."
+          mark={false}
+        />
+      </Panel>
+    );
+  }
+
   if (!demo && (!isConnected || wrongNetwork || contracts === null)) {
     return (
       <Panel as="section" tone="raised" notch="tr" className={s.panel}>
-        <PanelHeader label="Status ladder" note="Status and capacity — never money" />
+        <PanelHeader label="Status ladder" note="Status and capacity. Never money" />
         <EmptyState
           eyebrow={
             contracts === null ? 'Not deployed' : wrongNetwork ? 'Wrong network' : 'Not connected'
@@ -125,7 +140,7 @@ export function LadderPanel({
               ? 'This build has no Perks address for the active chain.'
               : wrongNetwork
                 ? 'The ladder lives on Robinhood Chain. Your wallet is pointed somewhere else.'
-                : 'Four rungs, judged purely on how much $GRAM you hold — the revenue share itself needs no tier at all.'
+                : 'Four rungs, judged purely on how much $GRAM you hold. The revenue share itself needs no tier at all.'
           }
           action={
             contracts !== null && !wrongNetwork ? (
@@ -147,7 +162,7 @@ export function LadderPanel({
 
   return (
     <Panel as="section" tone="raised" notch="tr" className={s.panel} highlight>
-      <PanelHeader label="Status ladder" note="Status and capacity — never money" />
+      <PanelHeader label="Status ladder" note="Status and capacity. Never money" />
 
       <div className={s.body}>
         <div className={s.rank}>

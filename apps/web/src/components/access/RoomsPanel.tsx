@@ -38,6 +38,7 @@ import {
 } from '@/components/ui';
 import { DemoNote } from './Demo';
 import { demoRoomName } from './demo-state';
+import { PRELAUNCH } from '@/lib/launch';
 import { EmptyState, Notice } from './Notice';
 import { useTxState } from './use-tx';
 import {
@@ -150,7 +151,7 @@ function RoomCard({
       toast.push({
         kind: 'success',
         title: 'Approved',
-        body: `The room registry may now move ${formatToken(quote, { digits: 2, symbol: 'GRAM' })} — and not a wei more.`,
+        body: `The room registry may now move ${formatToken(quote, { digits: 2, symbol: 'GRAM' })}. And not a wei more.`,
       });
     }
   }, [approveTx, contracts, demo, onRefresh, quote, toast, writeContractAsync]);
@@ -176,7 +177,7 @@ function RoomCard({
         kind: 'success',
         title: lapsed ? 'Room reopened' : 'Rent paid',
         body: `${settledMonths} ${settledMonths === 1 ? 'month' : 'months'} added. ${
-          lapsed ? 'New messages flow again — nothing was ever deleted.' : 'The clock extends from the current paid-until date.'
+          lapsed ? 'New messages flow again. Nothing was ever deleted.' : 'The clock extends from the current paid-until date.'
         }`,
       });
     }
@@ -204,7 +205,7 @@ function RoomCard({
         kind: 'success',
         title: next ? 'Auto-renew on' : 'Auto-renew off',
         body: next
-          ? 'Inside the last 3 days of the term, anyone can buy this room 1 month — funded only by your own allowance.'
+          ? 'Inside the last 3 days of the term, anyone can buy this room 1 month. Funded only by your own allowance.'
           : 'Nothing else changed. The room keeps whatever time it has.',
       });
     }
@@ -241,7 +242,7 @@ function RoomCard({
           )}
           <span className={s.roomUntilNote}>
             {lapsed
-              ? 'new messages blocked — history and admin survive'
+              ? 'new messages blocked. History and admin survive'
               : formatDateTime(room.paidUntil)}
           </span>
         </div>
@@ -250,7 +251,7 @@ function RoomCard({
       {lapsed && (
         <Notice
           tone="warn"
-          title="Rent lapsed — nothing was deleted"
+          title="Rent lapsed. Nothing was deleted"
           body="Members, history and your admin role are all intact. Paying any number of months below reopens the room the same second."
         />
       )}
@@ -360,7 +361,7 @@ function RoomCard({
         <Notice
           tone="ok"
           title="Rent anchored"
-          body="The payment is confirmed on chain — half of it is already set aside for holders."
+          body="The payment is confirmed on chain. Half of it is already set aside for holders."
           action={
             <a
               className={s.txLink}
@@ -437,6 +438,20 @@ export function RoomsPanel({
 
   /* ── states with nothing to show ─────────────────────────────────────── */
 
+  if (PRELAUNCH && !demo) {
+    return (
+      <Panel as="section" tone="raised" notch="tr" className={s.panel}>
+        <PanelHeader label="Your rooms" note="$10/month each, paid by whoever runs the room" />
+        <EmptyState
+          eyebrow="At launch"
+          title="Rooms open with the launch"
+          body="A room is a group with rent: $10 a month, fixed in dollars on chain and paid in $GRAM by whoever runs it. Members never pay. If the rent lapses the history stays readable and anyone can pay to reopen it."
+          mark={false}
+        />
+      </Panel>
+    );
+  }
+
   if (!demo && (!isConnected || wrongNetwork || contracts === null)) {
     return (
       <Panel as="section" tone="raised" notch="tr" className={s.panel}>
@@ -457,7 +472,7 @@ export function RoomsPanel({
               ? 'This build has no GroupRegistry address for the active chain.'
               : wrongNetwork
                 ? 'Rooms live on Robinhood Chain. Your wallet is pointed somewhere else.'
-                : 'Rooms you admin are found from the chain itself — GroupCreated and AdminTransferred events against your address. Members always ride free.'
+                : 'Rooms you admin are found from the chain itself. GroupCreated and AdminTransferred events against your address. Members always ride free.'
           }
           action={
             contracts !== null && !wrongNetwork ? (
@@ -479,7 +494,7 @@ export function RoomsPanel({
     <Panel as="section" tone="raised" notch="tr" className={s.panel} highlight>
       <PanelHeader
         label="Your rooms"
-        note="$10/month each, paid by whoever runs the room — members free"
+        note="$10/month each, paid by whoever runs the room. Members free"
         aside={
           count > 0 ? (
             <span className={s.count}>{`${count} ${count === 1 ? 'room' : 'rooms'}`}</span>
@@ -505,7 +520,7 @@ export function RoomsPanel({
       ) : count === 0 ? (
         <EmptyState
           eyebrow="No rooms"
-          title="No rooms yet — open one from the app"
+          title="No rooms yet. Open one from the app"
           body="Creating a room happens in the messenger. Whoever opens it pays its $10/month rent here; everyone they invite rides free, forever."
         />
       ) : (
@@ -531,7 +546,7 @@ export function RoomsPanel({
             <div className={s.allowanceText}>
               <Eyebrow>Renewal allowance</Eyebrow>
               <p className={s.allowanceCopy}>
-                Auto-renew is funded <strong>only</strong> by this allowance — approve the
+                Auto-renew is funded <strong>only</strong> by this allowance. Approve the
                 registry for about a month of rent and anyone can renew you inside the
                 3-day window. It can never move money you did not approve. Setting it to
                 zero stops every renewal, whatever the toggles say.
@@ -599,7 +614,7 @@ export function RoomsPanel({
 
           <div className={s.foot}>
             <p className={s.footText}>
-              Anyone may pay any room&apos;s rent — <code className={s.code}>payRent</code>{' '}
+              Anyone may pay any room&apos;s rent. <code className={s.code}>payRent</code>{' '}
               is permissionless, and paying grants no control over the room. Rent lapse
               blocks new messages only; history, membership and the admin role survive,
               and paying reopens the room exactly as it was.

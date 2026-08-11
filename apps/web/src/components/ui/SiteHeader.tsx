@@ -79,7 +79,7 @@ export function SiteHeader(): ReactNode {
   return (
     <header className={s.header}>
       <div className={s.bar}>
-        <Link href="/" className={s.brand} aria-label="HoodGram — home">
+        <Link href="/" className={s.brand} aria-label="HoodGram home">
           {/* The hooded mark (client, 9 Aug 2026). Portrait, so it is sized by
               height and the width follows — a square box would either crop the
               hood or shrink it. */}

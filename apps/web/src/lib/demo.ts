@@ -144,13 +144,13 @@ export const DEMO_CONVERSATIONS: readonly DemoConversation[] = [
     peer: DAVE,
     messages: [
       { id: 'dm-d1', sender: DAVE, kind: 'text', body: 'ok i paid the $5. that was the whole onboarding??', agoMs: 42 * MIN },
-      { id: 'dm-d2', sender: ME, kind: 'text', body: 'that was it. account exists forever now — nothing renews, nothing expires.', agoMs: 41 * MIN },
+      { id: 'dm-d2', sender: ME, kind: 'text', body: 'that was it. account exists forever now. Nothing renews, nothing expires.', agoMs: 41 * MIN },
       { id: 'dm-d3', sender: DAVE, kind: 'text', body: 'and sending is actually free? no gas popup?', agoMs: 40 * MIN },
       {
         id: 'dm-d4',
         sender: ME,
         kind: 'text',
-        body: 'relay posts it on chain for you. you sign with your identity key, not your wallet — your address never even appears on chain.',
+        body: 'relay posts it on chain for you. you sign with your identity key, not your wallet. Your address never even appears on chain.',
         agoMs: 39 * MIN,
         reactions: [{ emoji: '🔥', from: [DAVE] }],
       },
@@ -159,7 +159,7 @@ export const DEMO_CONVERSATIONS: readonly DemoConversation[] = [
         id: 'dm-d6',
         sender: ME,
         kind: 'text',
-        body: 'holder ladder. hold 0.25% of supply through a weekly snapshot and you rank DISTRICT — badge, 3-char handle, early features. cz is KINGPIN, that’s why his handle is two letters.',
+        body: 'holder ladder. hold 0.25% of supply through a weekly snapshot and you rank DISTRICT. Badge, 3-char handle, early features. cz is KINGPIN, that’s why his handle is two letters.',
         agoMs: 11 * MIN,
         re: 'dm-d5',
       },
@@ -171,7 +171,7 @@ export const DEMO_CONVERSATIONS: readonly DemoConversation[] = [
     peer: PLUMBOB,
     messages: [
       { id: 'dm-p1', sender: PLUMBOB, kind: 'text', body: 'boardroom rent is covered til next month btw', agoMs: 26 * HOUR },
-      { id: 'dm-p2', sender: ME, kind: 'text', body: 'saw it — $10 and the whole room rides free. best deal in crypto', agoMs: 26 * HOUR + -2 * MIN },
+      { id: 'dm-p2', sender: ME, kind: 'text', body: 'saw it. $10 and the whole room rides free. best deal in crypto', agoMs: 26 * HOUR + -2 * MIN },
       {
         id: 'dm-p3',
         sender: PLUMBOB,
@@ -190,7 +190,7 @@ export const DEMO_CONVERSATIONS: readonly DemoConversation[] = [
         id: 'dm-p4',
         sender: ME,
         kind: 'text',
-        body: 'encrypted end to end and it still loads instantly. media keys travel inside the envelope — relay only ever sees noise.',
+        body: 'encrypted end to end and it still loads instantly. media keys travel inside the envelope. Relay only ever sees noise.',
         agoMs: 3 * HOUR + -4 * MIN,
         re: 'dm-p3',
       },
@@ -230,20 +230,20 @@ export const DEMO_ROOMS: readonly DemoRoom[] = [
     paidForMs: 23 * 24 * HOUR + 6 * HOUR,
     autoRenew: true,
     messages: [
-      { id: 'rm-b0', sender: ME, kind: 'system', body: '@degen_dave was added — room key delivered, epoch 4', agoMs: 5 * HOUR },
+      { id: 'rm-b0', sender: ME, kind: 'system', body: '@degen_dave was added. Room key delivered, epoch 4', agoMs: 5 * HOUR },
       { id: 'rm-b1', sender: CZ, kind: 'text', body: 'volume on the pair tripled since thursday. holders half of the vault is filling faster than the seal cadence', agoMs: 4 * HOUR },
       {
         id: 'rm-b2',
         sender: MERCURY,
         kind: 'text',
-        body: 'weekly seal is permissionless — i’ll fire it the second the interval clears',
+        body: 'weekly seal is permissionless. I’ll fire it the second the interval clears',
         agoMs: 4 * HOUR + -6 * MIN,
         re: 'rm-b1',
         reactions: [{ emoji: '👍', from: [ME, CZ, PLUMBOB] }],
       },
-      { id: 'rm-b3', sender: PLUMBOB, kind: 'text', body: 'press kit rooms open next week. every KOL gets one — $10 covers their whole audience, members ride free', agoMs: 2 * HOUR },
+      { id: 'rm-b3', sender: PLUMBOB, kind: 'text', body: 'press kit rooms open next week. every KOL gets one. $10 covers their whole audience, members ride free', agoMs: 2 * HOUR },
       { id: 'rm-b4', sender: DAVE, kind: 'text', body: 'first day here and the whale has a two letter name. immaculate vibes', agoMs: 31 * MIN, reactions: [{ emoji: '🔥', from: [CZ] }] },
-      { id: 'rm-b5', sender: ME, kind: 'text', body: 'rent’s paid 23 days out and auto-renew is armed — this room isn’t going anywhere', agoMs: 8 * MIN },
+      { id: 'rm-b5', sender: ME, kind: 'text', body: 'rent’s paid 23 days out and auto-renew is armed. This room isn’t going anywhere', agoMs: 8 * MIN },
     ],
   },
   {
@@ -256,7 +256,7 @@ export const DEMO_ROOMS: readonly DemoRoom[] = [
     messages: [
       { id: 'rm-n1', sender: MERCURY, kind: 'text', body: 'gm to everyone who anchors at 4am', agoMs: 4 * 24 * HOUR },
       { id: 'rm-n2', sender: PLUMBOB, kind: 'text', body: 'rent runs out tomorrow, deciding if the night shift lives on', agoMs: 4 * 24 * HOUR + -20 * MIN },
-      { id: 'rm-n3', sender: ME, kind: 'system', body: 'Rent lapsed. History and membership survive — new messages pause until anyone pays.', agoMs: 3 * 24 * HOUR },
+      { id: 'rm-n3', sender: ME, kind: 'system', body: 'Rent lapsed. History and membership survive. New messages pause until anyone pays.', agoMs: 3 * 24 * HOUR },
     ],
   },
 ] as const;
@@ -289,4 +289,4 @@ export const DEMO_ACCESS = {
 
 /** One line, shown on every demo surface. Honesty is part of the design. */
 export const DEMO_BANNER_COPY =
-  'SIMULATED DATA — this is the real interface with a fixture world. The live app works exactly like this: $5 once, then it’s yours.';
+  'SIMULATED DATA. This is the real interface with a fixture world. The live app works exactly like this: $5 once, then it’s yours.';

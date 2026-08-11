@@ -20,6 +20,7 @@ import { cx } from '@/lib/cx';
 import { formatBps, formatCount, formatToken } from '@/lib/format';
 import { useConnectSheet } from '@/lib/ui-store';
 import { Button, Eyebrow, Panel, PanelHeader, Stat, useToast } from '@/components/ui';
+import { PRELAUNCH } from '@/lib/launch';
 import { EmptyState, Notice } from './Notice';
 import { useTxState } from './use-tx';
 import type {
@@ -104,7 +105,7 @@ export function HolderRevenuePanel({
       onDemoClaimAll?.();
       toast.push({
         kind: 'success',
-        title: 'Claimed — simulated',
+        title: 'Claimed. Simulated',
         body: `${formatToken(claimable, { digits: 2, symbol: 'GRAM' })} across ${formatCount(batch.length)} ${batch.length === 1 ? 'epoch' : 'epochs'}. In the live app this is one claimMany() transaction, straight to your wallet.`,
       });
       return;
@@ -134,12 +135,21 @@ export function HolderRevenuePanel({
 
   let claimBody: ReactNode;
 
-  if (!isConnected) {
+  if (PRELAUNCH && !demo) {
+    claimBody = (
+      <EmptyState
+        eyebrow="At launch"
+        title="Claims open with the first epoch"
+        body="Your share is computed from your own $GRAM balance at each weekly snapshot. Nothing to deposit and nothing to opt into. Hold before a snapshot and the claim is already yours."
+        mark={false}
+      />
+    );
+  } else if (!isConnected) {
     claimBody = (
       <EmptyState
         eyebrow="Not connected"
         title="Connect to see your share"
-        body="Your share is computed from your own $GRAM balance at each snapshot block. Nothing to deposit, nothing to opt into — connect and it is already calculated."
+        body="Your share is computed from your own $GRAM balance at each snapshot block. Nothing to deposit, nothing to opt into. Connect and it is already calculated."
         action={
           <Button
             variant="primary"
@@ -200,7 +210,7 @@ export function HolderRevenuePanel({
           size="lg"
           hint={`Across ${formatCount(epochs.claimableIds.length)} ${
             epochs.claimableIds.length === 1 ? 'epoch' : 'epochs'
-          } — one transaction takes all of it.`}
+          }. One transaction takes all of it.`}
         />
 
         <Button
@@ -217,7 +227,7 @@ export function HolderRevenuePanel({
 
         {remainder > 0 && (
           <p className={s.claimNote}>
-            {`Claiming the ${MAX_CLAIM_BATCH} most recent epochs in this transaction. ${formatCount(remainder)} older ${remainder === 1 ? 'epoch remains' : 'epochs remain'} — claim again afterwards.`}
+            {`Claiming the ${MAX_CLAIM_BATCH} most recent epochs in this transaction. ${formatCount(remainder)} older ${remainder === 1 ? 'epoch remains' : 'epochs remain'}. Claim again afterwards.`}
           </p>
         )}
       </div>
@@ -248,7 +258,7 @@ export function HolderRevenuePanel({
           </h2>
           <p className={s.heroBody}>
             Every $5 activation and every $10 of room rent. Not to a staking pool, not
-            to anyone who locked tokens up — to whoever held $GRAM in their own wallet
+            to anyone who locked tokens up. To whoever held $GRAM in their own wallet
             at the moment an epoch was snapshotted, read straight off the token&apos;s
             balance checkpoints.
           </p>
@@ -304,7 +314,7 @@ export function HolderRevenuePanel({
                   hint={
                     totals === undefined
                       ? 'reading…'
-                      : `${formatCount(totals.entries.length)} ${totals.entries.length === 1 ? 'payment' : 'payments'} — activations and rents`
+                      : `${formatCount(totals.entries.length)} ${totals.entries.length === 1 ? 'payment' : 'payments'}. Activations and rents`
                   }
                 />
                 <Stat

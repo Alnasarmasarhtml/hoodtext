@@ -15,7 +15,7 @@ const POINTS: readonly Point[] = [
     term: 'Sealed end-to-end',
     detail:
       'Keys are generated on your device and never leave it. Every message is sealed to the ' +
-      'recipient’s registered key before anything touches the network — there is no server-side ' +
+      'recipient’s registered key before anything touches the network. There is no server-side ' +
       'plaintext, because there is no plaintext anywhere but the two ends.',
   },
   {
@@ -27,7 +27,7 @@ const POINTS: readonly Point[] = [
   {
     term: 'No address on the envelope',
     detail:
-      'Recipients find their mail by scanning view tags — a cryptographic “possibly for me” — ' +
+      'Recipients find their mail by scanning view tags, a cryptographic “possibly for me”, ' +
       'so no recipient address ever appears on chain. The chain sees sealed envelopes arriving; ' +
       'it never sees for whom.',
   },
@@ -42,7 +42,7 @@ const POINTS: readonly Point[] = [
     term: 'Which is why the exit exists',
     detail:
       'Self-posting on chain is permissionless, costs about a cent, and works forever. If every ' +
-      'relay on earth refused you — including ours — your messages still go through. Even we ' +
+      'relay on earth refused you, including ours, your messages still go through. Even we ' +
       'cannot silence you.',
   },
 ];
@@ -57,7 +57,7 @@ export function Encryption(): ReactNode {
     <section className={s.section} id="seal">
       <div className={cx('wrap', s.inner)}>
         <div className={s.fileRow} data-reveal>
-          <span>File 03 — The seal</span>
+          <span>File 03 · The seal</span>
           <span className={s.fileRule} aria-hidden="true" />
           <span>E2E · padded · unaddressed</span>
         </div>
@@ -86,7 +86,7 @@ export function Encryption(): ReactNode {
                 </div>
               </div>
               <figcaption className={s.caption}>
-                <span className={s.figLabel}>Fig. 01</span> The envelope — structure visible,
+                <span className={s.figLabel}>Fig. 01</span> The envelope. Structure visible,
                 contents not.
               </figcaption>
             </figure>
@@ -94,7 +94,7 @@ export function Encryption(): ReactNode {
             {/* A diptych, not one frame: the argument is a before/after, and two
                 panels side by side hold far more detail at this size than one
                 wide frame trying to carry both halves. Both loops close on
-                their own opening frame, so `loop` alone is seamless — nothing
+                their own opening frame, so `loop` alone is seamless. Nothing
                 here may add a fade. */}
             <figure className={s.fig} data-reveal>
               <div className={s.plates}>

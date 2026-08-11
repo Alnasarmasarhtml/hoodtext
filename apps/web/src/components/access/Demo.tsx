@@ -47,7 +47,7 @@ export interface DemoNoteProps {
 export function DemoNote({ children, className }: DemoNoteProps): ReactNode {
   return (
     <p className={className === undefined ? s.note : `${s.note} ${className}`} role="status">
-      {children ?? 'Simulated — in the live app this is an on-chain transaction.'}
+      {children ?? 'Simulated. In the live app this is an on-chain transaction.'}
     </p>
   );
 }

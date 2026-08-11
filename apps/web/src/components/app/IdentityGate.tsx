@@ -132,7 +132,7 @@ function copyFor(status: IdentityStatus, isRotation: boolean): Copy {
             eyebrow: 'Step 3 of 3 · Publish',
             title: 'Publish your public keys.',
             lede:
-              'One transaction writes your two public keys to KeyRegistry so other people can encrypt to you. Registration is free of any payment — you can receive before you have ever paid.',
+              'One transaction writes your two public keys to KeyRegistry so other people can encrypt to you. Registration is free of any payment. You can receive before you have ever paid.',
           };
     default:
       return {
@@ -248,10 +248,10 @@ export function IdentityGate({ identity, className }: IdentityGateProps): ReactN
                 <span className={s.stepMark} aria-hidden="true" />
                 <span className="sr-only">
                   {state === 'done'
-                    ? ' — done'
+                    ? '. Done'
                     : state === 'active'
-                      ? ' — current step'
-                      : ' — not started'}
+                      ? '. Current step'
+                      : '. Not started'}
                 </span>
               </li>
             );
@@ -306,7 +306,7 @@ export function IdentityGate({ identity, className }: IdentityGateProps): ReactN
             {action}
             <p className={s.actionNote}>
               {identity.status === 'unregistered' || identity.status === 'registering'
-                ? 'Gas only — KeyRegistry charges nothing and needs no activation.'
+                ? 'Gas only. KeyRegistry charges nothing and needs no activation.'
                 : 'Your private keys never leave this device. They live in IndexedDB, keyed by address, and are wiped the moment you disconnect.'}
             </p>
           </div>

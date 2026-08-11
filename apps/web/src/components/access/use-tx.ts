@@ -91,7 +91,7 @@ export function useTxState(): TxState {
             kind: 'network',
             title: 'Sent, but not confirmed here',
             detail:
-              'The transaction was submitted. This build has no read endpoint for the chain, so its receipt could not be verified — check the explorer.',
+              'The transaction was submitted. This build has no read endpoint for the chain, so its receipt could not be verified. Check the explorer.',
             revertName: null,
           });
           setPhase('error');

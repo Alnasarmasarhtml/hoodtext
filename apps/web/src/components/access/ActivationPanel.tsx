@@ -24,6 +24,7 @@ import { activationAbi, hoodGramTokenAbi, PRICES } from '@/lib/abi';
 import type { ContractAddresses } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import { formatDate, formatToken, formatUsd18, truncateAddress } from '@/lib/format';
+import { PRELAUNCH } from '@/lib/launch';
 import { useConnectSheet } from '@/lib/ui-store';
 import { Button, Eyebrow, Field, Panel, PanelHeader, useToast } from '@/components/ui';
 import { DemoNote } from './Demo';
@@ -141,7 +142,7 @@ export function ActivationPanel({
       toast.push({
         kind: 'success',
         title: 'Approved',
-        body: `The Activation contract may now move ${formatToken(quote, { digits: 2, symbol: 'GRAM' })} — and not a wei more.`,
+        body: `The Activation contract may now move ${formatToken(quote, { digits: 2, symbol: 'GRAM' })}. And not a wei more.`,
       });
     }
   }, [approveTx, contracts, onRefresh, quote, toast, writeContractAsync]);
@@ -258,7 +259,7 @@ export function ActivationPanel({
       </div>
 
       <p className={s.sponsorCopy}>
-        <code className={s.code}>activateFor(them)</code> — you pay the same $5 once,
+        <code className={s.code}>activateFor(them)</code>. You pay the same $5 once,
         they own the account forever. Nothing about it points back to you afterwards.
       </p>
 
@@ -273,10 +274,10 @@ export function ActivationPanel({
           error={friendError}
           hint={
             friendIsSelf
-              ? 'That is your own address — use the activate flow above.'
+              ? 'That is your own address. Use the activate flow above.'
               : friendActivated && friend !== null
                 ? `${truncateAddress(friend)} is already activated. Nothing to pay.`
-                : 'Any address — it does not need to have used HoodGram before.'
+                : 'Any address. It does not need to have used HoodGram before.'
           }
           disabled={!isConnected || wrongNetwork}
           spellCheck={false}
@@ -335,7 +336,7 @@ export function ActivationPanel({
           body={
             friend === null
               ? 'The sponsored activation is confirmed on chain.'
-              : `${truncateAddress(friend)} is activated forever — confirmed on chain.`
+              : `${truncateAddress(friend)} is activated forever. Confirmed on chain.`
           }
           action={
             sponsorTx.explorerUrl === null ? undefined : (
@@ -353,6 +354,89 @@ export function ActivationPanel({
       )}
     </div>
   );
+
+  /* ── pre-launch: the real buy flow, veiled ───────────────────────────── */
+
+  if (PRELAUNCH && !demo) {
+    return (
+      <Panel as="section" tone="raised" notch="tr" className={s.panel} highlight>
+        <PanelHeader
+          label="Activation"
+          note="One payment, once, ever"
+          aside={
+            <span className={s.soonBadge}>
+              <span className={s.soonDot} aria-hidden="true" />
+              Opens at launch
+            </span>
+          }
+        />
+
+        <div className={s.body}>
+          <div className={s.pitch}>
+            <span className={s.price}>{`$${PRICES.activationUsd}`}</span>
+            <div className={s.pitchText}>
+              <span className={s.pitchLead}>Once. Forever.</span>
+              <p className={s.pitchCopy}>
+                One payment in <span className={s.wordmark}>$GRAM</span> and your account
+                exists permanently. It is also the spam wall: every account on HoodGram
+                cost somebody five dollars, so there are no bot floods to wade through.
+              </p>
+            </div>
+          </div>
+
+          <div className={s.mechanism}>
+            <span className={s.mechanismTitle}>How the payment works</span>
+            <p className={s.mechanismCopy}>
+              The price is fixed at ${PRICES.activationUsd} in the contract, not in
+              $GRAM. When you pay, the contract reads the live rate on chain and takes
+              exactly five dollars&apos; worth of $GRAM at that moment. The token can
+              move all it likes; what you pay does not. That is why no $GRAM amount is
+              printed here: the number does not exist until the second you sign.
+            </p>
+          </div>
+
+          {/* The real two-step flow, visible so the shape of paying is clear,
+              veiled because there is nothing to pay yet. */}
+          <div className={s.veilWrap}>
+            <div className={s.veiled} aria-hidden="true">
+              <ol className={s.steps}>
+                <li className={s.step} data-state="current">
+                  <span className={s.stepIndex}>1</span>
+                  <div className={s.stepBody}>
+                    <span className={s.stepTitle}>Approve $GRAM</span>
+                    <span className={s.stepNote}>
+                      One-off permission for the Activation contract to move the quoted
+                      amount.
+                    </span>
+                  </div>
+                  <Button className={s.stepAction} variant="primary" disabled>
+                    Approve
+                  </Button>
+                </li>
+                <li className={s.step} data-state="todo">
+                  <span className={s.stepIndex}>2</span>
+                  <div className={s.stepBody}>
+                    <span className={s.stepTitle}>Activate</span>
+                    <span className={s.stepNote}>
+                      Pays the quote in $GRAM. All of it goes to the vault, where half
+                      is set aside for holders.
+                    </span>
+                  </div>
+                  <Button className={s.stepAction} variant="primary" disabled>
+                    Activate
+                  </Button>
+                </li>
+              </ol>
+            </div>
+            <div className={s.veilLabel}>
+              <span className={s.veilTitle}>Payments open at launch</span>
+              <span className={s.veilNote}>The flow is built. The switch is ours.</span>
+            </div>
+          </div>
+        </div>
+      </Panel>
+    );
+  }
 
   /* ── activated: the permanent state ──────────────────────────────────── */
 
@@ -375,7 +459,7 @@ export function ActivationPanel({
             <span className={s.doneTitle}>
               ACTIVATED
               {activation.activatedAt > 0n && (
-                <span className={s.doneDate}>{` — ${formatDate(activation.activatedAt)}`}</span>
+                <span className={s.doneDate}>{` · ${formatDate(activation.activatedAt)}`}</span>
               )}
               .
             </span>
@@ -442,7 +526,7 @@ export function ActivationPanel({
           <LedgerRow
             label="Price"
             value={usd === null ? `$${PRICES.activationUsd}.00` : formatUsd18(usd)}
-            note="Fixed in USD on chain — the token can move; this cannot"
+            note="Fixed in USD on chain. The token can move; this cannot"
           />
           <LedgerRow
             label="Cost now"

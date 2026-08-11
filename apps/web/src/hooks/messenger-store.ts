@@ -677,7 +677,7 @@ async function applyRoomKey(
 
   const note =
     existing === null
-      ? `Added to “${payload.name}” — room key received (epoch ${String(payload.epoch)}).`
+      ? `Added to “${payload.name}”. Room key received (epoch ${String(payload.epoch)}).`
       : isRotation
         ? `Room key rotated to epoch ${String(payload.epoch)}.`
         : `Room key re-delivered for epoch ${String(payload.epoch)}.`;
@@ -1088,7 +1088,7 @@ async function processDrops(
       matches = await runSliceIo(attachment, slice, token);
     } catch (error: unknown) {
       /* Nothing in this slice was marked, so the whole slice is still on the
-         relay's side of the ledger — except the armed seqs it consumed, which
+         relay's side of the ledger. Except the armed seqs it consumed, which
          only `retrySeqs` remembers. Put those back before the throw unwinds. */
       for (const seq of slice.rearmed) rememberRetry(seq);
       throw error;

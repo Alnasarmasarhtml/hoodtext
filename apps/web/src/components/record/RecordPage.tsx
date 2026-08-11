@@ -79,13 +79,13 @@ export function RecordPage(): ReactNode {
     <main className={s.page}>
       <section className={s.hero}>
         <div className="wrap">
-          <p className={s.eyebrow}>File 00 — the record</p>
+          <p className={s.eyebrow}>File 00 · The record</p>
           <h1 className={s.title}>
             Private messaging is being legislated against.
             <span className={s.titleDim}> These are the receipts.</span>
           </h1>
           <p className={s.lede}>
-            Everything below is a real instrument — a regulation, a statute, a court order, or a
+            Everything below is a real instrument: a regulation, a statute, a court order, or a
             measured network block. Each entry says what it does, what it does not do, and links to
             the source so you can read it without us in the way.
           </p>
@@ -167,7 +167,7 @@ export function RecordPage(): ReactNode {
               anchored on a public chain has no owner who can quietly delete it.
             </p>
             <p className={s.closeNote}>
-              Found something wrong, out of date, or overstated? It should be corrected — the whole
+              Found something wrong, out of date, or overstated? It should be corrected. The whole
               value of this page is that it survives being checked.
             </p>
           </div>

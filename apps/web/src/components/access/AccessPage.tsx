@@ -20,10 +20,12 @@ import { useSwitchChain } from 'wagmi';
 import { ACTIVE_CHAIN_ID, activeChain } from '@/lib/chain';
 import { DEMO_ME, isDemoActive } from '@/lib/demo';
 import { formatToken } from '@/lib/format';
+import { PRELAUNCH } from '@/lib/launch';
 import { Button, Eyebrow, Stat } from '@/components/ui';
 import { ActivationPanel } from './ActivationPanel';
 import { DemoBanner } from './Demo';
 import { buildDemoAccessWorld, type DemoAccessWorld } from './demo-state';
+import { PRELAUNCH_WORLD } from './prelaunch-state';
 import { EpochTable } from './EpochTable';
 import { HandlePanel } from './HandlePanel';
 import { HolderRevenuePanel } from './HolderRevenuePanel';
@@ -61,11 +63,14 @@ export function AccessPage(): ReactNode {
     setDemo(isDemoActive());
   }, []);
 
-  /* In demo the chain is out of the loop entirely: every read hook is driven
-     with `null`, which each hook's `enabled` gate treats as "do not fetch" —
-     the hooks still run (rules of hooks) but never touch an RPC. */
-  const readContracts = demo ? null : env.contracts;
-  const readAddress = demo ? null : env.address;
+  /* Demo keeps the chain out of the loop; before launch the real page does the
+     same. Every read hook is driven with `null`, which each hook's `enabled`
+     gate treats as "do not fetch": the hooks still run (rules of hooks) but
+     never touch an RPC. Pre-launch this is what keeps test-network activity
+     from ever rendering as if it were revenue. */
+  const offline = demo || PRELAUNCH;
+  const readContracts = offline ? null : env.contracts;
+  const readAddress = offline ? null : env.address;
 
   const livePricing = usePricing(readContracts);
   const liveActivation = useActivationState(readContracts, readAddress);
@@ -78,7 +83,7 @@ export function AccessPage(): ReactNode {
   const liveHistory = useRevenueHistory(readContracts);
 
   const world = useMemo<DemoAccessWorld | null>(
-    () => (demo ? buildDemoAccessWorld(demoClaimedAll) : null),
+    () => (demo ? buildDemoAccessWorld(demoClaimedAll) : PRELAUNCH ? PRELAUNCH_WORLD : null),
     [demo, demoClaimedAll],
   );
 
@@ -93,12 +98,13 @@ export function AccessPage(): ReactNode {
   const history: RevenueHistoryView = world?.history ?? liveHistory;
 
   /* What the panels believe about the visitor. In demo they see the fixture
-     identity as connected on the right network — but with NO contracts, so no
-     panel-internal read or write can ever reach a chain. */
-  const contracts = demo ? null : env.contracts;
+     identity as connected on the right network, and both demo and pre-launch
+     hand the panels NO contracts, so no panel-internal read or write can ever
+     reach a chain. */
+  const contracts = offline ? null : env.contracts;
   const address = demo ? DEMO_ME.address : env.address;
   const isConnected = demo || env.isConnected;
-  const wrongNetwork = demo ? false : env.wrongNetwork;
+  const wrongNetwork = offline ? false : env.wrongNetwork;
 
   const refresh = useCallback((): void => {
     void queryClient.invalidateQueries();
@@ -130,8 +136,8 @@ export function AccessPage(): ReactNode {
               HoodGram charges exactly two prices: $5, once, for an account that exists
               forever, and $10 a month for a room, paid by whoever runs it. Messages are
               never charged. Half of every payment goes to whoever holds{' '}
-              <span className={s.wordmark}>$GRAM</span> — no staking contract to enter,
-              nothing to lock up.
+              <span className={s.wordmark}>$GRAM</span>. There is no staking contract to
+              enter and nothing to lock up.
             </p>
           </div>
 
@@ -139,16 +145,24 @@ export function AccessPage(): ReactNode {
             <Stat
               label="Your account"
               value={
-                activation.isActivated ? 'Activated' : isConnected ? 'Not activated' : '—'
+                PRELAUNCH && !demo
+                  ? 'At launch'
+                  : activation.isActivated
+                    ? 'Activated'
+                    : isConnected
+                      ? 'Not activated'
+                      : '—'
               }
               size="sm"
               tone={activation.isActivated ? 'green' : 'muted'}
               hint={
-                activation.isActivated
-                  ? 'forever — nothing renews'
-                  : isConnected
-                    ? '$5, once, below'
-                    : 'connect to read'
+                PRELAUNCH && !demo
+                  ? '$5 once, paid in $GRAM'
+                  : activation.isActivated
+                    ? 'forever, nothing renews'
+                    : isConnected
+                      ? '$5, once, below'
+                      : 'connect to read'
               }
             />
             <Stat
@@ -157,9 +171,11 @@ export function AccessPage(): ReactNode {
               unit="GRAM"
               size="sm"
               hint={
-                isConnected
-                  ? `${epochs.claimableIds.length} epoch${epochs.claimableIds.length === 1 ? '' : 's'} waiting`
-                  : 'connect to compute'
+                PRELAUNCH && !demo
+                  ? 'no epochs sealed yet'
+                  : isConnected
+                    ? `${epochs.claimableIds.length} epoch${epochs.claimableIds.length === 1 ? '' : 's'} waiting`
+                    : 'connect to compute'
               }
             />
             <Stat
@@ -177,8 +193,10 @@ export function AccessPage(): ReactNode {
         </div>
       </header>
 
-      {/* ── environment banners — never shown over the fixture world ─────── */}
-      {!demo && (env.wrongNetwork || env.contracts === null) && (
+      {/* ── environment banners, never shown over a fixture world. Pre-launch
+             there is nothing on chain to be wrong about, so they stay out of
+             the way there too. ── */}
+      {!offline && (env.wrongNetwork || env.contracts === null) && (
         <div className={s.banner}>
           {env.wrongNetwork ? (
             <Notice
@@ -195,7 +213,7 @@ export function AccessPage(): ReactNode {
             <Notice
               tone="warn"
               title="No contracts configured for this build"
-              body="Deploy the contracts and set NEXT_PUBLIC_ADDR_TOKEN, NEXT_PUBLIC_ADDR_ACTIVATION, NEXT_PUBLIC_ADDR_GROUP_REGISTRY, NEXT_PUBLIC_ADDR_REVENUE_VAULT, NEXT_PUBLIC_ADDR_PERKS, NEXT_PUBLIC_ADDR_HANDLES and NEXT_PUBLIC_ADDR_PRICE_SOURCE. Everything below stays visible so the model is still legible — the numbers simply cannot be read."
+              body="Deploy the contracts and set NEXT_PUBLIC_ADDR_TOKEN, NEXT_PUBLIC_ADDR_ACTIVATION, NEXT_PUBLIC_ADDR_GROUP_REGISTRY, NEXT_PUBLIC_ADDR_REVENUE_VAULT, NEXT_PUBLIC_ADDR_PERKS, NEXT_PUBLIC_ADDR_HANDLES and NEXT_PUBLIC_ADDR_PRICE_SOURCE. Everything below stays visible so the model is still legible. The numbers simply cannot be read."
             />
           )}
         </div>
@@ -297,7 +315,7 @@ export function AccessPage(): ReactNode {
       <footer className={s.foot}>
         <p className={s.footText}>
           Both prices are fixed in USD on chain and converted to $GRAM at the moment of
-          payment. <code className={s.code}>Anchors.post</code> is not payable — messages
+          payment. <code className={s.code}>Anchors.post</code> is not payable. Messages
           are relayed for free or self-posted for about a cent of gas, and nothing else
           in this system is ever metered. Revenue is shared by holdings through
           historical balance checkpoints; there is no staking, no lock-up and no deposit

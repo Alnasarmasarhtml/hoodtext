@@ -322,7 +322,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
       const trimmed = name.trim();
       if (owner === null) return failWith('Connect and unlock before creating a room.');
       if (trimmed === '' || trimmed.length > 40) {
-        return failWith('Give the room a name — 1 to 40 characters.');
+        return failWith('Give the room a name. 1 to 40 characters.');
       }
       const boundedMonths = Math.min(24, Math.max(1, Math.round(months)));
 
@@ -349,7 +349,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
           owner,
           convoId: groupId,
           direction: 'out',
-          body: `Room “${trimmed}” created — simulated. In the live app this is one approve + createGroup, ${String(
+          body: `Room “${trimmed}” created. Simulated. In the live app this is one approve + createGroup, ${String(
             boundedMonths,
           )} ${boundedMonths === 1 ? 'month' : 'months'} of rent up front.`,
           kind: 'system',
@@ -453,7 +453,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
           owner,
           convoId: groupId,
           direction: 'out',
-          body: `Room “${trimmed}” created — rent paid ${String(boundedMonths)} ${
+          body: `Room “${trimmed}” created. Rent paid ${String(boundedMonths)} ${
             boundedMonths === 1 ? 'month' : 'months'
           } ahead.`,
           kind: 'system',
@@ -679,7 +679,7 @@ export function useRoomRoster({
         const memberX25519 = await registeredKeyOf(config, member);
         if (memberX25519 === null) {
           return failWith(
-            'That account has not registered messaging keys, so the room key cannot be encrypted to them. Registering is free — ask them to open HoodGram once.',
+            'That account has not registered messaging keys, so the room key cannot be encrypted to them. Registering is free. Ask them to open HoodGram once.',
           );
         }
 
@@ -748,7 +748,7 @@ export function useRoomRoster({
       }
       const memberKeyLc = member.toLowerCase();
       if (memberKeyLc === owner.toLowerCase()) {
-        return failWith('Admins cannot remove themselves — transfer the room first.');
+        return failWith('Admins cannot remove themselves. Transfer the room first.');
       }
 
       const remaining = room.members.filter((entry) => entry.toLowerCase() !== memberKeyLc);
@@ -834,10 +834,10 @@ export function useRoomRoster({
           direction: 'out',
           body:
             undelivered.length === 0
-              ? `Member removed — key rotated to epoch ${String(nextEpoch)} and delivered to ${String(
+              ? `Member removed. Key rotated to epoch ${String(nextEpoch)} and delivered to ${String(
                   Math.max(0, remaining.length - 1),
                 )} member${remaining.length - 1 === 1 ? '' : 's'}.`
-              : `Member removed — key rotated to epoch ${String(nextEpoch)}, but delivery failed for ${String(
+              : `Member removed. Key rotated to epoch ${String(nextEpoch)}, but delivery failed for ${String(
                   undelivered.length,
                 )} member${undelivered.length === 1 ? '' : 's'}. Re-add them to re-send the key.`,
           kind: 'system',

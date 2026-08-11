@@ -69,7 +69,7 @@ export function MediaAttachment({ payload, className }: MediaAttachmentProps): R
         if (bytes === null) {
           setState({
             phase: 'error',
-            message: 'The attachment could not be decrypted — wrong key or tampered bytes.',
+            message: 'The attachment could not be decrypted: wrong key or tampered bytes.',
           });
           return;
         }

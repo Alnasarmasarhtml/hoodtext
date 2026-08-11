@@ -249,7 +249,7 @@ export async function resolveRecipient(
       failure: {
         reason: 'invalid',
         message:
-          'Enter a wallet address (0x…) or a handle — 2–15 characters, a–z 0–9 _, starting with a letter.',
+          'Enter a wallet address (0x…) or a handle. 2–15 characters, a–z 0–9 _, starting with a letter.',
       },
     };
   }

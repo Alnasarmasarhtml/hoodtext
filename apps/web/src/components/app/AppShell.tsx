@@ -189,7 +189,7 @@ export function AppShell({ children }: AppShellProps): ReactNode {
           className={s.strip}
           tone="warn"
           title="Activation could not be read"
-          body={`${activation.error} Reading and receiving are unaffected — this only clouds the badge and the composer.`}
+          body={`${activation.error} Reading and receiving are unaffected. This only clouds the badge and the composer.`}
         />
       )}
 

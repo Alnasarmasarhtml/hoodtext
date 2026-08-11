@@ -843,7 +843,7 @@ describe('receive engine — routing and integrity', () => {
     expect(room?.name).toBe('Back Room');
     expect(latestRoomKey(GROUP_ID)?.epoch).toBe(0);
     expect(bodies()).toEqual([
-      'Added to “Back Room” — room key received (epoch 0).',
+      'Added to “Back Room”. Room key received (epoch 0).',
       'said in the room',
     ]);
     const roomMessage = state().messages.find((m) => m.body === 'said in the room');

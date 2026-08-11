@@ -24,7 +24,7 @@ import s from './Hero.module.css';
  */
 export function Hero(): ReactNode {
   return (
-    <section className={s.hero} aria-label="HoodGram — pay $5 once, text forever">
+    <section className={s.hero} aria-label="HoodGram: pay $5 once, text forever">
       <MediaLoop
         className={s.film}
         src={asset('/media/procession.mp4')}
@@ -34,7 +34,7 @@ export function Hero(): ReactNode {
 
       {/* The fade belongs to the hero, not to the copy. As a pseudo-element of
           the `[data-reveal]` block it needed `z-index: -1`, and that block
-          clears `will-change` once revealed — destroying the stacking context
+          clears `will-change` once revealed. Destroying the stacking context
           and dropping the fade behind the video, which is how it kept
           vanishing. Sitting here at `inset: 0` it needs no z-index, cannot
           bleed past the viewport, and paints under everything after it. */}
@@ -51,7 +51,7 @@ export function Hero(): ReactNode {
         <div className={s.hudTop} data-reveal>
           {/* The rendered lockup, kept deliberately: the second, angular
               wordmark under the clean one is the look the client wants here.
-              I replaced it with set type once — don't do it again. The header,
+              I replaced it with set type once. Don't do it again. The header,
               footer and share card use the bare mark instead; this is the one
               surface that carries the full drawn lockup. */}
           <img
@@ -77,7 +77,7 @@ export function Hero(): ReactNode {
             people holding <TokenMark />.
           </p>
           <p className={s.sub}>
-            Messages are sealed on your device and free to send, forever — the relay posts them on
+            Messages are sealed on your device and free to send, forever. The relay posts them on
             chain with no gas and your address never on chain. Rooms are $10 a month, paid by
             whoever runs them; members ride free.
           </p>
@@ -87,7 +87,7 @@ export function Hero(): ReactNode {
               href="/access"
               className={buttonClassName({ variant: 'primary', size: 'lg' })}
             >
-              Get access — $5
+              Get access · $5
             </Link>
             <Link
               href="/app?demo=1"

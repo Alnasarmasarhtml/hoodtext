@@ -48,7 +48,7 @@ const DROP_STEPS: readonly Step[] = [
     key: 'relay',
     index: '03',
     label: 'Relay anchors it',
-    note: 'You sign the drop; the relay posts it on chain. No gas, no wallet popup — self-post stays one toggle away.',
+    note: 'You sign the drop; the relay posts it on chain. No gas, no wallet popup. Self-post stays one toggle away.',
   },
   {
     key: 'scan',
@@ -89,7 +89,7 @@ export function ThreadPlaceholder(): ReactNode {
         <p className={s.lede}>
           {hasThreads
             ? 'DM threads live on this device: the conversation id is derived from your key and theirs, and is never posted on chain. Rooms are announced by id, their membership is not. Nothing here is fetched from a server that knows who you talk to.'
-            : 'Paste a @handle or wallet address into the rail — HoodGram reads their registered X25519 key from KeyRegistry, a free view call, and the thread opens with no transaction. Or open a room: $10/month, members free.'}
+            : 'Paste a @handle or wallet address into the rail. HoodGram reads their registered X25519 key from KeyRegistry, a free view call, and the thread opens with no transaction. Or open a room: $10/month, members free.'}
         </p>
       </header>
 

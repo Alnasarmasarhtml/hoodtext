@@ -41,7 +41,7 @@ const ICON_512 = asset('/brand/icon-hood-512.png');
    Client copy, 2026-08-08 — do not paraphrase it. X truncates its card blurb
    near 200 characters, so the sentence that has to survive alone is first. */
 const SHARE_DESCRIPTION =
-  'HoodGram is an end-to-end encrypted messenger that lives on the open web and settles on Robinhood Chain. Every message becomes a permanent, verifiable anchor on a public network — proof it was sent, readable by no one but the recipient. There is no store to remove it from and no subscription to cancel. You buy in once.';
+  'HoodGram is an end-to-end encrypted messenger that lives on the open web and settles on Robinhood Chain. Every message becomes a permanent, verifiable anchor on a public network. Proof it was sent, readable by no one but the recipient. There is no store to remove it from and no subscription to cancel. You buy in once.';
 
 /* Relative on purpose: metadataBase makes it absolute for the crawler, and the
    1200×630 is what both X and Open Graph want for a large card. */
@@ -50,7 +50,7 @@ const SHARE_IMAGE = 'brand/og-card-messenger.jpg';
 /* The headline a pasted link shows. Deliberately not the price: a preview is
    the first thing anyone sees, and leading with "$5" makes the product sound
    like a purchase before it sounds like anything. This is the site's own H2. */
-const SHARE_TITLE = 'HoodGram — a messenger that cannot be switched off';
+const SHARE_TITLE = 'HoodGram: the messenger that cannot be switched off';
 
 /**
  * Content Security Policy, delivered as a <meta> tag.
@@ -91,7 +91,7 @@ const CSP_ORIGINS: readonly string[] = (() => {
   /* Loopback is allowed only when this build is actually pointed at a local
      chain or relay. A production build that also permits connections to
      127.0.0.1 hands any injected script a free local-port scanner, and the
-     public site has no use for it — but `next build && next start` against
+     public site has no use for it. But `next build && next start` against
      anvil does, so the permission follows the configuration rather than being
      unconditional. */
   const LOOPBACK = /^(https?|wss?):\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i;
@@ -144,11 +144,11 @@ const CSP_ENABLED = process.env.NODE_ENV === 'production';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'HoodGram — pay $5 once, text forever',
-    template: '%s — HoodGram',
+    default: 'HoodGram · pay $5 once, text forever',
+    template: '%s · HoodGram',
   },
   description:
-    'HoodGram is an end-to-end encrypted messenger with every message anchored on Robinhood Chain. One $5 activation in $GRAM and your account exists forever. Messages are free — relayed with no gas, or self-posted for about a cent. Rooms cost $10/month, paid by whoever runs them; members are free. 50% of every payment goes to $GRAM holders, pro-rata by holdings, with no staking and no lock-up.',
+    'HoodGram is an end-to-end encrypted messenger with every message anchored on Robinhood Chain. One $5 activation in $GRAM and your account exists forever. Messages are free. Relayed with no gas, or self-posted for about a cent. Rooms cost $10/month, paid by whoever runs them; members are free. 50% of every payment goes to $GRAM holders, pro-rata by holdings, with no staking and no lock-up.',
   applicationName: 'HoodGram',
   keywords: [
     'HoodGram',

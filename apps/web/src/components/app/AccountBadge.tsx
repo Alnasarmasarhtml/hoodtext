@@ -100,7 +100,7 @@ export function AccountBadge({
         <Link
           href="/access"
           className={s.action}
-          title={`Room “${rentAlert.room.name}” — rent ${
+          title={`Room “${rentAlert.room.name}”. Rent ${
             rentAlert.lapsed ? 'has lapsed' : `lapses in ${formatDuration(rentAlert.paidUntil - now)}`
           }. Paying reopens it exactly as it was.`}
         >

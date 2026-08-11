@@ -207,7 +207,7 @@ export function useStartConversation({
 
       if (owner === null || myX25519Pub === null) {
         setStatus('error');
-        setError('Unlock your identity first — the conversation id is derived from your key.');
+        setError('Unlock your identity first. The conversation id is derived from your key.');
         return null;
       }
       if (contracts === null && !isDemoActive()) {
@@ -268,7 +268,7 @@ export function useStartConversation({
         if (peerPubHex.toLowerCase() === ZERO_KEY) {
           setStatus('error');
           setError(
-            'That account has not registered messaging keys yet, so nothing can be encrypted to it. Registering is free — ask them to open HoodGram once.',
+            'That account has not registered messaging keys yet, so nothing can be encrypted to it. Registering is free. Ask them to open HoodGram once.',
           );
           return null;
         }

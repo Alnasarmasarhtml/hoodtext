@@ -138,7 +138,7 @@ const REVERT_COPY: Readonly<Record<string, RevertCopy>> = {
     kind: 'reverted',
     title: 'Already activated',
     detail:
-      'This account exists and it exists forever — the $5 is paid exactly once. Nothing was charged.',
+      'This account exists and it exists forever. The $5 is paid exactly once. Nothing was charged.',
   },
   NotActivated: {
     kind: 'reverted',
@@ -180,7 +180,7 @@ const REVERT_COPY: Readonly<Record<string, RevertCopy>> = {
     kind: 'reverted',
     title: 'Not the room admin',
     detail:
-      'Only the room’s admin can do this. Anyone may pay a room’s rent — but paying grants no control.',
+      'Only the room’s admin can do this. Anyone may pay a room’s rent. But paying grants no control.',
   },
   InvalidGroup: {
     kind: 'reverted',
@@ -203,7 +203,7 @@ const REVERT_COPY: Readonly<Record<string, RevertCopy>> = {
     kind: 'reverted',
     title: 'Room rent has lapsed',
     detail:
-      'New messages are blocked while a room’s rent is unpaid. History and membership survive — paying the rent reopens it.',
+      'New messages are blocked while a room’s rent is unpaid. History and membership survive. Paying the rent reopens it.',
   },
   NotRelayer: {
     kind: 'reverted',
@@ -287,7 +287,7 @@ const REVERT_COPY: Readonly<Record<string, RevertCopy>> = {
     kind: 'reverted',
     title: 'Vault balance too low',
     detail:
-      'The vault does not hold enough $GRAM to back this epoch. This is a solvency failure — do not retry.',
+      'The vault does not hold enough $GRAM to back this epoch. This is a solvency failure. Do not retry.',
   },
   InsufficientTreasury: {
     kind: 'reverted',
@@ -425,7 +425,7 @@ export function describeChainError(
       kind: 'insufficient-gas',
       title: 'Not enough ETH for gas',
       detail:
-        'Robinhood Chain gas is paid in ETH — around a cent per transaction. Top up and try again.',
+        'Robinhood Chain gas is paid in ETH. Around a cent per transaction. Top up and try again.',
       revertName: null,
     };
   }
@@ -441,7 +441,7 @@ export function describeChainError(
       kind: 'network',
       title: 'Could not reach the network',
       detail:
-        'The RPC endpoint did not answer. Your funds are untouched — check your connection and try again.',
+        'The RPC endpoint did not answer. Your funds are untouched. Check your connection and try again.',
       revertName: null,
     };
   }

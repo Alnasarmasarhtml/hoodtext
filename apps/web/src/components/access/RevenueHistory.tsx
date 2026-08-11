@@ -195,7 +195,7 @@ export function RevenueHistory({ history }: RevenueHistoryProps): ReactNode {
         <EmptyState
           eyebrow="No revenue yet"
           title="Nothing has been paid in"
-          body="The first payment lands here the moment it clears — a $5 activation or a room's rent, 50% banked for holders, 50% for the treasury, split at the instant it arrives."
+          body="The first payment lands here the moment it clears. A $5 activation or a room's rent, 50% banked for holders, 50% for the treasury, split at the instant it arrives."
         />
       ) : (
         <>

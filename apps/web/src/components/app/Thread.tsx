@@ -80,7 +80,7 @@ function RentLapsedNotice({ room, chain }: RentLapsedNoticeProps): ReactNode {
   const onPay = useCallback((): void => {
     if (demo) {
       /* Simulated: the payment path is real in the live app, not here. */
-      setDemoNote('Simulated — rent is paid on chain in the live app.');
+      setDemoNote('Simulated. Rent is paid on chain in the live app.');
       return;
     }
     void (async (): Promise<void> => {
@@ -93,8 +93,8 @@ function RentLapsedNotice({ room, chain }: RentLapsedNoticeProps): ReactNode {
     <AppNotice
       className={s.footNotice}
       tone="warn"
-      title="Rent lapsed — anyone can pay"
-      body="New messages are blocked until the rent is current. History, keys and membership are untouched, and paying grants no control — a member keeping a room alive is a feature."
+      title="Rent lapsed. Anyone can pay"
+      body="New messages are blocked until the rent is current. History, keys and membership are untouched, and paying grants no control. A member keeping a room alive is a feature."
       meta={demoNote ?? rent.error ?? undefined}
       action={
         <Button
@@ -358,7 +358,7 @@ function Thread({ convoId }: ThreadProps): ReactNode {
               {isRoom
                 ? 'Room messages seal to the group key for the current epoch and anchor under the room id. Every member holding the key opens them; the relay holds only ciphertext.'
                 : conversation.unattributed
-                  ? 'These drops decrypted with your key, but the address that posted them has no registered public key — so there is no one to reply to. Self-posted relays land here by design.'
+                  ? 'These drops decrypted with your key, but the address that posted them has no registered public key. So there is no one to reply to. Self-posted relays land here by design.'
                   : 'Your first message seals to a fresh ephemeral key, pads to a fixed bucket, and is anchored with the recipient nowhere on chain. They find it by view tag.'}
             </p>
             <dl className={s.emptyFacts}>

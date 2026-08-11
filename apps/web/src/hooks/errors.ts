@@ -23,13 +23,13 @@ function trim(message: string): string {
 /** Custom errors from SPEC §4, in the wording the messenger should use. */
 const REVERT_COPY: Readonly<Record<string, string>> = {
   NotActivated:
-    'The chain rejected this: the account is not activated. Activation is $5 in $GRAM, once, forever — nothing was lost.',
-  AlreadyActivated: 'This account is already activated — there is nothing to pay twice.',
+    'The chain rejected this: the account is not activated. Activation is $5 in $GRAM, once, forever. Nothing was lost.',
+  AlreadyActivated: 'This account is already activated. There is nothing to pay twice.',
   RoomInactive:
-    'This room’s rent has lapsed, so new messages are blocked. Any member can pay rent to reopen it — history and membership are untouched.',
+    'This room’s rent has lapsed, so new messages are blocked. Any member can pay rent to reopen it. History and membership are untouched.',
   NotAdmin: 'Only the room’s admin can do that.',
   UnknownGroup: 'That room does not exist on chain.',
-  GroupExists: 'A room with that id already exists — the random salt should make this unreachable; try again.',
+  GroupExists: 'A room with that id already exists. The random salt should make this unreachable; try again.',
   InvalidGroup: 'The room id is invalid.',
   InvalidMonths: 'Rent is paid 1–24 months at a time.',
   NotDue: 'The room is not inside its renewal window yet.',
@@ -39,7 +39,7 @@ const REVERT_COPY: Readonly<Record<string, string>> = {
     'That name is not a valid handle: 2–15 characters, a–z, 0–9 and underscore, starting with a letter.',
   HandleTaken: 'That handle is already claimed.',
   TierTooLow:
-    'Short handles are reserved by perk tier — hold more $GRAM, or pick a longer name.',
+    'Short handles are reserved by perk tier. Hold more $GRAM, or pick a longer name.',
   NoHandle: 'This address has no handle to release.',
   EmptyBatch: 'The relayer batch was empty.',
   BatchTooLarge: 'A relayer batch may carry at most 64 drops.',
@@ -49,7 +49,7 @@ const REVERT_COPY: Readonly<Record<string, string>> = {
   ERC20InsufficientBalance:
     'This wallet does not hold enough $GRAM for that payment.',
   ERC20InsufficientAllowance:
-    'The contract’s $GRAM allowance is too small — approve first, then pay.',
+    'The contract’s $GRAM allowance is too small. Approve first, then pay.',
 };
 
 /**

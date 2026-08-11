@@ -159,15 +159,15 @@ const DEMO_ANCHOR_MS = 700;
 /** Human copy for every relay rejection slug, each one an action. */
 const REJECTION_COPY: Readonly<Record<SendRejectionCode, string>> = {
   send_disabled:
-    'The relay is not posting right now. Flip on self-post (wallet + gas) to anchor it yourself — nothing was lost.',
+    'The relay is not posting right now. Flip on self-post (wallet + gas) to anchor it yourself. Nothing was lost.',
   blob_missing:
-    'The relay no longer holds the ciphertext it was just given. Send again — the message will be re-uploaded.',
+    'The relay no longer holds the ciphertext it was just given. Send again. The message will be re-uploaded.',
   unknown_key:
     'The relay does not recognise your signing key. Publish your keys again from the identity gate, then resend.',
   bad_signature:
     'The relay rejected the drop signature. Re-derive your identity (sign again) and resend.',
   not_activated:
-    'This wallet is not activated. Activation is $5 in $GRAM, once, forever — open Access to activate, then resend.',
+    'This wallet is not activated. Activation is $5 in $GRAM, once, forever. Open Access to activate, then resend.',
   room_inactive:
     'This room’s rent has lapsed, so new messages are blocked. Any member can pay rent to reopen it.',
   queue_full:

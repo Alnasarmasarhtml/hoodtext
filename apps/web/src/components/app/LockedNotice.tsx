@@ -7,6 +7,7 @@ import { Eyebrow, buttonClassName } from '@/components/ui';
 import { PRICES } from '@/lib/abi';
 import { cx } from '@/lib/cx';
 import { formatToken, formatUsd, formatUsd18 } from '@/lib/format';
+import { PRELAUNCH } from '@/lib/launch';
 import type { UseActivationResult } from '@/hooks';
 import s from './LockedNotice.module.css';
 
@@ -19,10 +20,10 @@ export interface LockedNoticeProps {
 
 function priceLine(activation: UseActivationResult): string {
   const price =
-    activation.priceUsd === null
+    activation.priceUsd === null || PRELAUNCH
       ? formatUsd(PRICES.activationUsd, 0)
       : formatUsd18(activation.priceUsd, 0);
-  if (activation.quote === null) return `${price}, once, paid in $GRAM`;
+  if (PRELAUNCH || activation.quote === null) return `${price}, once, paid in $GRAM`;
   return `${price} once · ${formatToken(activation.quote, { digits: 2, symbol: 'GRAM' })} at today's rate`;
 }
 
@@ -47,7 +48,7 @@ export function LockedNotice({
         <div className={s.inlineBody}>
           <span className={s.inlineTitle}>Sending needs an activated account</span>
           <p className={s.inlineText}>
-            You can still read this thread and receive new messages — nothing here is hidden or
+            You can still read this thread and receive new messages. Nothing here is hidden or
             deleted. Activation is {priceLine(activation)}. Pay it once and it is yours forever.
           </p>
         </div>
@@ -69,7 +70,7 @@ export function LockedNotice({
           $5. Once. Forever.
         </h2>
         <p className={s.lede}>
-          One payment in $GRAM activates this account for good — no subscription, no tiers, no
+          One payment in $GRAM activates this account for good. No subscription, no tiers, no
           expiry, nothing to renew. The price is fixed in dollars on chain and converted to $GRAM
           at the moment you pay, so the dollar price is stable as the token moves.
         </p>
@@ -86,10 +87,13 @@ export function LockedNotice({
           </dd>
         </div>
         <div className={s.fact}>
-          <dt className={s.factLabel}>In $GRAM today</dt>
+          <dt className={s.factLabel}>Paid in</dt>
           <dd className={s.factValue}>
-            {activation.quote === null ? (
-              <span className={s.pendingQuote}>Reading price source…</span>
+            {PRELAUNCH || activation.quote === null ? (
+              <>
+                $GRAM
+                <span className={s.factUnit}>at the live rate when you pay</span>
+              </>
             ) : (
               <>
                 {formatToken(activation.quote, { digits: 2 })}
@@ -111,7 +115,7 @@ export function LockedNotice({
         <li className={s.rule}>
           <span className={s.ruleMark} aria-hidden="true" />
           <span>
-            Messages are never charged. The relay anchors your drops for you — no transaction, no
+            Messages are never charged. The relay anchors your drops for you: no transaction, no
             gas, no wallet popup per message.
           </span>
         </li>
@@ -125,7 +129,7 @@ export function LockedNotice({
         <li className={s.rule}>
           <span className={s.ruleMark} aria-hidden="true" />
           <span>
-            Rooms are the only recurring cost — ${PRICES.roomUsdPerMonth}/month per room, paid by
+            Rooms are the only recurring cost: ${PRICES.roomUsdPerMonth}/month per room, paid by
             whoever runs it. Being a member is free.
           </span>
         </li>
@@ -142,7 +146,7 @@ export function LockedNotice({
           Activate for $5
         </Link>
         <span className={s.actionNote}>
-          Reading and receiving keep working either way — activation gates sending and nothing
+          Reading and receiving keep working either way. Activation gates sending and nothing
           else.
         </span>
       </div>

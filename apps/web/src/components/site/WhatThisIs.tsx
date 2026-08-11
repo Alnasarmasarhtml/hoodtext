@@ -20,7 +20,7 @@ const BLOCKS: readonly Block[] = [
     body: (
       <>
         A $5 activation, paid in <TokenMark quiet />, creates your account and includes your
-        @handle. It never renews and never expires — the account is yours for as long as the chain
+        @handle. It never renews and never expires. The account is yours for as long as the chain
         exists. The price is also the spam wall: every account on HoodGram cost somebody five
         dollars, which is five dollars more than a bot flood wants to spend. No free tier, no
         burner armies.
@@ -33,7 +33,7 @@ const BLOCKS: readonly Block[] = [
     body: (
       <>
         A room is a group chat with rent: $10 a month, paid by whoever runs it. Members never pay.
-        Anyone may pay a room&rsquo;s rent — paying grants no control. If the rent lapses, the room
+        Anyone may pay a room&rsquo;s rent; paying grants no control. If the rent lapses, the room
         pauses new messages and deletes nothing: history, keys, membership and admin all survive,
         and paying again reopens it instantly.
       </>
@@ -44,8 +44,8 @@ const BLOCKS: readonly Block[] = [
     title: 'Messages are free',
     body: (
       <>
-        Sending costs nothing. A relay batch-posts your sealed message on chain and pays the gas —
-        no wallet popup, no fee, and your address never appears on chain. Prefer not to trust even
+        Sending costs nothing. A relay batch-posts your sealed message on chain and pays the gas.
+        No wallet popup, no fee, and your address never appears on chain. Prefer not to trust even
         that? Post it yourself for about a cent. Self-posting is permissionless and always will
         be.
       </>
@@ -57,7 +57,7 @@ const BLOCKS: readonly Block[] = [
     body: (
       <>
         Every message is anchored on Robinhood Chain. What the chain holds is a sealed, padded
-        envelope and a timestamp — proof the message happened, with nothing inside for anyone to
+        envelope and a timestamp. Proof the message happened, with nothing inside for anyone to
         read. Your history cannot be quietly edited or deleted by a company, because it does not
         live at a company.
       </>
@@ -109,7 +109,7 @@ export function WhatThisIs(): ReactNode {
 
       <div className={cx('wrap', s.inner)}>
         <div className={s.fileRow} data-reveal>
-          <span>File 02 — What this is</span>
+          <span>File 02 · What this is</span>
           <span className={s.fileRule} aria-hidden="true" />
           <span>Robinhood Chain · 4663</span>
         </div>
@@ -119,7 +119,7 @@ export function WhatThisIs(): ReactNode {
           <p className={s.lede}>
             HoodGram is an end-to-end encrypted messenger that lives on the open web and settles
             on Robinhood Chain. Every message becomes a permanent, verifiable anchor on a public
-            network — proof it was sent, readable by no one but the recipient. There is no store
+            network. Proof it was sent, readable by no one but the recipient. There is no store
             to remove it from and no subscription to cancel. You buy in once.
           </p>
         </header>
@@ -143,7 +143,7 @@ export function WhatThisIs(): ReactNode {
               Half goes back
             </h3>
             <p className={s.body}>
-              50% of every payment — every $5 activation, every month of room rent — is paid to{' '}
+              50% of every payment, every $5 activation, every month of room rent, is paid to{' '}
               <TokenMark /> holders, pro-rata by holdings, in weekly epochs. No staking, no
               lock-up, no deposit contract. Hold in your own wallet at the weekly snapshot, then
               claim.
@@ -157,10 +157,10 @@ export function WhatThisIs(): ReactNode {
               The ladder
             </h3>
             <p className={s.body}>
-              Holding more unlocks status, never money — a badge, shorter @handles, bigger rooms.
+              Holding more unlocks status, never money: a badge, shorter @handles, bigger rooms.
               A tier is judged on the lower of your live balance and the last weekly snapshot, so
               it must be held, not visited: it cannot be flash-bought, and selling drops it
-              immediately. The revenue share itself needs no tier — every holder is paid pro-rata
+              immediately. The revenue share itself needs no tier. Every holder is paid pro-rata
               from the first token.
             </p>
 
@@ -193,14 +193,13 @@ export function WhatThisIs(): ReactNode {
           <span className={s.whyRule} aria-hidden="true" />
           <h3 className={s.whyHead}>Why this exists</h3>
           <p className={s.whyBody}>
-            For two decades, private messaging has lived in app stores and on company servers —
-            places with owners, and owners can be ordered. The scanning law now in force in the
+            For two decades, private messaging has lived in app stores and on company servers. Places with owners, and owners can be ordered. The scanning law now in force in the
             EU applies to unencrypted services; encrypted messengers were carved out this round,
             and the next round starts in September. In August, a billion-user messenger
             disappeared from the App Store for two days on one company&rsquo;s decision. HoodGram
             is built for the day one of those votes goes the other way: a web app with no store
             to remove it from, sealed messages with nothing readable to hand over, and a
-            self-post door that no one — including us — can close.
+            self-post door that no one, including us, can close.
           </p>
           <span className={s.whyRule} aria-hidden="true" />
         </div>

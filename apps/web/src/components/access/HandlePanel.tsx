@@ -17,6 +17,7 @@ import { useWriteContract } from 'wagmi';
 import { handlesAbi, PerkTier, perkTierLabel, CONTRACT_CONSTANTS } from '@/lib/abi';
 import type { ContractAddresses } from '@/lib/chain';
 import { cx } from '@/lib/cx';
+import { PRELAUNCH } from '@/lib/launch';
 import { useConnectSheet } from '@/lib/ui-store';
 import { Button, Eyebrow, Field, Panel, PanelHeader, useToast } from '@/components/ui';
 import { DemoNote } from './Demo';
@@ -157,7 +158,7 @@ export function HandlePanel({
       toast.push({
         kind: 'success',
         title: `@${released} released`,
-        body: 'The name is free for anyone to claim, including you — under the same tier rules.',
+        body: 'The name is free for anyone to claim, including you. Under the same tier rules.',
       });
     }
   }, [contracts, handle.handle, onRefresh, releaseTx, toast, writeContractAsync]);
@@ -177,10 +178,10 @@ export function HandlePanel({
       fieldHint = tierShort
         ? `${name.length}-character names need ${perkTierLabel(requiredTier)}. You are ${
             perks.tier === PerkTier.NONE ? 'below RESIDENT' : perkTierLabel(perks.tier)
-          } — hold more $GRAM through a weekly snapshot to unlock this length.`
-        : `${name.length}-character names need ${perkTierLabel(requiredTier)} — your ${perkTierLabel(perks.tier)} tier covers it.`;
+          }. Hold more $GRAM through a weekly snapshot to unlock this length.`
+        : `${name.length}-character names need ${perkTierLabel(requiredTier)}. Your ${perkTierLabel(perks.tier)} tier covers it.`;
     } else if (availabilityCurrent && availability.available === true) {
-      fieldHint = 'Available. Claiming costs one transaction — the name itself is free.';
+      fieldHint = 'Available. Claiming costs one transaction. The name itself is free.';
     } else if (isMine) {
       fieldHint = 'This one is already yours.';
     } else if (availability.isLoading || settled !== name) {
@@ -191,6 +192,20 @@ export function HandlePanel({
   const claimError = claimTx.error ?? releaseTx.error;
 
   /* ── unconnected states ──────────────────────────────────────────────── */
+
+  if (PRELAUNCH && !demo) {
+    return (
+      <Panel as="section" tone="raised" notch="tr" className={s.panel}>
+        <PanelHeader label="Handle" note="@names, free with activation" />
+        <EmptyState
+          eyebrow="At launch"
+          title="Handles open with activation"
+          body="A handle is an @name bound to your address on chain. It comes free with the $5 activation, one per account, and the short ones are reserved for the holder tiers."
+          mark={false}
+        />
+      </Panel>
+    );
+  }
 
   if (!demo && (!isConnected || wrongNetwork || contracts === null)) {
     return (
@@ -212,7 +227,7 @@ export function HandlePanel({
               ? 'This build has no contract addresses for the active chain, so there is no handle registry to read.'
               : wrongNetwork
                 ? 'Handles live on Robinhood Chain. Your wallet is pointed somewhere else.'
-                : 'A handle is an @name bound to your address on chain — free with the $5 activation, one per account.'
+                : 'A handle is an @name bound to your address on chain. Free with the $5 activation, one per account.'
           }
           action={
             contracts !== null && !wrongNetwork ? (
@@ -274,7 +289,7 @@ export function HandlePanel({
             <Notice
               tone="info"
               title="Activation first"
-              body="Handles are free, but only activated accounts can claim one — that is what keeps squatting bots out. Pay the one-time $5 above and come back."
+              body="Handles are free, but only activated accounts can claim one. That is what keeps squatting bots out. Pay the one-time $5 above and come back."
             />
           )
         )}
@@ -317,7 +332,7 @@ export function HandlePanel({
         </div>
 
         {demo && simulated && (
-          <DemoNote>Simulated — in the live app this is an on-chain claim.</DemoNote>
+          <DemoNote>Simulated. In the live app this is an on-chain claim.</DemoNote>
         )}
 
         {/* The length ladder, stated once — short names are the scarce flex. */}
