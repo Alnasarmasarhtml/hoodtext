@@ -78,8 +78,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: clamp(24px, 5vh, 56px);
+  /* The copy block is the only child since the top lockup and chain chip came
+     out (corporate pass, 2026-08-12); it stays anchored to the bottom. */
+  justify-content: flex-end;
   width: 100%;
   padding-block: clamp(26px, 4vh, 46px) clamp(30px, 5vh, 56px);
 }
@@ -99,49 +100,6 @@
     rgba(5, 6, 7, 0) 78%
   );
   pointer-events: none;
-}
-
-/* Positioned so it paints above the fade that precedes it. */
-.hudTop {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--sp-5);
-}
-
-.logo {
-  width: clamp(180px, 21vw, 300px);
-  height: auto;
-}
-
-/* Top right is the one corner the scrim deliberately leaves bright, so this
-   carries its own instrument-readout plate rather than relying on the veil. */
-.hudMeta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: none;
-  padding: 6px 11px;
-  background-color: rgba(5, 6, 7, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  /* Pinned: this chip is part of the protected hudTop lockup, so it keeps its
-     face through the body-font change. */
-  font-family: var(--font-sans);
-  font-size: var(--fs-micro);
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--bone);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.hudDot {
-  width: 5px;
-  height: 5px;
-  flex: none;
-  background-color: var(--green);
 }
 
 /* ── the anchored block ─────────────────────────────────────────────────── */
@@ -239,10 +197,6 @@
 }
 
 @media (max-width: 759.98px) {
-  .hudMeta {
-    display: none;
-  }
-
   .sub {
     display: none;
   }

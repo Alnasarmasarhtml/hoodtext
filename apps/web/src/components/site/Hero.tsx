@@ -5,7 +5,6 @@ import type { ReactNode } from 'react';
 
 import { buttonClassName } from '@/components/ui/Button';
 import { asset } from '@/lib/asset';
-import { ACTIVE_CHAIN_ID } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import { MediaLoop } from './MediaLoop';
 import { TokenMark } from './TokenMark';
@@ -14,10 +13,15 @@ import s from './Hero.module.css';
 /**
  * SECTION 01 — the viewfinder.
  *
- * A HUD frame inset from the edges with four green corner marks, the mark and a
- * status line along the top, and everything that matters anchored bottom-left
- * over a soft falloff. No opaque plate: the procession stays fully visible and
- * the copy still holds, because the darkening sits only behind the type.
+ * A HUD frame inset from the edges with four green corner marks and everything
+ * that matters anchored bottom-left over a soft falloff. No opaque plate: the
+ * procession stays fully visible and the copy still holds, because the
+ * darkening sits only behind the type.
+ *
+ * The top of the frame is deliberately empty since the corporate pass: the
+ * graffiti lockup and the chain chip both came out on 2026-08-12 (client:
+ * "it doesn't look professional" / "not useful"). The header carries the
+ * brand; the footer and /access state the network.
  *
  * The corner marks are the same device as the bracket boxes in the section
  * below, so the page opens and continues in one language.
@@ -48,27 +52,6 @@ export function Hero(): ReactNode {
       </div>
 
       <div className={cx('wrap', s.inner)}>
-        <div className={s.hudTop} data-reveal>
-          {/* The rendered lockup, kept deliberately: the second, angular
-              wordmark under the clean one is the look the client wants here.
-              I replaced it with set type once. Don't do it again. The header,
-              footer and share card use the bare mark instead; this is the one
-              surface that carries the full drawn lockup. */}
-          <img
-            className={s.logo}
-            src={asset('/brand/logo-primary.png')}
-            alt="HOODGRAM"
-            width={3383}
-            height={912}
-            decoding="async"
-            fetchPriority="high"
-          />
-          <p className={s.hudMeta}>
-            <span className={s.hudDot} aria-hidden="true" />
-            Chain {ACTIVE_CHAIN_ID} · Live
-          </p>
-        </div>
-
         {/* R2, the institutional hero (client call, 2026-08-12): the claim in
             bone rather than green, one green rule, and the numbers as a stat
             row instead of a strip of slogans. The display face stays Orbitron;
