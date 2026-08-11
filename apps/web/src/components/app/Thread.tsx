@@ -296,7 +296,6 @@ function Thread({ convoId }: ThreadProps): ReactNode {
 
         <Avatar
           seed={isRoom ? room.groupId : (conversation.peerAddress ?? conversation.convoId)}
-          label={isRoom ? room.name : peerLabelOf(conversation)}
           size="md"
           square={isRoom}
         />

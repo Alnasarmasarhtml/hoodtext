@@ -140,12 +140,7 @@ function ConversationRow({ conversation, active, roomActive }: RowProps): ReactN
         className={cx(s.row, active && s.rowActive)}
         aria-current={active ? 'page' : undefined}
       >
-        <Avatar
-          seed={identity.seed}
-          label={identity.quiet ? '' : identity.name}
-          size="lg"
-          square={room !== null}
-        />
+        <Avatar seed={identity.seed} size="lg" square={room !== null} />
 
         <span className={s.rowBody}>
           <span className={s.rowTop}>
