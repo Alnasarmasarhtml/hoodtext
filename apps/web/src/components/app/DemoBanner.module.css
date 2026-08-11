@@ -1,5 +1,6 @@
-/* The demo strip. Steel on panel, one hairline down — quiet, permanent,
-   impossible to mistake for live chrome. Green never appears here. */
+/* The demo strip. Crimson at full volume (client call, 2026-08-11): every
+   message under it is a fixture, and nobody should need to read the words to
+   know it. Green never appears here. */
 
 .banner {
   display: flex;
@@ -9,15 +10,15 @@
   min-width: 0;
   min-height: 30px;
   padding: var(--sp-1) var(--sp-5);
-  background-color: var(--steel-wash);
-  border-bottom: 1px solid var(--line);
+  background-color: var(--crimson);
+  border-bottom: 2px solid var(--crimson);
 }
 
 .mark {
   flex: none;
   width: 6px;
   height: 6px;
-  background-color: var(--steel);
+  background-color: var(--void);
   clip-path: var(--path-notch-br);
 }
 
@@ -28,9 +29,10 @@
   white-space: nowrap;
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
+  font-weight: 600;
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--steel);
+  color: var(--void);
 }
 
 .exit {
@@ -38,10 +40,11 @@
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
+  font-weight: 700;
   letter-spacing: var(--tr-eyebrow);
   text-transform: uppercase;
-  color: var(--bone);
-  border-bottom: 1px solid var(--line-2);
+  color: var(--void);
+  border-bottom: 1px solid rgba(8, 9, 10, 0.6);
   white-space: nowrap;
   transition:
     color var(--dur-1) var(--ease),
@@ -50,8 +53,8 @@
 
 .exit:hover,
 .exit:focus-visible {
-  color: var(--steel);
-  border-bottom-color: var(--steel);
+  color: var(--bone);
+  border-bottom-color: var(--bone);
 }
 
 @media (max-width: 759px) {
