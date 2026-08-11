@@ -35,6 +35,9 @@
 
 .eyebrow {
   position: relative;
+  /* Mono, matching every other eyebrow (the Label component declares it);
+     without this it would inherit the system body face. */
+  font-family: var(--font-mono);
   font-size: var(--fs-eyebrow);
   font-weight: 600;
   letter-spacing: var(--tr-eyebrow);
@@ -191,14 +194,14 @@
   color: var(--bone);
 }
 
-/* Status chips carry the shear the rest of the site's controls do. The colour
+/* Status chips, flat like every control after the corporate pass. The colour
    encodes force, not brand: green is reserved and deliberately not used here,
    because "in force" is not a thing this site is pleased about. */
 .kind {
   margin-left: auto;
   flex: none;
   padding: 4px 11px;
-  transform: skewX(-9deg);
+  border-radius: 3px;
   font-size: var(--fs-micro);
   font-weight: 600;
   letter-spacing: var(--tr-eyebrow);

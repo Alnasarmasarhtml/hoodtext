@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { useAccount } from 'wagmi';
 
 import { asset } from '@/lib/asset';
-import { ACTIVE_CHAIN_ID, activeChain } from '@/lib/chain';
+import { ACTIVE_CHAIN_ID } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import { truncateAddress } from '@/lib/format';
 import { useConnectSheet } from '@/lib/ui-store';
@@ -80,25 +80,21 @@ export function SiteHeader(): ReactNode {
     <header className={s.header}>
       <div className={s.bar}>
         <Link href="/" className={s.brand} aria-label="HoodGram home">
-          {/* The hooded mark (client, 9 Aug 2026). Portrait, so it is sized by
-              height and the width follows — a square box would either crop the
-              hood or shrink it. */}
+          {/* The folded mark (client pick M10, 2026-08-12). Flat, so it holds
+              its edges at sizes the rendered hood never could. */}
           <img
             className={s.mark}
-            src={asset('/brand/mark-hood-512.png')}
+            src={asset('/brand/mark-fold-512.png')}
             alt=""
-            width={358}
+            width={483}
             height={512}
             decoding="async"
           />
           <span className={s.wordmark}>HoodGram</span>
         </Link>
 
-        <span className={s.chainChip}>
-          <span className={s.chainDot} aria-hidden="true" />
-          {activeChain.name}
-        </span>
-
+        {/* The chain chip left the masthead in the corporate pass: the network
+            is stated on /access and in the footer, where the data lives. */}
         <nav className={s.nav} aria-label="Primary">
           <NavLinks pathname={pathname} />
         </nav>

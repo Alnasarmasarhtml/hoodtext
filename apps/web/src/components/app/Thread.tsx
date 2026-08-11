@@ -247,8 +247,8 @@ function Thread({ convoId }: ThreadProps): ReactNode {
           <Eyebrow rule>Opening</Eyebrow>
           <h1 className={s.missingTitle}>Reading this device&apos;s history.</h1>
           <p className={s.missingText}>
-            Messages you sent cannot be recovered from the chain — the ephemeral key that sealed
-            them is destroyed at send time — so your side of every thread is held here, and it is
+            Messages you sent cannot be recovered from the chain: the ephemeral key that sealed
+            them is destroyed at send time. So your side of every thread is held here, and it is
             being loaded now.
           </p>
           <span className={s.missingBar} aria-hidden="true" />
@@ -481,7 +481,7 @@ export function ThreadRoute({ convoId }: ThreadRouteProps): ReactNode {
           <Eyebrow rule>Malformed id</Eyebrow>
           <h1 className={s.missingTitle}>That is not a conversation id.</h1>
           <p className={s.missingText}>
-            A conversation id is a sha256 digest — <code className={s.code}>0x</code> followed by
+            A conversation id is a sha256 digest: <code className={s.code}>0x</code> followed by
             64 hex characters. Pick a thread from the rail, or open one from an address or
             handle.
           </p>

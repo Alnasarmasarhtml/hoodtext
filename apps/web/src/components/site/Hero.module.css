@@ -125,6 +125,9 @@
   padding: 6px 11px;
   background-color: rgba(5, 6, 7, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.22);
+  /* Pinned: this chip is part of the protected hudTop lockup, so it keeps its
+     face through the body-font change. */
+  font-family: var(--font-sans);
   font-size: var(--fs-micro);
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -152,28 +155,30 @@
   max-width: 640px;
 }
 
+/* Muted, not green: after the corporate pass (R2) the only green left in this
+   block is the rule and the primary button, so both actually register. */
 .kicker {
   font-size: var(--fs-micro);
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--green);
+  color: var(--muted);
 }
 
-/* Deliberately smaller than the display step: at this size the two lines sit
-   inside the frame on every width and never crowd the corner marks. */
+.rule {
+  width: 64px;
+  height: 2px;
+  background-color: var(--green);
+}
+
+/* Deliberately smaller than the display step: at this size the claim sits
+   inside the frame on every width and never crowds the corner marks. */
 .title {
   font-size: clamp(30px, 4.1vw, 58px);
-  line-height: 1.02;
-  color: var(--green);
-  max-width: 15ch;
-}
-
-.claim {
-  font-size: var(--fs-md);
-  line-height: 1.55;
+  line-height: 1.06;
   color: var(--bone);
-  max-width: 42ch;
+  max-width: 17ch;
+  text-wrap: balance;
 }
 
 .sub {
@@ -183,21 +188,54 @@
   max-width: 54ch;
 }
 
+/* The numbers as a report row, not a slogan strip. */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--sp-5);
+  margin-top: var(--sp-2);
+}
+
+.stat {
+  /* dt precedes dd in source for valid HTML; the reversal draws the value on
+     top and the label beneath it. space-between keeps the values on one line
+     when one label wraps and its neighbours do not. */
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-between;
+  gap: 5px;
+}
+
+.stat + .stat {
+  border-left: 1px solid rgba(255, 255, 255, 0.16);
+  padding-left: var(--sp-5);
+}
+
+.statValue {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+}
+
+.statKey {
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-3);
-  margin-top: var(--sp-1);
-}
-
-.meta {
-  font-size: var(--fs-micro);
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(232, 234, 235, 0.58);
-  font-variant-numeric: tabular-nums;
+  margin-top: var(--sp-2);
 }
 
 @media (max-width: 759.98px) {
@@ -211,6 +249,28 @@
 
   .block {
     gap: var(--sp-3);
+  }
+
+  /* Three cells across a 390px screen: tighter gaps, a smaller value step,
+     and the long label wraps to two lines instead of pushing the third cell
+     onto its own row with an orphaned divider. */
+  .stats {
+    flex-wrap: nowrap;
+    gap: var(--sp-4);
+  }
+
+  .stat + .stat {
+    padding-left: var(--sp-4);
+  }
+
+  .statValue {
+    font-size: 21px;
+  }
+
+  .statKey {
+    letter-spacing: 0.1em;
+    white-space: normal;
+    max-width: 13ch;
   }
 
   /* On a phone the copy stacks full-width at the bottom, so the ellipse

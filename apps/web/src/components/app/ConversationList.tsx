@@ -320,7 +320,7 @@ export function ConversationList({
             <span className={s.emptyTitle}>No conversations on this device</span>
             <p className={s.emptyText}>
               Paste a handle or address above, or open a room. Anything sent to you arrives here
-              on its own — the scanner is already running.
+              on its own: the scanner is already running.
             </p>
           </div>
         ) : (

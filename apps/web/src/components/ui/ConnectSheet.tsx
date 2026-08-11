@@ -261,7 +261,7 @@ export function ConnectSheet(): ReactNode {
                 <span className={s.emptyTitle}>No wallet detected</span>
                 <p className={s.note}>
                   HoodGram connects to any EIP-1193 browser wallet. Install one, then
-                  reopen this sheet — nothing else is needed to read the chain.
+                  reopen this sheet. Nothing else is needed to read the chain.
                 </p>
                 <div className={s.links}>
                   {WALLET_LINKS.map((link) => (

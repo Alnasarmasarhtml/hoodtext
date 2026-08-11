@@ -65,7 +65,7 @@ export function RoomCreate(): ReactNode {
       <div className={s.pane}>
         <LockedNotice activation={session.activation} />
         <p className={s.lockedNote}>
-          Rooms need an activated account — the $5 covers you forever, and only the room itself
+          Rooms need an activated account. The $5 covers you forever, and only the room itself
           costs rent.
         </p>
       </div>
@@ -92,7 +92,7 @@ export function RoomCreate(): ReactNode {
           <Eyebrow rule>New room</Eyebrow>
           <h1 className={s.title}>Open a room.</h1>
           <p className={s.lede}>
-            {formatUsd(PRICES.roomUsdPerMonth, 0)} a month, paid by you as its admin — members
+            {formatUsd(PRICES.roomUsdPerMonth, 0)} a month, paid by you as its admin. Members
             are free. The name never touches the chain: it travels only inside encrypted key
             drops, and the chain sees a random-salted id plus a commitment to the member set.
           </p>
@@ -149,7 +149,7 @@ export function RoomCreate(): ReactNode {
             <dt className={s.factKey}>Lapse policy</dt>
             <dd className={s.factValue}>
               <span className={s.factSmall}>
-                blocks new messages only — history and membership survive, anyone may pay
+                blocks new messages only: history and membership survive, anyone may pay
               </span>
             </dd>
           </div>
@@ -169,7 +169,7 @@ export function RoomCreate(): ReactNode {
               : `Approve + create · ${formatToken(quote, { digits: 0, compact: true })} GRAM`}
           </Button>
           <span className={s.actionNote}>
-            Two wallet steps at most — the approval is skipped when your allowance already
+            Two wallet steps at most. The approval is skipped when your allowance already
             covers the rent. The group key is minted on this device afterwards; add members from
             the room header.
           </span>

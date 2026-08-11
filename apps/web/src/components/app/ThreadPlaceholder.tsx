@@ -68,7 +68,7 @@ export function ThreadPlaceholder(): ReactNode {
         <LockedNotice activation={session.activation} className={s.locked} />
         <p className={s.lockedNote}>
           The rail beside this stays live. Every thread already on this device is readable, and
-          new messages keep arriving and decrypting before you have paid anything — activation
+          new messages keep arriving and decrypting before you have paid anything. Activation
           unlocks the composer and nothing else.
         </p>
       </div>

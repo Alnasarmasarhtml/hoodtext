@@ -300,8 +300,8 @@ export function Composer({
 
       {preview.overflow && (
         <p className={s.warn} role="alert">
-          That is larger than the biggest padded envelope (16 KB). Shorten it or split it in two —
-          nothing has been sent.
+          That is larger than the biggest padded envelope (16 KB). Shorten it or split it in two.
+          Nothing has been sent.
         </p>
       )}
 

@@ -115,7 +115,9 @@ export function WhatThisIs(): ReactNode {
         </div>
 
         <header className={s.head} data-reveal>
-          <h2 className={s.title}>A messenger that cannot be switched off.</h2>
+          {/* The switch-off claim moved up into the hero (R2), so this head
+              states the mechanism instead of repeating it. */}
+          <h2 className={s.title}>Lives on the open web. Settles on Robinhood Chain.</h2>
           <p className={s.lede}>
             HoodGram is an end-to-end encrypted messenger that lives on the open web and settles
             on Robinhood Chain. Every message becomes a permanent, verifiable anchor on a public

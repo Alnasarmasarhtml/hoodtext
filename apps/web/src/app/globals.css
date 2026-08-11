@@ -43,7 +43,10 @@
     /* Top highlight — the only permitted "shadow" */
     --highlight: rgba(255, 255, 255, 0.09);
 
-    /* Type — Orbitron is the site face, headings and prose alike.
+    /* Type — Orbitron is the display voice: headings, bold emphasis, buttons,
+       eyebrows and the header (client call, 2026-08-12: corporate pass keeps
+       Orbitron on titles, bold text, buttons and header; running text moves to
+       --font-ui).
        The inner fallback matters: an undefined `var()` with no fallback makes
        the whole declaration invalid, which would drop the entire stack rather
        than fall through to the system face. */
@@ -57,16 +60,16 @@
        no monospaced cut, so using it there would break those columns. */
     --font-mono: var(--font-geist-mono, ui-monospace), "SF Mono", "JetBrains Mono",
       Menlo, monospace;
-    /* The messenger's reading face, and ONLY the messenger's.
+    /* The reading face for running text, sitewide since the corporate pass.
        Orbitron is a display face: wide, geometric, weak ascenders, and l/I/1
-       nearly identical. That is fine for a headline and wrong for a wall of
-       14px chat text someone reads for an hour — a paragraph set in it runs
-       about a fifth wider and slows down noticeably at reading size. So the
-       chat log, the conversation previews and the composer use the platform's
-       own UI face, and everything that frames them — names, headers, buttons,
-       labels — stays Orbitron. The brand lives in the chrome, the green and
-       the shapes, not in the message bodies. Ships nothing: every one of these
-       is already on the device. */
+       nearly identical. That is fine for a headline and wrong for a paragraph
+       someone actually reads — set in Orbitron it runs about a fifth wider
+       and slows down noticeably at reading size. So body copy, chat text and
+       previews use the platform's own UI face, and everything that frames
+       them (headings, bold emphasis, buttons, eyebrows, the header) stays
+       Orbitron. The brand lives in the chrome, the green and the shapes, not
+       in the paragraphs. Ships nothing: every one of these faces is already
+       on the device. */
     --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
       Arial, sans-serif;
 
@@ -244,7 +247,9 @@
     overflow-x: clip;
     background: var(--void);
     color: var(--bone);
-    font-family: var(--font-sans);
+    /* Running text reads in the system face; Orbitron re-enters at h1-h6,
+       strong/b, .eyebrow and the controls, which all declare it. */
+    font-family: var(--font-ui);
     font-size: var(--fs-base);
     line-height: var(--lh-body);
     font-synthesis-weight: none;
@@ -393,7 +398,13 @@
 
   strong,
   b {
+    /* Bold stays in the display face: inline emphasis carries the brand even
+       inside system-face paragraphs (client call, 2026-08-12). Orbitron's 600
+       is already loud beside a 400 system grotesk; 0.94em keeps its larger
+       x-height from making emphasised words tower over the line. */
+    font-family: var(--font-sans);
     font-weight: 600;
+    font-size: 0.94em;
     color: var(--bone);
   }
 
@@ -484,18 +495,9 @@
     clip-path: var(--path-notch-in);
   }
 
-  /* ── the house control shape ─────────────────────────────────────────────
-     A parallelogram sheared on the same axis as the display face. Direct
-     children are counter-sheared so their contents stay upright inside a
-     leaning box. <Button> carries its own copy; this is for every control
-     that is not a <Button>. Anything wearing it should drop its clip-path —
-     the shear IS the shape, and stacking a notch on top reads as a mistake. */
-  .tilt {
-    transform: skewX(-9deg);
-  }
-  .tilt > * {
-    transform: skewX(9deg);
-  }
+  /* The sheared .tilt control shape lived here until the corporate pass
+     (2026-08-12, C2) flattened every control. Removed rather than left as a
+     trap: nothing may lean again. */
 
   /* ── hairlines ───────────────────────────────────────────────────────── */
   .hair {

@@ -465,7 +465,7 @@ export function ActivationPanel({
             <span className={s.doneForever}>Forever.</span>
             <p className={s.doneCopy}>
               There is nothing to renew, nothing to top up and no way to lose this.
-              Messages are free — relayed with no gas and no popups, or self-posted
+              Messages are free: relayed with no gas and no popups, or self-posted
               for about a cent. The only recurring price anywhere is a room&apos;s
               $10/month, paid by whoever runs it.
             </p>

@@ -166,7 +166,7 @@ export function RoomMembers({ room, chain, className }: RoomMembersProps): React
         <span className={s.headLabel}>Members</span>
         <span className={s.headCount}>{formatCount(room.members.length)}</span>
         <span className={s.headNote}>
-          known to this device — the chain holds only a commitment
+          known to this device: the chain holds only a commitment
         </span>
       </header>
 
@@ -237,7 +237,7 @@ export function RoomMembers({ room, chain, className }: RoomMembersProps): React
         </span>
         {chain.epoch > room.epoch && (
           <span className={s.factWarn}>
-            a newer key exists — messages after the rotation stay sealed until the admin&apos;s
+            a newer key exists: messages after the rotation stay sealed until the admin&apos;s
             key drop arrives
           </span>
         )}

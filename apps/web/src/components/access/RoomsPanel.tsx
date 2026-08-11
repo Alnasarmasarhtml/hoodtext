@@ -316,7 +316,7 @@ function RoomCard({
           <span className={s.autoLabel}>Auto-renew</span>
           <span className={s.autoNote}>
             On: anyone may call <code className={s.code}>renewFor</code> in the last 3
-            days and buy 1 month — paid only from the allowance you approved below.
+            days and buy 1 month, paid only from the allowance you approved below.
           </span>
         </div>
 

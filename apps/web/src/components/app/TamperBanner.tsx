@@ -44,7 +44,7 @@ export function TamperBanner({ events, className }: TamperBannerProps): ReactNod
           <p className={s.text}>
             The relay returned bytes whose sha256 is not the <code className={s.code}>blobRef</code>{' '}
             recorded by <code className={s.code}>Anchors.Dropped</code>. Those bytes were discarded
-            without being decrypted. Nothing you can read here was affected — the chain digest is
+            without being decrypted. Nothing you can read here was affected: the chain digest is
             the authority and the relay is only a cache.
           </p>
         </div>

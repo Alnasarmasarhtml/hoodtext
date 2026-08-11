@@ -69,37 +69,50 @@ export function Hero(): ReactNode {
           </p>
         </div>
 
+        {/* R2, the institutional hero (client call, 2026-08-12): the claim in
+            bone rather than green, one green rule, and the numbers as a stat
+            row instead of a strip of slogans. The display face stays Orbitron;
+            the register change is carried by colour and restraint, not by a
+            font swap. */}
         <div className={s.block} data-reveal>
-          <p className={s.kicker}>Encrypted · Anchored · Unremovable</p>
-          <h1 className={s.title}>Pay $5 once. Text forever.</h1>
-          <p className={s.claim}>
-            Every message anchored on Robinhood Chain. Half of every payment goes back to the
+          <p className={s.kicker}>Encrypted messaging, settled on chain</p>
+          <span className={s.rule} aria-hidden="true" />
+          <h1 className={s.title}>The messenger that cannot be switched off.</h1>
+          <p className={s.sub}>
+            Sealed on your device. Anchored on Robinhood Chain. No store to remove it from, no
+            keys to hand over, no subscription to cancel. Half of every payment goes to the
             people holding <TokenMark />.
           </p>
-          <p className={s.sub}>
-            Messages are sealed on your device and free to send, forever. The relay posts them on
-            chain with no gas and your address never on chain. Rooms are $10 a month, paid by
-            whoever runs them; members ride free.
-          </p>
+
+          <dl className={s.stats}>
+            <div className={s.stat}>
+              <dt className={s.statKey}>once, forever</dt>
+              <dd className={s.statValue}>$5</dd>
+            </div>
+            <div className={s.stat}>
+              <dt className={s.statKey}>per message</dt>
+              <dd className={s.statValue}>$0</dd>
+            </div>
+            <div className={s.stat}>
+              <dt className={s.statKey}>of revenue to holders</dt>
+              <dd className={s.statValue}>50%</dd>
+            </div>
+          </dl>
 
           <div className={s.actions}>
             <Link
               href="/access"
               className={buttonClassName({ variant: 'primary', size: 'lg' })}
             >
-              Get access · $5
+              Get access
             </Link>
             <Link
-              href="/app?demo=1"
+              href="/record"
               className={buttonClassName({ variant: 'ghost', size: 'lg' })}
             >
-              View demo
+              Read the record
             </Link>
           </div>
-
-          <p className={s.meta}>
-            $5 once · rooms $10/mo · messages free · 50% of revenue to holders
-          </p>
         </div>
       </div>
     </section>

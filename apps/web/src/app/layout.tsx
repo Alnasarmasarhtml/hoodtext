@@ -33,9 +33,9 @@ const SITE_URL = 'https://hoodgram.tech/';
    screen, 512 is what everything else scales down from. They go through asset()
    because a relative icon href resolves against the current route —
    /access/brand/… — and 404s on every page but the root. */
-const ICON_32 = asset('/brand/icon-hood-32.png');
-const ICON_180 = asset('/brand/icon-hood-180.png');
-const ICON_512 = asset('/brand/icon-hood-512.png');
+const ICON_32 = asset('/brand/icon-fold-32.png');
+const ICON_180 = asset('/brand/icon-fold-180.png');
+const ICON_512 = asset('/brand/icon-fold-512.png');
 
 /* What a pasted hoodgram.tech link unfurls into, on X and everywhere else.
    Client copy, 2026-08-08 — do not paraphrase it. X truncates its card blurb
@@ -45,7 +45,7 @@ const SHARE_DESCRIPTION =
 
 /* Relative on purpose: metadataBase makes it absolute for the crawler, and the
    1200×630 is what both X and Open Graph want for a large card. */
-const SHARE_IMAGE = 'brand/og-card-messenger.jpg';
+const SHARE_IMAGE = 'brand/og-card-fold.jpg';
 
 /* The headline a pasted link shows. Deliberately not the price: a preview is
    the first thing anyone sees, and leading with "$5" makes the product sound

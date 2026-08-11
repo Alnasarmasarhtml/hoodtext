@@ -192,7 +192,7 @@ export function LadderPanel({
 
         <p className={s.mechanic}>
           Judged on the <strong>lower</strong> of your balance now and your balance at
-          the last weekly snapshot — a tier must be held through a snapshot, so it
+          the last weekly snapshot: a tier must be held through a snapshot, so it
           cannot be flash-bought, and selling drops it immediately.
         </p>
         <p className={s.mechanic}>

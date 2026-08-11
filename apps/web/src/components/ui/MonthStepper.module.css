@@ -18,6 +18,7 @@
 
 /* ── ± keys ─────────────────────────────────────────────────────────────── */
 
+/* Flat, same geometry as <Button> since the corporate pass retired the shear. */
 .key {
   flex: none;
   display: inline-flex;
@@ -26,7 +27,7 @@
   width: 38px;
   height: 34px;
   background-color: var(--line-2);
-  transform: skewX(-9deg);
+  border-radius: 3px;
   color: var(--bone);
   outline: none;
   transition: color var(--dur-1) var(--ease);
@@ -34,15 +35,12 @@
   isolation: isolate;
 }
 
-.key > * {
-  transform: skewX(9deg);
-}
-
 .key::before {
   content: '';
   position: absolute;
   inset: 1px;
   z-index: -1;
+  border-radius: 2px;
   background-color: var(--panel-2);
   transition: background-color var(--dur-1) var(--ease);
 }

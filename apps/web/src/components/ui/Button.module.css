@@ -1,11 +1,9 @@
 /* Bespoke control: the element itself paints the 1px edge, a ::before inset by
    1px paints the interior.
 
-   The shape is a parallelogram sheared on the same axis as the display face —
-   the shear IS the shape, so no notch is clipped on top of it. Every direct
-   child is counter-sheared, which keeps the label and the signal meter upright
-   inside a leaning box. Dropping clip-path also gives focus rings back: a
-   clipped element clips its own outline. */
+   The 9-degree shear retired on 2026-08-12 (client call: corporate pass, C2).
+   Flat rectangles with a 3px radius, one green primary per screen. The brand
+   now lives in the wordmark, the mark and the green, not in tilted chrome. */
 
 .btn {
   --edge: var(--line-2);
@@ -14,8 +12,6 @@
   --h: 38px;
   --px: 18px;
   --fs: var(--fs-xs);
-  --skew: -9deg;
-
   position: relative;
   isolation: isolate;
   display: inline-flex;
@@ -37,16 +33,11 @@
   text-align: center;
   user-select: none;
   outline: none;
-  transform: skewX(var(--skew));
+  border-radius: 3px;
   transition:
     background-color var(--dur-1) var(--ease),
     color var(--dur-1) var(--ease),
     transform var(--dur-1) var(--ease);
-}
-
-/* Counter-shear, so nothing inside the button leans. */
-.btn > * {
-  transform: skewX(calc(-1 * var(--skew)));
 }
 
 .btn::before {
@@ -54,6 +45,7 @@
   position: absolute;
   inset: 1px;
   z-index: -1;
+  border-radius: 2px;
   background-color: var(--fill);
   transition: background-color var(--dur-1) var(--ease);
 }
@@ -109,7 +101,7 @@
 .primary:active:not(:disabled) {
   --edge: #00a504;
   --fill: #00a504;
-  transform: skewX(var(--skew)) translateY(1px);
+  transform: translateY(1px);
 }
 
 /* clip-path also clips `outline`, so focus is drawn as a contrasting edge. */
@@ -132,7 +124,7 @@
 
 .ghost:active:not(:disabled) {
   --fill: rgba(232, 234, 235, 0.09);
-  transform: skewX(var(--skew)) translateY(1px);
+  transform: translateY(1px);
 }
 
 .ghost:focus-visible {
@@ -154,7 +146,7 @@
 }
 
 .danger:active:not(:disabled) {
-  transform: skewX(var(--skew)) translateY(1px);
+  transform: translateY(1px);
 }
 
 .danger:focus-visible {
@@ -168,7 +160,6 @@
   --edge: var(--line);
   --fill: transparent;
   --ink: var(--dim);
-  transform: skewX(var(--skew));
 }
 
 /* Working is not disabled: a loading button must still read as the action it
