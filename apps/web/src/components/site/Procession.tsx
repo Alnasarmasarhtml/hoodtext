@@ -29,7 +29,7 @@ export function Procession(): ReactNode {
             href="/access"
             className={buttonClassName({ variant: 'primary', size: 'lg' })}
           >
-            Get access · $5
+            Get access · $5 in $GRAM
           </Link>
         </div>
       </div>

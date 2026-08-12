@@ -133,9 +133,10 @@ export function AccessPage(): ReactNode {
             <Eyebrow rule>Access &amp; revenue</Eyebrow>
             <h1 className={s.title}>Pay $5 once. Get paid as a holder.</h1>
             <p className={s.lede}>
-              HoodGram charges exactly two prices: $5, once, for an account that exists
-              forever, and $10 a month for a room, paid by whoever runs it. Messages are
-              never charged. Half of every payment goes to whoever holds{' '}
+              HoodGram charges exactly two prices, both paid in{' '}
+              <span className={s.wordmark}>$GRAM</span> at the live rate: $5, once, for an
+              account that exists forever, and $10 a month for a room, paid by whoever runs
+              it. Messages are never charged. Half of every payment goes to whoever holds{' '}
               <span className={s.wordmark}>$GRAM</span>. There is no staking contract to
               enter and nothing to lock up.
             </p>
@@ -161,7 +162,7 @@ export function AccessPage(): ReactNode {
                   : activation.isActivated
                     ? 'forever, nothing renews'
                     : isConnected
-                      ? '$5, once, below'
+                      ? '$5 in $GRAM, below'
                       : 'connect to read'
               }
             />

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     siteName: 'HoodGram',
     title: 'Access & revenue · HoodGram',
     description:
-      'One $5 payment and your account exists forever. Rooms are $10/month, paid by their admin. Messages are free. 50% of every payment is shared with holders by holdings, read from historical balance checkpoints.',
+      'One $5 payment, made in $GRAM, and your account exists forever. Rooms are $10/month, paid by their admin. Messages are free. 50% of every payment is shared with holders by holdings, read from historical balance checkpoints.',
     /* Declaring an openGraph block here replaces the root one wholesale rather
        than merging, so the card image has to be repeated or a shared /access
        link unfurls as a large card with an empty picture well. */
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Access & revenue · HoodGram',
     description:
-      'Pay $5 once, text forever. Rooms $10/month, members free. 50% of revenue to holders, by holdings, with no staking.',
+      'Pay $5 once in $GRAM, text forever. Rooms $10/month, members free. 50% of revenue to holders, by holdings, with no staking.',
     images: ['brand/og-card-banner.jpg'],
   },
 };

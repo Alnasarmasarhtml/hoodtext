@@ -200,7 +200,7 @@ export function HandlePanel({
         <EmptyState
           eyebrow="At launch"
           title="Handles open with activation"
-          body="A handle is an @name bound to your address on chain. It comes free with the $5 activation, one per account, and the short ones are reserved for the holder tiers."
+          body="A handle is an @name bound to your address on chain. It comes free with the $5 activation, paid in $GRAM, one per account, and the short ones are reserved for the holder tiers."
           mark={false}
         />
       </Panel>
@@ -227,7 +227,7 @@ export function HandlePanel({
               ? 'This build has no contract addresses for the active chain, so there is no handle registry to read.'
               : wrongNetwork
                 ? 'Handles live on Robinhood Chain. Your wallet is pointed somewhere else.'
-                : 'A handle is an @name bound to your address on chain. Free with the $5 activation, one per account.'
+                : 'A handle is an @name bound to your address on chain. Free with the $5 activation, paid in $GRAM, one per account.'
           }
           action={
             contracts !== null && !wrongNetwork ? (
@@ -289,7 +289,7 @@ export function HandlePanel({
             <Notice
               tone="info"
               title="Activation first"
-              body="Handles are free, but only activated accounts can claim one. That is what keeps squatting bots out. Pay the one-time $5 above and come back."
+              body="Handles are free, but only activated accounts can claim one. That is what keeps squatting bots out. Pay the one-time $5 in $GRAM above and come back."
             />
           )
         )}

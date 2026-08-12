@@ -63,13 +63,13 @@ export function Hero(): ReactNode {
           <h1 className={s.title}>The messenger that cannot be switched off.</h1>
           <p className={s.sub}>
             Sealed on your device. Anchored on Robinhood Chain. No store to remove it from, no
-            keys to hand over, no subscription to cancel. Half of every payment goes to the
-            people holding <TokenMark />.
+            keys to hand over, no subscription to cancel. Access is one $5 payment made in{' '}
+            <TokenMark />, and half of every payment goes to the people holding it.
           </p>
 
           <dl className={s.stats}>
             <div className={s.stat}>
-              <dt className={s.statKey}>once, forever</dt>
+              <dt className={s.statKey}>once, in $GRAM</dt>
               <dd className={s.statValue}>$5</dd>
             </div>
             <div className={s.stat}>

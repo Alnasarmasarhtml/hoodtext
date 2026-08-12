@@ -79,7 +79,7 @@ export function AccountBadge({
               first thing to give up when the strip runs out of room. */}
           <span className={s.actionLong}>
             {quote === null
-              ? 'Activate · $5 once'
+              ? 'Activate · $5 in $GRAM'
               : `Activate · ${formatToken(quote, { digits: 0, compact: true })} GRAM`}
           </span>
           <span className={s.actionShort}>Activate</span>

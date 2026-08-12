@@ -138,13 +138,13 @@ const REVERT_COPY: Readonly<Record<string, RevertCopy>> = {
     kind: 'reverted',
     title: 'Already activated',
     detail:
-      'This account exists and it exists forever. The $5 is paid exactly once. Nothing was charged.',
+      'This account exists and it exists forever. The $5 is paid exactly once, in $GRAM. Nothing was charged.',
   },
   NotActivated: {
     kind: 'reverted',
     title: 'Account not activated',
     detail:
-      'This action needs an activated account. Pay the one-time $5 activation above and try again.',
+      'This action needs an activated account. Pay the one-time $5 activation above, in $GRAM, and try again.',
   },
   PermitFailed: {
     kind: 'reverted',

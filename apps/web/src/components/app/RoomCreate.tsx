@@ -65,7 +65,7 @@ export function RoomCreate(): ReactNode {
       <div className={s.pane}>
         <LockedNotice activation={session.activation} />
         <p className={s.lockedNote}>
-          Rooms need an activated account. The $5 covers you forever, and only the room itself
+          Rooms need an activated account. The $5, paid in $GRAM, covers you forever, and only the room itself
           costs rent.
         </p>
       </div>

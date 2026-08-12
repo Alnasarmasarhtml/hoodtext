@@ -143,7 +143,7 @@ export function LockedNotice({
 
       <div className={s.actions}>
         <Link href="/access" className={buttonClassName({ variant: 'primary', size: 'lg' })}>
-          Activate for $5
+          Activate for $5 in $GRAM
         </Link>
         <span className={s.actionNote}>
           Reading and receiving keep working either way. Activation gates sending and nothing

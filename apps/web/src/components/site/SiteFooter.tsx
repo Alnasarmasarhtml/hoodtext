@@ -103,7 +103,7 @@ export function SiteFooter(): ReactNode {
             HoodGram is software. Anchors are public and permanent.
           </span>
           <span className={s.baseText}>
-            $5 once · rooms $10/month · messages free · 50% to holders
+            $5 once, in $GRAM · rooms $10/month · messages free · 50% to holders
           </span>
         </div>
       </div>

@@ -259,7 +259,7 @@ export function ActivationPanel({
       </div>
 
       <p className={s.sponsorCopy}>
-        <code className={s.code}>activateFor(them)</code>. You pay the same $5 once,
+        <code className={s.code}>activateFor(them)</code>. You pay the same $5 once, in $GRAM;
         they own the account forever. Nothing about it points back to you afterwards.
       </p>
 
