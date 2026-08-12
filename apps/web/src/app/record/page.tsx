@@ -21,14 +21,14 @@ export const metadata: Metadata = {
     title: 'The Record · HoodGram',
     description:
       'What is actually being done to private communication, with sources. Every entry says what the instrument does, what it does not do, and where to read it. Nothing on the list has ever produced the contents of an encrypted message.',
-    images: [{ url: 'brand/og-card-fold.jpg', width: 1200, height: 630, alt: 'HoodGram' }],
+    images: [{ url: 'brand/og-card-banner.jpg', width: 1920, height: 1080, alt: 'HoodGram' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'The Record · HoodGram',
     description:
       'Laws, court orders and network blocks against private messaging. What each does, what it does not, and a link to the source.',
-    images: ['brand/og-card-fold.jpg'],
+    images: ['brand/og-card-banner.jpg'],
   },
 };
 

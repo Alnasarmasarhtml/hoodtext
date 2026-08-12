@@ -43,14 +43,13 @@ const ICON_512 = asset('/brand/icon-fold-512.png');
 const SHARE_DESCRIPTION =
   'HoodGram is an end-to-end encrypted messenger that lives on the open web and settles on Robinhood Chain. Every message becomes a permanent, verifiable anchor on a public network. Proof it was sent, readable by no one but the recipient. There is no store to remove it from and no subscription to cancel. You buy in once.';
 
-/* Relative on purpose: metadataBase makes it absolute for the crawler, and the
-   1200×630 is what both X and Open Graph want for a large card. */
-const SHARE_IMAGE = 'brand/og-card-fold.jpg';
+/* Relative on purpose: metadataBase makes it absolute for the crawler. The
+   client's own 16:9 fabric banner (2026-08-12); large cards crop it only
+   vertically, so the lockup survives every platform. */
+const SHARE_IMAGE = 'brand/og-card-banner.jpg';
 
-/* The headline a pasted link shows. Deliberately not the price: a preview is
-   the first thing anyone sees, and leading with "$5" makes the product sound
-   like a purchase before it sounds like anything. This is the site's own H2. */
-const SHARE_TITLE = 'HoodGram: the messenger that cannot be switched off';
+/* The headline a pasted link shows. Client copy, 2026-08-12, verbatim. */
+const SHARE_TITLE = 'The encrypted messenger that cannot be switched off. Live on Robinhood Chain';
 
 /**
  * Content Security Policy, delivered as a <meta> tag.
@@ -144,7 +143,8 @@ const CSP_ENABLED = process.env.NODE_ENV === 'production';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'HoodGram · pay $5 once, text forever',
+    default:
+      'HoodGram · The encrypted messenger that cannot be switched off. Live on Robinhood Chain',
     template: '%s · HoodGram',
   },
   description:
@@ -172,7 +172,7 @@ export const metadata: Metadata = {
     siteName: 'HoodGram',
     title: SHARE_TITLE,
     description: SHARE_DESCRIPTION,
-    images: [{ url: SHARE_IMAGE, width: 1200, height: 630, alt: 'HoodGram' }],
+    images: [{ url: SHARE_IMAGE, width: 1920, height: 1080, alt: 'HoodGram' }],
   },
   twitter: {
     card: 'summary_large_image',

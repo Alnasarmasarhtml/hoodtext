@@ -28,7 +28,7 @@ import s from './Hero.module.css';
  */
 export function Hero(): ReactNode {
   return (
-    <section className={s.hero} aria-label="HoodGram: pay $5 once, text forever">
+    <section className={s.hero} aria-label="HoodGram: the encrypted messenger that cannot be switched off">
       <MediaLoop
         className={s.film}
         src={asset('/media/procession.mp4')}
