@@ -446,3 +446,30 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* The labeled room entry point: full-width primary action under the search.
+   Green is permitted — this is the rail's one primary CTA. */
+.createGroup {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  background-color: var(--green);
+  color: var(--void);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  clip-path: var(--path-notch-br);
+  transition: background-color var(--dur-1) var(--ease);
+}
+
+.createGroup:hover,
+.createGroup:focus-visible {
+  background-color: #2ee03a;
+}

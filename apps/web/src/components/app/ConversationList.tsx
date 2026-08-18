@@ -294,14 +294,14 @@ export function ConversationList({
             onChange={onChange}
             disabled={start.isBusy}
           />
-          <Link href="/app/rooms/new" className={s.newRoom} title="Start a room">
-            <svg viewBox="0 0 16 16" aria-hidden="true" className={s.newRoomGlyph}>
-              <path d="M8 2.6v10.8M2.6 8h10.8" />
-            </svg>
-            <span className={s.srOnly}>New room</span>
-          </Link>
         </div>
         {start.error !== null && <p className={s.openerError}>{start.error}</p>}
+        <Link href="/app/rooms/new" className={s.createGroup}>
+          <svg viewBox="0 0 16 16" aria-hidden="true" className={s.newRoomGlyph}>
+            <path d="M8 2.6v10.8M2.6 8h10.8" />
+          </svg>
+          Create a group
+        </Link>
       </form>
 
       <nav className={s.list} aria-label="Conversations">

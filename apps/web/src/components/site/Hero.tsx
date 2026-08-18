@@ -90,6 +90,12 @@ export function Hero(): ReactNode {
               Get access
             </Link>
             <Link
+              href="/app"
+              className={buttonClassName({ variant: 'ghost', size: 'lg' })}
+            >
+              Messenger
+            </Link>
+            <Link
               href="/record"
               className={buttonClassName({ variant: 'ghost', size: 'lg' })}
             >
