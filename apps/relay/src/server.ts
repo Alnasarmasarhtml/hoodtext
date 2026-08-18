@@ -19,6 +19,7 @@ import { BLOB_PRUNE_INTERVAL_MS, loadConfig, type RelayConfig } from './config.j
 import { RelayDb, type DropRow } from './db.js';
 import { Indexer } from './indexer.js';
 import { buildSendPorts } from './sender-chain.js';
+import { PriceKeeper } from './price-keeper.js';
 import { SendPipeline, type BatchPoster, type ChainGate } from './sender.js';
 import { StreamHub } from './stream.js';
 
@@ -29,6 +30,7 @@ declare module 'fastify' {
     readonly indexer: Indexer;
     readonly stream: StreamHub;
     readonly sendPipeline: SendPipeline;
+    readonly priceKeeper: PriceKeeper;
   }
 }
 
@@ -187,6 +189,8 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   app.decorate('stream', stream);
   app.decorate('indexer', indexer);
   app.decorate('sendPipeline', sendPipeline);
+  const priceKeeper = new PriceKeeper({ config, log: app.log });
+  app.decorate('priceKeeper', priceKeeper);
 
   const corsOptions: FastifyCorsOptions = {
     origin: config.webOrigins.includes('*') ? true : [...config.webOrigins],
@@ -489,6 +493,9 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
             trustedProxyHops: config.trustProxyHops,
             forwardedHeaderSeen,
           },
+          // The market-price keeper: strategy, on-chain vs target rate, and the
+          // last failure. `lastError` non-null for long means the fee is stale.
+          price: instance.priceKeeper.status(),
         });
       },
     );
@@ -534,6 +541,7 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   app.addHook('onReady', async () => {
     if (config.indexerEnabled) indexer.start();
     sendPipeline.start();
+    if (config.priceKeeperEnabled) priceKeeper.start();
     if (config.blobTtlDays > 0) {
       pruneTimer = setInterval(() => {
         try {
@@ -555,6 +563,7 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       pruneTimer = null;
     }
     stream.close();
+    await priceKeeper.stop();
     await sendPipeline.stop();
     await indexer.stop();
     db.close();

@@ -24,15 +24,19 @@ import {
   signDrop,
   wrapGroupKey,
   type IdentityKeys,
+  encodePlaintextCore,
+  signAuthor,
+  type Plaintext,
 } from '@hoodgram/crypto';
 import { useCallback, useMemo, useState } from 'react';
-import { bytesToHex, hexToBytes, type Address, type Hex } from 'viem';
+import { bytesToHex, hexToBytes, parseEventLogs, type Address, type Hex } from 'viem';
 import { useConfig, useReadContract, useReadContracts, useWriteContract } from 'wagmi';
 import type { Config } from 'wagmi';
 import { readContract, waitForTransactionReceipt } from 'wagmi/actions';
 
 import { anchorsAbi, groupRegistryAbi, keyRegistryAbi, hoodGramTokenAbi } from '@/lib/abi';
 import { ACTIVE_CHAIN_ID, tryGetContracts } from '@/lib/chain';
+import { formatDate, formatToken } from '@/lib/format';
 import { DEMO_ACCESS, isDemoActive } from '@/lib/demo';
 import { RelayError, postBlob, sendDrop } from '@/lib/relay';
 import { demoGroupIdFor, demoRoomChain, registerDemoRoom } from './demo-world';
@@ -217,10 +221,21 @@ async function deliverKeyDrop(
 ): Promise<void> {
   const memberKey = hexToBytes(params.memberX25519);
   const body = JSON.stringify({ type: 'roomKey', ...params.payload });
-  const sealed = await seal(
-    { v: 1, t: Math.floor(Date.now() / 1000), kind: 'system', body },
+  /* Sign the invite so the member's client can verify WHO added them; scope is
+     the member's own X25519 key, the standard stealth-DM binding. */
+  const ptCore: Plaintext = {
+    v: 1,
+    t: Math.floor(Date.now() / 1000),
+    kind: 'system',
+    body,
+    from: params.sender.toLowerCase() as `0x${string}`,
+  };
+  const authorSig = await signAuthor(
+    encodePlaintextCore(ptCore),
     memberKey,
+    params.keys.ed25519.privateKey,
   );
+  const sealed = await seal({ ...ptCore, sig: authorSig }, memberKey);
 
   const receipt = await postBlob(sealed.blob);
   if (receipt.blobRef.toLowerCase() !== sealed.blobRef.toLowerCase()) {
@@ -283,13 +298,22 @@ export interface UseCreateRoomResult {
   readonly phase: CreateRoomPhase;
   readonly error: string | null;
   readonly txHash: Hex | null;
+  /** What creation actually charged, from the GroupCreated event. */
+  readonly paid: {
+    readonly thoodPaid: bigint;
+    readonly paidUntil: bigint;
+    readonly txHash: Hex;
+  } | null;
   readonly isBusy: boolean;
   /**
    * Approve + `createGroup`, then store the room and its epoch-0 key locally.
    *
-   * @returns the new `groupId`, or `null` with `error` set.
+   * @returns the new `groupId` plus the exact charge, or `null` with `error` set.
    */
-  create: (name: string, months: number) => Promise<Hex | null>;
+  create: (
+    name: string,
+    months: number,
+  ) => Promise<{ readonly groupId: Hex; readonly paid: UseCreateRoomResult['paid'] } | null>;
   reset: () => void;
 }
 
@@ -300,6 +324,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
 
   const [phase, setPhase] = useState<CreateRoomPhase>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [paid, setPaid] = useState<UseCreateRoomResult['paid']>(null);
   const [txHash, setTxHash] = useState<Hex | null>(null);
 
   const reset = useCallback((): void => {
@@ -315,9 +340,13 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
   }, []);
 
   const create = useCallback(
-    async (name: string, months: number): Promise<Hex | null> => {
+    async (
+      name: string,
+      months: number,
+    ): Promise<{ readonly groupId: Hex; readonly paid: UseCreateRoomResult['paid'] } | null> => {
       setError(null);
       setTxHash(null);
+      setPaid(null);
 
       const trimmed = name.trim();
       if (owner === null) return failWith('Connect and unlock before creating a room.');
@@ -365,10 +394,11 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
           blockNumber: null,
           txHash: null,
           poster: owner,
+          author: null,
           error: null,
         });
         setPhase('done');
-        return groupId;
+        return { groupId, paid: null };
       }
 
       if (contracts === null) {
@@ -399,7 +429,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
             address: contracts.token,
             abi: hoodGramTokenAbi,
             functionName: 'approve',
-            args: [contracts.groupRegistry, quote],
+            args: [contracts.groupRegistry, (quote * 105n) / 100n], // 5% headroom: the rate is live and can tick between approve and pay
             chainId: ACTIVE_CHAIN_ID,
           });
           const approveReceipt = await waitForTransactionReceipt(config, {
@@ -434,7 +464,28 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
           return failWith('The room creation reverted on chain. The rent was not pulled.');
         }
 
-        /* The chain has the room; now this device does too. */
+        /* The chain has the room; now this device does too. Read the exact
+           charge and paid-until off the GroupCreated event, so the note below
+           states what actually happened instead of what was intended. */
+        let createdPaid: UseCreateRoomResult['paid'] = null;
+        try {
+          const events = parseEventLogs({
+            abi: groupRegistryAbi,
+            logs: receipt.logs,
+            eventName: 'GroupCreated',
+          });
+          const args = events[0]?.args ?? null;
+          if (args !== null) {
+            createdPaid = {
+              thoodPaid: args.thoodPaid,
+              paidUntil: args.paidUntil,
+              txHash: hash,
+            };
+            setPaid(createdPaid);
+          }
+        } catch {
+          /* the room still exists; the note just loses its exact figure */
+        }
         const now = Math.floor(Date.now() / 1000);
         await putRoomKey(groupId, 0, groupKey);
         await upsertRoom({
@@ -453,9 +504,15 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
           owner,
           convoId: groupId,
           direction: 'out',
-          body: `Room “${trimmed}” created. Rent paid ${String(boundedMonths)} ${
-            boundedMonths === 1 ? 'month' : 'months'
-          } ahead.`,
+          body:
+            createdPaid === null
+              ? `Room “${trimmed}” created. Rent paid ${String(boundedMonths)} ${
+                  boundedMonths === 1 ? 'month' : 'months'
+                } ahead.`
+              : `Room “${trimmed}” created. Paid ${formatToken(createdPaid.thoodPaid, {
+                  digits: 0,
+                  symbol: 'GRAM',
+                })} · rent covered until ${formatDate(Number(createdPaid.paidUntil))}.`,
           kind: 'system',
           re: null,
           sentAt: now,
@@ -469,11 +526,12 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
           blockNumber: Number(receipt.blockNumber),
           txHash: hash,
           poster: owner,
+          author: null,
           error: null,
         });
 
         setPhase('done');
-        return groupId;
+        return { groupId, paid: createdPaid };
       } catch (caught: unknown) {
         return failWith(describeChainError(caught, 'The room could not be created.'));
       }
@@ -485,6 +543,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
     phase,
     error,
     txHash,
+    paid,
     isBusy: phase === 'approving' || phase === 'creating',
     create,
     reset,
@@ -549,7 +608,7 @@ export function usePayRent(groupId: Hex | null, payer: Address | null): UsePayRe
             address: contracts.token,
             abi: hoodGramTokenAbi,
             functionName: 'approve',
-            args: [contracts.groupRegistry, quote],
+            args: [contracts.groupRegistry, (quote * 105n) / 100n], // 5% headroom: the rate is live and can tick between approve and pay
             chainId: ACTIVE_CHAIN_ID,
           });
           const approveReceipt = await waitForTransactionReceipt(config, {
@@ -728,6 +787,7 @@ export function useRoomRoster({
           blockNumber: null,
           txHash: null,
           poster: owner,
+          author: null,
           error: null,
         });
 
@@ -853,6 +913,7 @@ export function useRoomRoster({
           blockNumber: Number(receipt.blockNumber),
           txHash: hash,
           poster: owner,
+          author: null,
           error: null,
         });
 

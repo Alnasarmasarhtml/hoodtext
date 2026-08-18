@@ -17,7 +17,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { isAddress, type Address } from 'viem';
+import { isAddress, parseEventLogs, type Address } from 'viem';
 import { useReadContract, useWriteContract } from 'wagmi';
 
 import { activationAbi, hoodGramTokenAbi, PRICES } from '@/lib/abi';
@@ -91,6 +91,10 @@ export function ActivationPanel({
   const allowance = token.activationAllowance;
 
   const needsApproval = quote !== null && allowance !== null && allowance < quote;
+  /* The rate is live (a keeper repricing $5 against the market), so an
+     exact-quote approval can be a wei short by the time activate() runs.
+     5% headroom absorbs a tick; activate() still pulls only the live quote. */
+  const approveAmount = quote === null ? 0n : (quote * 105n) / 100n;
   const shortOnBalance = quote !== null && balance !== null && balance < quote;
 
   const canWrite =
@@ -133,7 +137,7 @@ export function ActivationPanel({
           address: contracts.token,
           abi: hoodGramTokenAbi,
           functionName: 'approve',
-          args: [contracts.activation, quote],
+          args: [contracts.activation, approveAmount],
         }),
       'Approving $GRAM',
     );
@@ -142,7 +146,7 @@ export function ActivationPanel({
       toast.push({
         kind: 'success',
         title: 'Approved',
-        body: `The Activation contract may now move ${formatToken(quote, { digits: 2, symbol: 'GRAM' })}. And not a wei more.`,
+        body: `The Activation contract may now move up to ${formatToken(approveAmount, { digits: 2, symbol: 'GRAM' })}: the $5 quote plus 5% headroom, because the price now tracks the live market and can tick between approving and paying. Whatever the moment-of-payment quote is, that is all it takes.`,
       });
     }
   }, [approveTx, contracts, onRefresh, quote, toast, writeContractAsync]);
@@ -182,10 +186,23 @@ export function ActivationPanel({
     );
     if (ok) {
       onRefresh();
+      /* Read the exact amount off the receipt's Activated event, so the toast
+         states what actually moved rather than what the quote said. */
+      let paid: bigint | null = null;
+      try {
+        const events = parseEventLogs({
+          abi: activationAbi,
+          logs: sponsorTx.receipt?.logs ?? [],
+          eventName: 'Activated',
+        });
+        paid = events[0]?.args.thoodPaid ?? null;
+      } catch {
+        /* the toast still shows, just without the exact figure */
+      }
       toast.push({
         kind: 'success',
         title: 'Account sponsored',
-        body: `${truncateAddress(friend)} is activated forever. You paid; they own the account.`,
+        body: `You paid ${paid === null ? 'the $5 fee' : `${formatToken(paid, { digits: 2, symbol: 'GRAM' })} (the $5 fee)`} to activate ${friend}. The fee went to the revenue vault, not to them; their address is flagged active forever.`,
       });
     }
   }, [contracts, friend, onRefresh, sponsorTx, toast, writeContractAsync]);
@@ -277,7 +294,9 @@ export function ActivationPanel({
               ? 'That is your own address. Use the activate flow above.'
               : friendActivated && friend !== null
                 ? `${truncateAddress(friend)} is already activated. Nothing to pay.`
-                : 'Any address. It does not need to have used HoodGram before.'
+                : friend !== null
+                  ? `Exactly this address gets the account, forever: ${friend}. The fee is not refundable and activation cannot be moved, so check every character.`
+                  : 'Any address. It does not need to have used HoodGram before.'
           }
           disabled={!isConnected || wrongNetwork}
           spellCheck={false}
@@ -336,7 +355,7 @@ export function ActivationPanel({
           body={
             friend === null
               ? 'The sponsored activation is confirmed on chain.'
-              : `${truncateAddress(friend)} is activated forever. Confirmed on chain.`
+              : `${friend} is activated forever. You paid the $5 fee in GRAM; it went to the revenue vault. Confirmed on chain.`
           }
           action={
             sponsorTx.explorerUrl === null ? undefined : (

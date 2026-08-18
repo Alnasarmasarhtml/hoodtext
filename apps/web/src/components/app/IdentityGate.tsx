@@ -19,7 +19,7 @@
  */
 
 import { useCallback, useState, type ReactNode } from 'react';
-import { useSwitchChain } from 'wagmi';
+import { useAccount, useBalance, useSwitchChain } from 'wagmi';
 
 import { Button, Eyebrow, Hex } from '@/components/ui';
 import type { IdentityStatus, UseIdentityResult } from '@/hooks';
@@ -151,6 +151,18 @@ export interface IdentityGateProps {
 export function IdentityGate({ identity, className }: IdentityGateProps): ReactNode {
   const openSheet = useConnectSheet((state) => state.open);
   const { switchChainAsync, isPending: switching } = useSwitchChain();
+  const { address } = useAccount();
+  /* Registration is free of PAYMENT but is still one on-chain transaction, so
+     a freshly sponsored account with zero ETH would hit a wallet error it
+     cannot interpret. Read the balance only at the register step. */
+  const needsGasCheck = identity.status === 'unregistered' || identity.status === 'registering';
+  const gasBalance = useBalance({
+    address,
+    chainId: ACTIVE_CHAIN_ID,
+    query: { enabled: needsGasCheck && address !== undefined },
+  });
+  const outOfGas =
+    needsGasCheck && gasBalance.data !== undefined && gasBalance.data.value === 0n;
   const [switchError, setSwitchError] = useState<string | null>(null);
 
   const stage = stageOf(identity.status);
@@ -209,15 +221,25 @@ export function IdentityGate({ identity, className }: IdentityGateProps): ReactN
     case 'unregistered':
     case 'registering':
       action = (
-        <Button
-          variant="primary"
-          size="lg"
-          loading={identity.status === 'registering'}
-          loadingLabel="Registering your keys"
-          onClick={identity.register}
-        >
-          {identity.isRotation ? 'Rotate registered keys' : 'Publish public keys'}
-        </Button>
+        <>
+          {outOfGas && (
+            <AppNotice
+              tone="warn"
+              title="This wallet has no ETH for gas"
+              body="Publishing your keys is free of any fee, but it is one on-chain transaction and needs about a cent of ETH for gas. Ask whoever sponsored you to send a little ETH to this address first."
+            />
+          )}
+          <Button
+            variant="primary"
+            size="lg"
+            loading={identity.status === 'registering'}
+            loadingLabel="Registering your keys"
+            onClick={identity.register}
+            disabled={outOfGas}
+          >
+            {identity.isRotation ? 'Rotate registered keys' : 'Publish public keys'}
+          </Button>
+        </>
       );
       break;
     default:

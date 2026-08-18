@@ -191,9 +191,19 @@ export function LadderPanel({
         </ol>
 
         <p className={s.mechanic}>
-          Judged on the <strong>lower</strong> of your balance now and your balance at
-          the last weekly snapshot: a tier must be held through a snapshot, so it
-          cannot be flash-bought, and selling drops it immediately.
+          {perks.latestSnapshot !== null && perks.latestSnapshot > 0n ? (
+            <>
+              Judged on the <strong>lower</strong> of your balance now and your balance at
+              the last weekly snapshot: a tier must be held through a snapshot, so it
+              cannot be flash-bought, and selling drops it immediately.
+            </>
+          ) : (
+            <>
+              No revenue snapshot has been sealed yet, so tiers are judged on your{' '}
+              <strong>live balance</strong> for now. Once weekly snapshots begin, a tier
+              must be held through one, and flash-buying stops working.
+            </>
+          )}
         </p>
         <p className={s.mechanic}>
           The revenue share needs no tier: every holder is paid pro-rata from the first

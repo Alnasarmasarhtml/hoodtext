@@ -108,3 +108,92 @@ export async function verifyDrop(
     return false;
   }
 }
+
+/* ═══════════════════════════════════════════════════ author signatures ══ */
+
+/**
+ * Domain-separation prefix for AUTHOR signatures — the in-payload proof of who wrote a
+ * message. Distinct from {@link DROP_SIGNING_CONTEXT}: a drop signature authorises the
+ * relay to anchor bytes; an author signature travels INSIDE the sealed payload and proves,
+ * to the recipient alone, that `plaintext.from` really wrote this message.
+ */
+export const AUTHOR_SIGNING_CONTEXT = 'hoodgram.author.v1';
+
+/** Detached Ed25519 signature size, in bytes (same curve as drop signatures). */
+export const AUTHOR_SIGNATURE_BYTES = 64;
+
+/** BLAKE2b digest size used for the payload hash inside the transcript. */
+const AUTHOR_HASH_BYTES = 32;
+
+/**
+ * Canonical transcript an author signs:
+ * `utf8(context) || scope(32) || blake2b32(encodePlaintextCore(pt))`.
+ *
+ * `scope` binds the signature to its destination so it can never be replayed elsewhere:
+ * for a 1:1 message it is the RECIPIENT's X25519 public key; for a room drop it is the
+ * 32-byte groupId. Both ends already know their scope, so nothing extra travels.
+ */
+export async function encodeAuthorTranscript(
+  ptCoreBytes: Uint8Array,
+  scope: Uint8Array,
+): Promise<Uint8Array> {
+  if (!(scope instanceof Uint8Array) || scope.length !== 32) {
+    throw new Error('author scope must be exactly 32 bytes');
+  }
+  const sodium = await ready();
+  const digest = sodium.crypto_generichash(AUTHOR_HASH_BYTES, ptCoreBytes, null);
+  const context = utf8Encode(AUTHOR_SIGNING_CONTEXT);
+  const message = new Uint8Array(context.length + 32 + AUTHOR_HASH_BYTES);
+  message.set(context, 0);
+  message.set(scope, context.length);
+  message.set(digest, context.length + 32);
+  return message;
+}
+
+/**
+ * Signs the core payload bytes (from {@link encodePlaintextCore} — everything except
+ * `sig`) with the author's Ed25519 identity key, bound to `scope`.
+ *
+ * @returns the `0x`-prefixed 64-byte detached signature to place in `plaintext.sig`.
+ * @throws {Error} when the scope or key is malformed.
+ */
+export async function signAuthor(
+  ptCoreBytes: Uint8Array,
+  scope: Uint8Array,
+  ed25519Priv: Uint8Array,
+): Promise<`0x${string}`> {
+  const message = await encodeAuthorTranscript(ptCoreBytes, scope);
+  const sodium = await ready();
+  const signature = sodium.crypto_sign_detached(message, ed25519Priv);
+  return bytesToHex(signature);
+}
+
+/**
+ * Verifies an author signature against the claimed author's REGISTERED Ed25519 key.
+ *
+ * Returns `false` — never throws — for any malformed input: the payload reaching this
+ * function was authored by whoever sealed the blob, which may be an attacker. A `true`
+ * here means: the holder of the Ed25519 key that KeyRegistry maps to `plaintext.from`
+ * wrote exactly this payload, for exactly this recipient or room.
+ */
+export async function verifyAuthor(
+  ptCoreBytes: Uint8Array,
+  scope: Uint8Array,
+  signature: `0x${string}`,
+  ed25519Pub: Uint8Array,
+): Promise<boolean> {
+  try {
+    if (!(ed25519Pub instanceof Uint8Array) || ed25519Pub.length !== 32) {
+      return false;
+    }
+    const signatureBytes = hexToBytes(signature, 'signature');
+    if (signatureBytes.length !== AUTHOR_SIGNATURE_BYTES) {
+      return false;
+    }
+    const message = await encodeAuthorTranscript(ptCoreBytes, scope);
+    const sodium = await ready();
+    return sodium.crypto_sign_verify_detached(signatureBytes, message, ed25519Pub);
+  } catch {
+    return false;
+  }
+}

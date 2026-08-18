@@ -16,7 +16,6 @@ import { isHex, type Hex } from 'viem';
 
 import { Button, Countdown, Eyebrow } from '@/components/ui';
 import {
-  parseReactionPayload,
   useConversation,
   useConversationMessages,
   useDemoActive,
@@ -37,7 +36,8 @@ import { AppNotice } from './AppNotice';
 import { Avatar } from './Avatar';
 import { Composer } from './Composer';
 import { LockedNotice } from './LockedNotice';
-import { MessageRow, type ReactionSummary } from './MessageRow';
+import { aggregateReactions } from '@/hooks/reactions';
+import { MessageRow } from './MessageRow';
 import { RoomMembers } from './RoomMembers';
 import { useAppSession } from './session';
 import s from './Thread.module.css';
@@ -165,46 +165,16 @@ function Thread({ convoId }: ThreadProps): ReactNode {
   const shownConvoRef = useRef<Hex | null>(null);
   const { reset: resetSend } = send;
 
-  /* Content rows on screen; reactions decorate them from the side. */
+  /* Content rows on screen; reactions decorate them from the side. Aggregation
+     lives in hooks/reactions.ts — set semantics, one per emoji per person. */
   const { rows, reactionsByRef, byBlobRef } = useMemo(() => {
     const contentRows: ChatMessage[] = [];
-    const reactionMap = new Map<string, Map<string, { count: number; mine: boolean }>>();
     const refMap = new Map<string, ChatMessage>();
-
     for (const message of messages) {
       if (message.blobRef !== null) refMap.set(message.blobRef.toLowerCase(), message);
-
-      if (message.kind === 'react') {
-        const payload = parseReactionPayload(message.body);
-        if (payload === null) continue;
-        const target = payload.target.toLowerCase();
-        let perEmoji = reactionMap.get(target);
-        if (perEmoji === undefined) {
-          perEmoji = new Map();
-          reactionMap.set(target, perEmoji);
-        }
-        const entry = perEmoji.get(payload.emoji) ?? { count: 0, mine: false };
-        perEmoji.set(payload.emoji, {
-          count: entry.count + 1,
-          mine: entry.mine || message.direction === 'out',
-        });
-        continue;
-      }
-      contentRows.push(message);
+      if (message.kind !== 'react') contentRows.push(message);
     }
-
-    const summaries = new Map<string, readonly ReactionSummary[]>();
-    for (const [target, perEmoji] of reactionMap) {
-      summaries.set(
-        target,
-        [...perEmoji.entries()].map(([emoji, entry]) => ({
-          emoji,
-          count: entry.count,
-          mine: entry.mine,
-        })),
-      );
-    }
-    return { rows: contentRows, reactionsByRef: summaries, byBlobRef: refMap };
+    return { rows: contentRows, reactionsByRef: aggregateReactions(messages), byBlobRef: refMap };
   }, [messages]);
 
   /* Follow the tail: jump when the thread changes, glide when a row lands. */
@@ -230,12 +200,30 @@ function Thread({ convoId }: ThreadProps): ReactNode {
     setReplyTo(message);
   }, []);
 
+  /* In-flight reaction toggles, keyed `target:emoji`, so a double-tap cannot
+     fire two adds before the first lands. */
+  const reactionsInFlight = useRef<Set<string>>(new Set());
   const onReact = useCallback(
     (message: ChatMessage, emoji: string): void => {
       if (message.blobRef === null) return;
-      void send.sendReaction({ convoId, target: message.blobRef, emoji });
+      const target = message.blobRef.toLowerCase();
+      const flightKey = `${target}:${emoji}`;
+      if (reactionsInFlight.current.has(flightKey)) return;
+      const mine =
+        reactionsByRef.get(target)?.find((entry) => entry.emoji === emoji)?.mine ?? false;
+      reactionsInFlight.current.add(flightKey);
+      void send
+        .sendReaction({
+          convoId,
+          target: message.blobRef,
+          emoji,
+          op: mine ? 'remove' : 'add',
+        })
+        .finally(() => {
+          reactionsInFlight.current.delete(flightKey);
+        });
     },
-    [convoId, send],
+    [convoId, reactionsByRef, send],
   );
 
   /* The device cache has not been read yet — claiming the thread is missing
@@ -328,13 +316,19 @@ function Thread({ convoId }: ThreadProps): ReactNode {
                 <span className={cx(s.stat, s.statFailed)}>rent lapsed</span>
               )}
               {!rentLapsed && roomChain.exists && roomChain.paidUntil > 0 && (
-                <Countdown
-                  to={roomChain.paidUntil}
-                  size="sm"
-                  warnSeconds={3 * SECONDS_PER_DAY}
-                  expiredLabel="lapsed"
-                  className={s.rentClock}
-                />
+                <span
+                  className={s.stat}
+                  title={`Rent current \u00b7 active until ${new Date(roomChain.paidUntil * 1000).toLocaleString()}`}
+                >
+                  rent current ·{' '}
+                  <Countdown
+                    to={roomChain.paidUntil}
+                    size="sm"
+                    warnSeconds={3 * SECONDS_PER_DAY}
+                    expiredLabel="lapsed"
+                    className={s.rentClock}
+                  />
+                </span>
               )}
             </>
           ) : null}

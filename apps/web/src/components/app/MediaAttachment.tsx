@@ -33,6 +33,9 @@ type MediaState =
 
 export function MediaAttachment({ payload, className }: MediaAttachmentProps): ReactNode {
   const [state, setState] = useState<MediaState>({ phase: 'loading' });
+  /* An undecodable image (HEIC outside Safari, corrupt bytes, hostile mime)
+     falls back to the file card instead of a broken-image glyph. */
+  const [imageBroken, setImageBroken] = useState(false);
 
   /* A locally resolvable source (demo fixtures, demo attachments) skips the
      fetch-and-decrypt round trip entirely — the src is already the image. */
@@ -152,13 +155,14 @@ export function MediaAttachment({ payload, className }: MediaAttachmentProps): R
     );
   }
 
-  if (state.isImage) {
+  if (state.isImage && !imageBroken) {
     return (
       <figure className={cx(s.imageFrame, className)}>
         <img
           className={s.image}
           src={state.url}
           alt={payload.name === '' ? 'Encrypted image attachment' : payload.name}
+          onError={() => setImageBroken(true)}
         />
         <figcaption className={s.caption}>
           <span className={s.fileName}>{payload.name}</span>

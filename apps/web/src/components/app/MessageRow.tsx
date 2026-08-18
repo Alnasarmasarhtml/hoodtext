@@ -167,13 +167,17 @@ export function MessageRow({
     );
   }
 
-  /* Room senders are attributed only when the poster is a known member —
-     relayed room drops carry the relay's address, and claiming otherwise
+  /* Room senders: the VERIFIED in-payload author wins (signed and checked
+     against the key registry); a self-posted drop's poster is the fallback.
+     A relayed drop with no signed author stays anonymous — claiming otherwise
      would be a lie. */
-  const inRoomRoster =
-    roomMembers !== null &&
+  const roomSender =
+    message.author ??
+    (roomMembers !== null &&
     message.poster !== null &&
-    roomMembers.some((member) => member.toLowerCase() === message.poster?.toLowerCase());
+    roomMembers.some((member) => member.toLowerCase() === message.poster?.toLowerCase())
+      ? message.poster
+      : null);
 
   const mediaPayload = message.kind === 'media' ? parseMediaPayload(message.body) : null;
 
@@ -208,14 +212,14 @@ export function MessageRow({
             this redesign exists to remove. */}
         {showAuthor && (
           <header className={s.who}>
-            {message.poster === null ? (
+            {roomSender !== null ? (
+              <AuthorName address={roomSender} />
+            ) : message.poster === null ? (
               <span className={s.author}>Unattributed</span>
-            ) : roomMembers !== null && !inRoomRoster ? (
+            ) : (
               <span className={s.author} title={message.poster}>
                 Member
               </span>
-            ) : (
-              <AuthorName address={message.poster} />
             )}
             {message.integrity === 'unverified' && (
               <span
@@ -260,15 +264,29 @@ export function MessageRow({
 
         {reactions.length > 0 && (
           <div className={s.reactions} aria-label="Reactions">
-            {reactions.map((reaction) => (
-              <span
-                key={reaction.emoji}
-                className={cx(s.reaction, reaction.mine && s.reactionMine)}
-              >
-                <span className={s.reactionEmoji}>{reaction.emoji}</span>
-                <span className={s.reactionCount}>{reaction.count}</span>
-              </span>
-            ))}
+            {reactions.map((reaction) =>
+              canReact ? (
+                <button
+                  key={reaction.emoji}
+                  type="button"
+                  className={cx(s.reaction, s.reactionButton, reaction.mine && s.reactionMine)}
+                  onClick={() => onReact(message, reaction.emoji)}
+                  aria-pressed={reaction.mine}
+                  aria-label={`${reaction.mine ? 'Remove your' : 'Add a'} ${reaction.emoji} reaction`}
+                >
+                  <span className={s.reactionEmoji}>{reaction.emoji}</span>
+                  <span className={s.reactionCount}>{reaction.count}</span>
+                </button>
+              ) : (
+                <span
+                  key={reaction.emoji}
+                  className={cx(s.reaction, reaction.mine && s.reactionMine)}
+                >
+                  <span className={s.reactionEmoji}>{reaction.emoji}</span>
+                  <span className={s.reactionCount}>{reaction.count}</span>
+                </span>
+              ),
+            )}
           </div>
         )}
 
@@ -284,17 +302,21 @@ export function MessageRow({
               </button>
             )}
             {canReact &&
-              REACTION_EMOJI.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  className={s.reactKey}
-                  onClick={() => onReact(message, emoji)}
-                  aria-label={`React with ${emoji}`}
-                >
-                  {emoji}
-                </button>
-              ))}
+              REACTION_EMOJI.map((emoji) => {
+                const mine = reactions.find((entry) => entry.emoji === emoji)?.mine ?? false;
+                return (
+                  <button
+                    key={emoji}
+                    type="button"
+                    className={s.reactKey}
+                    onClick={() => onReact(message, emoji)}
+                    aria-pressed={mine}
+                    aria-label={mine ? `Remove your ${emoji} reaction` : `React with ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                );
+              })}
           </div>
         )}
 

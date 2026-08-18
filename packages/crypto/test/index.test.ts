@@ -104,6 +104,13 @@ describe('barrel', () => {
       'encodeDropForSigning',
       'signDrop',
       'verifyDrop',
+      // in-payload author attribution
+      'AUTHOR_SIGNING_CONTEXT',
+      'AUTHOR_SIGNATURE_BYTES',
+      'encodeAuthorTranscript',
+      'signAuthor',
+      'verifyAuthor',
+      'encodePlaintextCore',
       'DEPLOYMENTS',
       'getDeployment',
     ];

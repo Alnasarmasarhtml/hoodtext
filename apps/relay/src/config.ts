@@ -106,6 +106,23 @@ export interface RelayConfig {
   readonly groupRegistryAddress: `0x${string}` | null;
   /** `KeyRegistry` deployment, read by the send pipeline for identity keys. */
   readonly keyRegistryAddress: `0x${string}` | null;
+  /** Master switch for the market-price keeper. Off unless explicitly enabled. */
+  readonly priceKeeperEnabled: boolean;
+  /** `ManualPriceSource` deployment the keeper writes. `null` disables it. */
+  readonly priceSourceAddress: `0x${string}` | null;
+  /** The payment token, for DexScreener lookups. */
+  readonly priceTokenAddress: `0x${string}` | null;
+  /** Pre-graduation bonding curve to read spot reserves from. */
+  readonly priceCurveAddress: `0x${string}` | null;
+  /** Keeper tick cadence. */
+  readonly pricePollMs: number;
+  /** Minimum drift, in basis points, before a setRate is worth its gas. */
+  readonly priceDriftBps: number;
+  /** Sanity window: a derived rate outside it is rejected, never written. */
+  readonly priceMinRate: bigint;
+  readonly priceMaxRate: bigint;
+  /** Manual override: when set the keeper writes exactly this rate. */
+  readonly priceFixedRate: bigint | null;
   /** Funded key for `Anchors.postBatch`. `null` disables gasless send. */
   readonly relayerPrivateKey: `0x${string}` | null;
   readonly sendFlushMs: number;
@@ -219,6 +236,18 @@ const EnvSchema = z.object({
   // 0 = retain forever. Any positive value permanently deletes ciphertext that
   // has been stored longer than that; see `RelayConfig.blobTtlDays`.
   RELAY_BLOB_TTL_DAYS: z.coerce.number().int().min(0).max(3650).default(0),
+  // ── market-price keeper ────────────────────────────────────────────────────
+  PRICE_KEEPER: booleanish(false),
+  PRICE_SOURCE_ADDRESS: z.string().regex(HEX_ADDRESS, 'must be a 20-byte hex address').optional(),
+  PRICE_TOKEN_ADDRESS: z.string().regex(HEX_ADDRESS, 'must be a 20-byte hex address').optional(),
+  PRICE_CURVE_ADDRESS: z.string().regex(HEX_ADDRESS, 'must be a 20-byte hex address').optional(),
+  PRICE_POLL_MS: z.coerce.number().int().min(5_000).max(3_600_000).default(60_000),
+  PRICE_DRIFT_BPS: z.coerce.number().int().min(1).max(5_000).default(100),
+  // Sanity window, tokens-per-USD in wei (18dp). Defaults span 1 token/USD to
+  // 1e12 tokens/USD — generous, but a broken feed lands well outside it.
+  PRICE_MIN_RATE: uintString('1000000000000000000'),
+  PRICE_MAX_RATE: uintString('1000000000000000000000000000000'),
+  PRICE_FIXED_RATE: z.string().regex(/^\d+$/, 'must be a non-negative integer').optional(),
 });
 
 const ENV_KEYS = Object.keys(EnvSchema.shape) as readonly (keyof typeof EnvSchema.shape)[];
@@ -298,6 +327,24 @@ export function loadConfig(
       raw.KEY_REGISTRY_ADDRESS === undefined
         ? null
         : (raw.KEY_REGISTRY_ADDRESS.toLowerCase() as `0x${string}`),
+    priceKeeperEnabled: raw.PRICE_KEEPER,
+    priceSourceAddress:
+      raw.PRICE_SOURCE_ADDRESS === undefined
+        ? null
+        : (raw.PRICE_SOURCE_ADDRESS.toLowerCase() as `0x${string}`),
+    priceTokenAddress:
+      raw.PRICE_TOKEN_ADDRESS === undefined
+        ? null
+        : (raw.PRICE_TOKEN_ADDRESS.toLowerCase() as `0x${string}`),
+    priceCurveAddress:
+      raw.PRICE_CURVE_ADDRESS === undefined
+        ? null
+        : (raw.PRICE_CURVE_ADDRESS.toLowerCase() as `0x${string}`),
+    pricePollMs: raw.PRICE_POLL_MS,
+    priceDriftBps: raw.PRICE_DRIFT_BPS,
+    priceMinRate: BigInt(raw.PRICE_MIN_RATE),
+    priceMaxRate: BigInt(raw.PRICE_MAX_RATE),
+    priceFixedRate: raw.PRICE_FIXED_RATE === undefined ? null : BigInt(raw.PRICE_FIXED_RATE),
     relayerPrivateKey:
       raw.RELAYER_PRIVATE_KEY === undefined ? null : (raw.RELAYER_PRIVATE_KEY as `0x${string}`),
     sendFlushMs: raw.RELAY_SEND_FLUSH_MS,

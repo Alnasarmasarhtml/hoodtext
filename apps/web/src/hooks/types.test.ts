@@ -41,6 +41,7 @@ function message(overrides: Partial<ChatMessage>): ChatMessage {
     blockNumber: null,
     txHash: null,
     poster: null,
+    author: null,
     error: null,
     ...overrides,
   };
@@ -124,7 +125,7 @@ describe('parseReactionPayload', () => {
     const parsed = parseReactionPayload(
       JSON.stringify({ target: `0x${'AB'.repeat(32)}`, emoji: '🔥' }),
     );
-    expect(parsed).toEqual({ target: REF32, emoji: '🔥' });
+    expect(parsed).toEqual({ target: REF32, emoji: '🔥', op: 'add' });
   });
 
   it('rejects an empty emoji, an over-long one, or a bad target', () => {

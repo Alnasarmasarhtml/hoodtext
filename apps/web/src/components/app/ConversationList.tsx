@@ -32,6 +32,7 @@ import {
   parseMediaPayload,
   useConversations,
   useDemoActive,
+  useDirectorySearch,
   useHandle,
   useStartConversation,
   type ChatMessage,
@@ -201,6 +202,7 @@ export function ConversationList({
   });
 
   const [peer, setPeer] = useState('');
+  const search = useDirectorySearch(peer, conversations);
 
   /* One batched rent read for every room in the rail, refreshed slowly.
      In demo the fixture chain map answers instead and the read never fires. */
@@ -286,8 +288,8 @@ export function ConversationList({
             autoComplete="off"
             autoCorrect="off"
             inputMode="text"
-            aria-label="Open a conversation by handle or address"
-            placeholder="Search or paste an address"
+            aria-label="Search by address or handle"
+            placeholder="Search by address or handle"
             value={peer}
             onChange={onChange}
             disabled={start.isBusy}
@@ -312,6 +314,26 @@ export function ConversationList({
               </li>
             ))}
           </ul>
+        ) : peer.trim() !== '' ? (
+          <SearchResults
+            search={search}
+            activeConvoId={activeConvoId}
+            rentByRoom={rentByRoom}
+            onPick={(convoId) => {
+              setPeer('');
+              start.reset();
+              router.push(`/app/thread?c=${convoId}`);
+            }}
+            onStart={(value) => {
+              void (async (): Promise<void> => {
+                const convoId = await start.start(value);
+                if (convoId === null) return;
+                setPeer('');
+                start.reset();
+                router.push(`/app/thread?c=${convoId}`);
+              })();
+            }}
+          />
         ) : conversations.length === 0 ? (
           <div className={s.empty}>
             <svg className={s.emptyMark} viewBox="0 0 44 24" aria-hidden="true">
@@ -375,5 +397,130 @@ export function ConversationList({
         </button>
       </footer>
     </div>
+  );
+}
+
+
+/* ═══════════════════════════════════════════════════════ live search ═══ */
+
+interface SearchResultsProps {
+  readonly search: ReturnType<typeof useDirectorySearch>;
+  readonly activeConvoId: string | null;
+  readonly rentByRoom: ReadonlyMap<string, boolean>;
+  readonly onPick: (convoId: string) => void;
+  readonly onStart: (value: string) => void;
+}
+
+/**
+ * In-flow results (never a floating overlay — the rail is a single min-width:0
+ * column and an absolute dropdown would clip at 390px). Local matches reuse
+ * the ordinary row; the one global row states exactly what the chain said.
+ */
+function SearchResults({
+  search,
+  activeConvoId,
+  rentByRoom,
+  onPick,
+  onStart,
+}: SearchResultsProps): ReactNode {
+  const { localMatches, global } = search;
+  const globalAddress = global.identity?.address.toLowerCase() ?? null;
+  const globalIsLocal =
+    globalAddress !== null &&
+    localMatches.some((entry) => entry.peerAddress?.toLowerCase() === globalAddress);
+
+  return (
+    <div className={s.searchResults}>
+      {localMatches.length > 0 && (
+        <ul className={s.items}>
+          {localMatches.map((conversation) => (
+            <li key={conversation.convoId} className={s.item}>
+              <button
+                type="button"
+                className={cx(
+                  s.row,
+                  s.rowButton,
+                  activeConvoId !== null &&
+                    conversation.convoId.toLowerCase() === activeConvoId.toLowerCase() &&
+                    s.rowActive,
+                )}
+                onClick={() => onPick(conversation.convoId)}
+              >
+                <Avatar
+                  seed={conversation.peerAddress ?? conversation.convoId}
+                  size="lg"
+                  square={conversation.room !== null}
+                />
+                <span className={s.rowBody}>
+                  <span className={s.rowTop}>
+                    <SearchRowName conversation={conversation} />
+                  </span>
+                  <span className={s.rowBottom}>
+                    <span className={s.preview}>
+                      {conversation.room !== null
+                        ? rentByRoom.get(conversation.convoId.toLowerCase()) === false
+                          ? 'Room · rent lapsed'
+                          : 'Room'
+                        : 'Conversation on this device'}
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {global.phase === 'resolving' && (
+        <p className={s.searchState}>LOOKING UP…</p>
+      )}
+      {global.phase === 'found' && global.identity !== null && !globalIsLocal && (
+        <ul className={s.items}>
+          <li className={s.item}>
+            <button
+              type="button"
+              className={cx(s.row, s.rowButton)}
+              onClick={() => onStart(global.identity?.address ?? '')}
+            >
+              <Avatar seed={global.identity.address} size="lg" />
+              <span className={s.rowBody}>
+                <span className={s.rowTop}>
+                  <span className={s.name}>
+                    {global.identity.handle !== null
+                      ? `@${global.identity.handle}`
+                      : truncateAddress(global.identity.address)}
+                  </span>
+                </span>
+                <span className={s.rowBottom}>
+                  <span className={s.preview}>Start new chat</span>
+                </span>
+              </span>
+            </button>
+          </li>
+        </ul>
+      )}
+      {(global.phase === 'unclaimed' || global.phase === 'no-keys' || global.phase === 'error') &&
+        global.message !== null && <p className={s.searchState}>{global.message}</p>}
+
+      {localMatches.length === 0 && global.phase === 'idle' && (
+        <p className={s.searchState}>Nothing on this device matches. A full @handle or 0x address searches the chain.</p>
+      )}
+    </div>
+  );
+}
+
+function SearchRowName({ conversation }: { readonly conversation: Conversation }): ReactNode {
+  const handle = useHandle(conversation.peerAddress);
+  if (conversation.room !== null) {
+    return <span className={s.name}>{conversation.room.name}</span>;
+  }
+  if (conversation.unattributed) {
+    return <span className={cx(s.name, s.nameQuiet)}>Unattributed drops</span>;
+  }
+  const address = conversation.peerAddress;
+  return (
+    <span className={s.name} title={address ?? undefined}>
+      {handle !== null ? `@${handle}` : address !== null ? truncateAddress(address) : '—'}
+    </span>
   );
 }

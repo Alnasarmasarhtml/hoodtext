@@ -55,6 +55,19 @@ function cached<T>(cache: ResolverCache<T>, key: string): CacheEntry<T> | null {
   return Date.now() - entry.at > TTL_MS ? null : entry;
 }
 
+/** Synchronous peek at the handle cache — for instant local search filtering. */
+export function peekHandle(address: string): string | null {
+  return cached(handleCache, address.toLowerCase())?.value ?? null;
+}
+
+/** Subscribe to handle-cache updates, so a search re-filters when a name lands. */
+export function subscribeHandles(listener: () => void): () => void {
+  handleCache.listeners.add(listener);
+  return () => {
+    handleCache.listeners.delete(listener);
+  };
+}
+
 async function resolveThrough<T>(
   cache: ResolverCache<T>,
   key: string,

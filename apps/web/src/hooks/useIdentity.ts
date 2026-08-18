@@ -140,18 +140,21 @@ export function useIdentity(): UseIdentityResult {
     };
   }, [address]);
 
-  /* ── disconnect wipes every trace of the identity from this device ──── */
+  /* ── disconnect locks the session; only the explicit "forget" wipes ──── */
   useAccountEffect({
     onDisconnect: () => {
-      const previous = lastAddressRef.current;
+      // Clear the in-memory keys so a shared machine is safe the moment the wallet
+      // disconnects — but leave IndexedDB alone. Wallets and wagmi fire disconnects for
+      // mundane reasons (extension update, network hiccup, tab sleep), and destroying the
+      // sent-message history and room keys on every one of them is data loss the user
+      // never asked for (it also caused a paid room to be re-bought after a reload on
+      // 2026-08-18). The deliberate destruction path is {@link forget}, which the UI
+      // exposes as an explicit action.
       setKeys(null);
       setKeyOwner(null);
       setRegisterTxHash(null);
       setError(null);
       setStorageWarning(null);
-      if (previous === null) return;
-      void wipeIdentity(previous);
-      void wipeMessenger(previous);
     },
   });
 

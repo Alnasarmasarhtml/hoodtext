@@ -283,6 +283,24 @@
   white-space: nowrap;
 }
 
+/* A chip that is also a toggle: same body as the span, plus button resets and
+   a hover cue so it reads as pressable. Tap target padded to clear 24px. */
+.reactionButton {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  min-height: 24px;
+}
+
+.reactionButton:hover {
+  border-color: var(--line-2);
+}
+
+.reactionButton:focus-visible {
+  outline: 1px solid var(--green);
+  outline-offset: 1px;
+}
+
 .reactionMine {
   border-color: var(--line-2);
   background-color: var(--bone-wash);

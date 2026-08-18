@@ -243,6 +243,7 @@ export function useStartConversation({
           convoId,
           address: target,
           x25519Pub: `0x${'11'.repeat(32)}`,
+          ed25519Pub: null,
           createdAt: now,
           lastSeenAt: now,
         });
@@ -265,6 +266,7 @@ export function useStartConversation({
         });
 
         const peerPubHex = registered[0];
+        const peerEdHex = registered[1].toLowerCase() === ZERO_KEY ? null : registered[1];
         if (peerPubHex.toLowerCase() === ZERO_KEY) {
           setStatus('error');
           setError(
@@ -289,6 +291,7 @@ export function useStartConversation({
           convoId,
           address: target,
           x25519Pub: peerPubHex,
+          ed25519Pub: peerEdHex,
           createdAt: now,
           lastSeenAt: now,
         });

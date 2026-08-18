@@ -105,17 +105,8 @@ export function useNowSeconds(intervalMs = 15_000): bigint | null {
   return now;
 }
 
-/** Trailing debounce — keeps a dragged month stepper (or typing) off the RPC. */
-export function useDebounced<T>(value: T, delayMs = 220): T {
-  const [settled, setSettled] = useState(value);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setSettled(value), delayMs);
-    return () => clearTimeout(timer);
-  }, [delayMs, value]);
-
-  return settled;
-}
+/** Trailing debounce — relocated to a shared lib; re-exported so the ten access-page importers stay put. */
+export { useDebounced } from '@/lib/use-debounced';
 
 /* ═══════════════════════════════════════════════════════ environment ════ */
 

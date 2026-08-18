@@ -170,23 +170,41 @@ export function Composer({
       event.target.value = '';
       if (file === undefined || disabled || send.isSending) return;
 
-      if (file.size > MAX_ATTACHMENT_BYTES) {
-        toast.push({
-          kind: 'error',
-          title: 'Too large',
-          body: `Attachments are capped at ${formatBytes(MAX_ATTACHMENT_BYTES)}. That file is ${formatBytes(file.size)}.`,
-        });
-        return;
-      }
-
       const re = replyTo?.blobRef ?? undefined;
       void (async (): Promise<void> => {
-        const buffer = await file.arrayBuffer();
+        let data: Uint8Array;
+        let mime = file.type === '' ? 'application/octet-stream' : file.type;
+        let name = file.name;
+
+        if (file.size > MAX_ATTACHMENT_BYTES) {
+          // Phone photos routinely exceed the 4 MB envelope. An image can be
+          // downscaled honestly; anything else has to be refused.
+          const shrunk = await downscaleImage(file, MAX_ATTACHMENT_BYTES);
+          if (shrunk === null) {
+            toast.push({
+              kind: 'error',
+              title: 'Too large',
+              body: `Attachments are capped at ${formatBytes(MAX_ATTACHMENT_BYTES)}. That file is ${formatBytes(file.size)} and could not be shrunk in the browser.`,
+            });
+            return;
+          }
+          data = shrunk.data;
+          mime = shrunk.mime;
+          name = shrunk.name;
+          toast.push({
+            kind: 'success',
+            title: 'Photo resized',
+            body: `${formatBytes(file.size)} was over the 4 MB envelope, so it was re-encoded to ${formatBytes(data.length)} before encryption.`,
+          });
+        } else {
+          data = new Uint8Array(await file.arrayBuffer());
+        }
+
         const ok = await send.sendMedia({
           convoId,
-          data: new Uint8Array(buffer),
-          mime: file.type === '' ? 'application/octet-stream' : file.type,
-          name: file.name,
+          data,
+          mime,
+          name,
           ...(re === undefined ? {} : { re }),
         });
         if (!ok) return;
@@ -328,4 +346,56 @@ export function Composer({
       )}
     </form>
   );
+}
+
+
+/* ═════════════════════════════════════════════════════ image downscale ═══ */
+
+interface ShrunkImage {
+  readonly data: Uint8Array;
+  readonly mime: string;
+  readonly name: string;
+}
+
+/**
+ * Re-encodes an oversized image to JPEG under `limit` bytes via a canvas,
+ * halving dimensions until it fits. Returns `null` for non-images and for
+ * anything the browser cannot decode (a HEIC on most non-Safari browsers).
+ */
+async function downscaleImage(file: File, limit: number): Promise<ShrunkImage | null> {
+  if (!file.type.startsWith('image/')) return null;
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return null;
+  }
+  try {
+    let width = bitmap.width;
+    let height = bitmap.height;
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(width));
+      canvas.height = Math.max(1, Math.round(height));
+      const ctx = canvas.getContext('2d');
+      if (ctx === null) return null;
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, 'image/jpeg', 0.85);
+      });
+      if (blob === null) return null;
+      if (blob.size <= limit) {
+        return {
+          data: new Uint8Array(await blob.arrayBuffer()),
+          mime: 'image/jpeg',
+          name: file.name.replace(/\.[a-z0-9]+$/i, '') + '.jpg',
+        };
+      }
+      width *= 0.7;
+      height *= 0.7;
+    }
+    return null;
+  } finally {
+    bitmap.close();
+  }
 }

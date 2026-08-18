@@ -26,6 +26,7 @@ import {
 import type { Plaintext, SealedDrop } from './wire';
 
 export { BUCKETS };
+export { encodePlaintextCore } from './wire';
 export type { Plaintext, SealedDrop };
 
 /**

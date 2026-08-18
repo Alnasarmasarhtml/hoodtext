@@ -45,11 +45,15 @@ export type {
 
 export {
   HANDLE_RE,
+  peekHandle,
   resolveRecipient,
+  subscribeHandles,
   useDisplayName,
   useHandle,
   usePerkTier,
 } from './useHandles';
+export { useDirectorySearch } from './useDirectorySearch';
+export type { DirectorySearchResult, GlobalLookup } from './useDirectorySearch';
 export type {
   RecipientFailure,
   RecipientResult,

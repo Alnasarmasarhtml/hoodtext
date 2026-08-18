@@ -94,3 +94,60 @@ export const POST_BATCH_ABI = [
     outputs: [],
   },
 ] as const satisfies Abi;
+
+/**
+ * `ManualPriceSource` — everything the price keeper touches: the current rate,
+ * the owner-only setter, and the event it emits.
+ */
+export const PRICE_SOURCE_ABI = [
+  {
+    type: 'function',
+    name: 'rate',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+  },
+  {
+    type: 'function',
+    name: 'setRate',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'newRate', type: 'uint256', internalType: 'uint256' }],
+    outputs: [],
+  },
+  {
+    type: 'event',
+    name: 'RateSet',
+    anonymous: false,
+    inputs: [
+      { name: 'oldRate', type: 'uint256', indexed: false, internalType: 'uint256' },
+      { name: 'newRate', type: 'uint256', indexed: false, internalType: 'uint256' },
+    ],
+  },
+] as const satisfies Abi;
+
+/**
+ * The slice of a pons.fun-style bonding curve the price keeper reads:
+ * virtual reserves (spot price = quote/token) and the graduation flag that
+ * marks the moment liquidity leaves for a DEX and this source goes stale.
+ * Established against the deployed curve on Robinhood Chain; the contract is
+ * unverified bytecode, so any revert here is treated as feed failure.
+ */
+export const PONS_CURVE_ABI = [
+  {
+    type: 'function',
+    name: 'getReserves',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      { name: 'quoteReserve_', type: 'uint256', internalType: 'uint256' },
+      { name: 'tokenReserve_', type: 'uint256', internalType: 'uint256' },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'graduated',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+  },
+] as const satisfies Abi;

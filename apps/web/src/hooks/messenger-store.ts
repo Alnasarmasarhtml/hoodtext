@@ -28,10 +28,12 @@
 import {
   computeViewTag,
   convoIdFor,
+  encodePlaintextCore,
   open as openEnvelope,
   openFromGroup,
   scanMatches,
   unwrapGroupKey,
+  verifyAuthor,
 } from '@hoodgram/crypto';
 import type { IdentityKeys, Plaintext } from '@hoodgram/crypto';
 import { hexToBytes, sha256, type Address, type Hex } from 'viem';
@@ -87,10 +89,16 @@ const DETACH_GRACE_MS = 250;
 
 const ZERO_KEY: Hex = `0x${'00'.repeat(32)}`;
 
-/** Resolves registered X25519 public keys for a set of addresses. */
+/** Registered public keys for one address, as {@link KeyRegistry.keysOf} returns them. */
+export interface ResolvedPeerKeys {
+  readonly x25519: Hex;
+  readonly ed25519: Hex;
+}
+
+/** Resolves registered X25519 + Ed25519 public keys for a set of addresses. */
 export type PeerKeyResolver = (
   addresses: readonly Address[],
-) => Promise<ReadonlyMap<string, Hex>>;
+) => Promise<ReadonlyMap<string, ResolvedPeerKeys>>;
 
 export interface MessengerAttachment {
   readonly owner: Address;
@@ -217,6 +225,7 @@ export async function upsertPeer(peer: PeerRecord): Promise<PeerRecord> {
     createdAt: existing?.createdAt ?? peer.createdAt,
     address: peer.address ?? existing?.address ?? null,
     x25519Pub: peer.x25519Pub ?? existing?.x25519Pub ?? null,
+    ed25519Pub: peer.ed25519Pub ?? existing?.ed25519Pub ?? null,
     lastSeenAt: Math.max(peer.lastSeenAt, existing?.lastSeenAt ?? 0),
   };
   setState((state) => ({
@@ -638,14 +647,37 @@ function sentAtOf(pt: Plaintext, drop: DropRow): number {
 async function applyRoomKey(
   attachment: MessengerAttachment,
   drop: DropRow,
-  body: string,
+  pt: Plaintext,
   sentAt: number,
   integrity: 'verified' | 'unverified',
 ): Promise<boolean> {
-  const payload = parseRoomKeyPayload(body);
+  const payload = parseRoomKeyPayload(pt.body);
   if (payload === null) return false;
 
   const { owner, keys } = attachment;
+
+  /* Who invited us? A signed in-payload `from` is verified against the
+     claimed address's registered Ed25519 key; scope is our own X25519 pub,
+     the same binding every stealth DM uses. Unverifiable claims stay null. */
+  let inviter: Address | null = null;
+  if (pt.from !== undefined && pt.sig !== undefined) {
+    try {
+      const resolved = await attachment.resolvePeerKeys([pt.from as Address]);
+      const registered = resolved.get(pt.from.toLowerCase()) ?? null;
+      const edBytes =
+        registered === null || registered.ed25519.toLowerCase() === ZERO_KEY
+          ? null
+          : toKeyBytes(registered.ed25519);
+      if (
+        edBytes !== null &&
+        (await verifyAuthor(encodePlaintextCore(pt), keys.x25519.publicKey, pt.sig, edBytes))
+      ) {
+        inviter = pt.from.toLowerCase() as Address;
+      }
+    } catch {
+      /* attribution is best-effort; the key handoff itself still applies */
+    }
+  }
   let wrapped: Uint8Array;
   try {
     wrapped = hexToBytes(payload.wrapped);
@@ -663,21 +695,25 @@ async function applyRoomKey(
   const existing = findRoom(payload.groupId);
   const isRotation = existing !== null && payload.epoch > existing.epoch;
   await putRoomKey(payload.groupId, payload.epoch, groupKey);
+  const roster = new Set<Address>([owner.toLowerCase() as Address]);
+  for (const member of existing?.members ?? []) roster.add(member.toLowerCase() as Address);
+  if (inviter !== null) roster.add(inviter);
   await upsertRoom({
     id: roomId(owner, payload.groupId),
     owner,
     groupId: payload.groupId,
     name: payload.name,
-    admin: null,
-    members: [owner.toLowerCase() as Address],
+    admin: existing?.admin ?? inviter,
+    members: [...roster],
     epoch: payload.epoch,
     createdAt: sentAt,
     lastSeenAt: sentAt,
   });
 
+  const by = inviter === null ? '' : ` by ${inviter.slice(0, 6)}…${inviter.slice(-4)}`;
   const note =
     existing === null
-      ? `Added to “${payload.name}”. Room key received (epoch ${String(payload.epoch)}).`
+      ? `Added to “${payload.name}”${by}. Room key received (epoch ${String(payload.epoch)}).`
       : isRotation
         ? `Room key rotated to epoch ${String(payload.epoch)}.`
         : `Room key re-delivered for epoch ${String(payload.epoch)}.`;
@@ -701,6 +737,7 @@ async function applyRoomKey(
     blockNumber: drop.blockNumber,
     txHash: drop.txHash,
     poster: drop.poster,
+    author: inviter,
     error: null,
   });
   return true;
@@ -741,6 +778,32 @@ async function processRoomDrop(
   const existing = findMessage(id);
   if (existing !== null && existing.seq === drop.seq) return;
 
+  /* Verify the signed in-payload author, scoped to this room's groupId so a
+     signature can never be replayed into a different room. Anyone holding the
+     group key can FORGE an unsigned or badly-signed claim, which is exactly
+     why an unverifiable `from` renders as null, never as a name. */
+  let author: Address | null = null;
+  if (pt.from !== undefined && pt.sig !== undefined) {
+    try {
+      const resolved = await attachment.resolvePeerKeys([pt.from as Address]);
+      const registered = resolved.get(pt.from.toLowerCase()) ?? null;
+      const edBytes =
+        registered === null || registered.ed25519.toLowerCase() === ZERO_KEY
+          ? null
+          : toKeyBytes(registered.ed25519);
+      const scope = toKeyBytes(room.groupId);
+      if (
+        edBytes !== null &&
+        scope !== null &&
+        (await verifyAuthor(encodePlaintextCore(pt), scope, pt.sig, edBytes))
+      ) {
+        author = pt.from.toLowerCase() as Address;
+      }
+    } catch {
+      /* best-effort; the message still lands, just unattributed */
+    }
+  }
+
   const sentAt = sentAtOf(pt, drop);
   await addMessage({
     id,
@@ -761,9 +824,14 @@ async function processRoomDrop(
     blockNumber: drop.blockNumber,
     txHash: drop.txHash,
     poster: drop.poster,
+    author,
     error: null,
   });
-  await upsertRoom({ ...room, lastSeenAt: Math.max(room.lastSeenAt, sentAt) });
+  const members =
+    author !== null && !room.members.some((m) => m.toLowerCase() === author)
+      ? [...room.members, author]
+      : room.members;
+  await upsertRoom({ ...room, members, lastSeenAt: Math.max(room.lastSeenAt, sentAt) });
 }
 
 /** One slice of classification: pure CPU, no I/O, bounded by `SCAN_SLICE_MS`. */
@@ -920,7 +988,7 @@ async function processStealthDrops(
     /* Room-key handoffs are applied, not displayed. */
     if (
       plaintext.kind === 'system' &&
-      (await applyRoomKey(attachment, drop, plaintext.body, sentAt, fetched.integrity))
+      (await applyRoomKey(attachment, drop, plaintext, sentAt, fetched.integrity))
     ) {
       continue;
     }
@@ -930,27 +998,43 @@ async function processStealthDrops(
 
   if (candidates.length === 0 || token !== runToken) return;
 
-  /* Resolve every unknown sender's registered key in one round trip. */
-  const known = new Map<string, Hex>();
+  /* Resolve every unknown sender's registered keys in one round trip. The
+     candidate identity is the SIGNED in-payload `from` when present (relayed
+     drops, where the poster is the relay), else the on-chain poster
+     (self-posted drops). */
+  const known = new Map<string, ResolvedPeerKeys>();
   for (const peer of getState().peers) {
     if (peer.address !== null && peer.x25519Pub !== null) {
-      known.set(peer.address.toLowerCase(), peer.x25519Pub);
+      known.set(peer.address.toLowerCase(), {
+        x25519: peer.x25519Pub,
+        ed25519: peer.ed25519Pub ?? ZERO_KEY,
+      });
     }
   }
+  const claimOf = (candidate: Candidate): Address =>
+    (candidate.pt.from ?? candidate.drop.poster) as Address;
   const unknown: Address[] = [];
   for (const candidate of candidates) {
-    const key = candidate.drop.poster.toLowerCase();
-    if (!known.has(key) && !unknown.some((entry) => entry.toLowerCase() === key)) {
-      unknown.push(candidate.drop.poster);
+    const key = claimOf(candidate).toLowerCase();
+    const cached = known.get(key);
+    // A `from` claim needs the ed25519 key; a cached peer without one must be re-resolved.
+    const needsResolve =
+      cached === undefined ||
+      (candidate.pt.from !== undefined && cached.ed25519.toLowerCase() === ZERO_KEY);
+    if (needsResolve && !unknown.some((entry) => entry.toLowerCase() === key)) {
+      unknown.push(claimOf(candidate));
     }
   }
+  let resolveFailed = false;
   if (unknown.length > 0) {
     try {
       const resolved = await attachment.resolvePeerKeys(unknown);
-      for (const [address, key] of resolved) known.set(address.toLowerCase(), key);
+      for (const [address, entry] of resolved) known.set(address.toLowerCase(), entry);
     } catch {
       // Attribution is best-effort — unresolved senders land in the
-      // unattributed bucket rather than blocking delivery.
+      // unattributed bucket, and their seqs are re-armed so a later resync
+      // can attribute them once the registry answers.
+      resolveFailed = true;
     }
   }
   if (token !== runToken) return;
@@ -960,48 +1044,102 @@ async function processStealthDrops(
   const touchedPeers = new Map<string, PeerRecord>();
 
   for (const candidate of candidates) {
-    const posterKey = candidate.drop.poster.toLowerCase();
-    const peerPubHex = known.get(posterKey) ?? null;
-    const peerPubBytes =
-      peerPubHex === null || peerPubHex.toLowerCase() === ZERO_KEY
-        ? null
-        : toKeyBytes(peerPubHex);
+    /* ── work out who wrote it ─────────────────────────────────────────── */
+    let author: Address | null = null;
+    let peerAddress: Address | null = null;
+    let peerKeys: ResolvedPeerKeys | null = null;
 
+    if (candidate.pt.from !== undefined && candidate.pt.sig !== undefined) {
+      // Signed claim: verify against the claimed address's REGISTERED key.
+      const claimed = candidate.pt.from as Address;
+      const registered = known.get(claimed.toLowerCase()) ?? null;
+      const edBytes =
+        registered === null || registered.ed25519.toLowerCase() === ZERO_KEY
+          ? null
+          : toKeyBytes(registered.ed25519);
+      if (edBytes !== null) {
+        const verified = await verifyAuthor(
+          encodePlaintextCore(candidate.pt),
+          pub,
+          candidate.pt.sig,
+          edBytes,
+        );
+        if (verified) {
+          author = claimed.toLowerCase() as Address;
+          peerAddress = author;
+          peerKeys = registered;
+        }
+      } else if (resolveFailed || registered === null) {
+        // Registry unavailable or sender unregistered: re-arm so the drop is
+        // re-attributed on a later pass instead of pinning unattributed.
+        rememberRetry(candidate.drop.seq);
+      }
+    }
+    if (peerKeys === null && author === null) {
+      // Poster path: correct for self-posted drops, where poster IS the author.
+      const posterKeys = known.get(candidate.drop.poster.toLowerCase()) ?? null;
+      if (posterKeys !== null && posterKeys.x25519.toLowerCase() !== ZERO_KEY) {
+        peerAddress = candidate.drop.poster;
+        peerKeys = posterKeys;
+        author = candidate.drop.poster.toLowerCase() as Address;
+      }
+    }
+
+    const peerPubBytes =
+      peerKeys === null || peerKeys.x25519.toLowerCase() === ZERO_KEY
+        ? null
+        : toKeyBytes(peerKeys.x25519);
     const convoId =
       peerPubBytes === null ? UNATTRIBUTED_CONVO_ID : convoIdFor(pub, peerPubBytes);
 
     const id = messageId(owner, candidate.drop.blobRef);
     const existing = findMessage(id);
-    if (existing !== null && existing.seq === candidate.drop.seq) continue;
-
-    fresh.push({
-      id,
-      owner,
-      convoId,
-      direction: 'in',
-      body: candidate.pt.body,
-      kind: candidate.pt.kind,
-      re: candidate.pt.re ?? null,
-      sentAt: candidate.sentAt,
-      status: 'received',
-      integrity: candidate.integrity,
-      blobRef: candidate.drop.blobRef,
-      ephPub: candidate.drop.ephPub,
-      viewTag: candidate.drop.viewTag,
-      size: candidate.drop.size,
-      seq: candidate.drop.seq,
-      blockNumber: candidate.drop.blockNumber,
-      txHash: candidate.drop.txHash,
-      poster: candidate.drop.poster,
-      error: null,
-    });
+    if (existing !== null && existing.seq === candidate.drop.seq) {
+      // Heal: a row that landed unattributed earlier can migrate to its real
+      // thread once the sender's keys resolve — never the other way round.
+      if (
+        existing.convoId === UNATTRIBUTED_CONVO_ID &&
+        convoId !== UNATTRIBUTED_CONVO_ID
+      ) {
+        await patchMessage(id, { convoId, author });
+      } else {
+        continue;
+      }
+    } else {
+      fresh.push({
+        id,
+        owner,
+        convoId,
+        direction: 'in',
+        body: candidate.pt.body,
+        kind: candidate.pt.kind,
+        re: candidate.pt.re ?? null,
+        sentAt: candidate.sentAt,
+        status: 'received',
+        integrity: candidate.integrity,
+        blobRef: candidate.drop.blobRef,
+        ephPub: candidate.drop.ephPub,
+        viewTag: candidate.drop.viewTag,
+        size: candidate.drop.size,
+        seq: candidate.drop.seq,
+        blockNumber: candidate.drop.blockNumber,
+        txHash: candidate.drop.txHash,
+        poster: candidate.drop.poster,
+        author,
+        error: null,
+      });
+    }
 
     const record: PeerRecord = {
       id: peerId(owner, convoId),
       owner,
       convoId,
-      address: peerPubBytes === null ? null : candidate.drop.poster,
-      x25519Pub: peerPubBytes === null ? null : peerPubHex,
+      address: peerAddress,
+      x25519Pub: peerPubBytes === null ? null : peerKeys?.x25519 ?? null,
+      ed25519Pub:
+        peerKeys === null || peerKeys.ed25519.toLowerCase() === ZERO_KEY
+          ? null
+          : peerKeys.ed25519,
       createdAt: nowSeconds,
       lastSeenAt: candidate.sentAt,
     };

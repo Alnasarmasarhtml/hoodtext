@@ -86,6 +86,14 @@ export interface ChatMessage {
    * by poster.
    */
   readonly poster: Address | null;
+  /**
+   * The VERIFIED author, from the signed `from` inside the sealed payload —
+   * checked against the address's registered Ed25519 key. `null` for own
+   * messages, legacy payloads, and anything whose signature failed. This is
+   * the field attribution and reaction identity key off; `poster` is only a
+   * transport detail.
+   */
+  readonly author: Address | null;
   /** Human-readable failure reason, surfaced inline in the row. */
   readonly error: string | null;
 }
@@ -100,6 +108,8 @@ export interface PeerRecord {
   readonly address: Address | null;
   /** Their registered X25519 public key — required to reply. */
   readonly x25519Pub: Hex | null;
+  /** Their registered Ed25519 key — caches author-signature verification. */
+  readonly ed25519Pub: Hex | null;
   readonly createdAt: number;
   readonly lastSeenAt: number;
 }
@@ -187,6 +197,13 @@ export interface ReactionPayload {
   /** blobRef of the message being reacted to. */
   readonly target: Hex;
   readonly emoji: string;
+  /**
+   * Toggle op. Reactions are one-per-emoji-per-person: `add` turns the emoji
+   * on for the sender, `remove` turns it off; the aggregation is last-op-wins
+   * set semantics, so replaying N identical adds still renders as one.
+   * Legacy payloads without the field parse as `add`.
+   */
+  readonly op: 'add' | 'remove';
 }
 
 const HEX32_RE = /^0x[0-9a-fA-F]{64}$/;
@@ -229,10 +246,11 @@ export function parseReactionPayload(body: string): ReactionPayload | null {
     return null;
   }
   if (!isRecord(raw)) return null;
-  const { target, emoji } = raw as Record<string, unknown>;
+  const { target, emoji, op } = raw as Record<string, unknown>;
   if (typeof target !== 'string' || !HEX32_RE.test(target)) return null;
   if (typeof emoji !== 'string' || emoji === '' || emoji.length > 16) return null;
-  return { target: target.toLowerCase() as Hex, emoji };
+  if (op !== undefined && op !== 'add' && op !== 'remove') return null;
+  return { target: target.toLowerCase() as Hex, emoji, op: op === 'remove' ? 'remove' : 'add' };
 }
 
 /** The JSON descriptor carried in a `media` body (`@hoodgram/crypto` shape). */

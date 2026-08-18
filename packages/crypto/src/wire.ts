@@ -33,12 +33,22 @@ export interface Plaintext {
   /**
    * `text` is a chat message; `system` is app-generated (key handoffs, membership notes);
    * `media` carries a JSON descriptor pointing at a separately encrypted media blob;
-   * `react` carries a JSON `{ target, emoji }` reaction to an earlier drop.
+   * `react` carries a JSON `{ target, emoji, op }` reaction toggle on an earlier drop.
    */
   kind: (typeof PLAINTEXT_KINDS)[number];
   body: string;
   /** Optional blobRef of the message this one replies to. */
   re?: `0x${string}`;
+  /**
+   * Optional author claim: the sender's wallet address, INSIDE the sealed payload so only
+   * the recipient learns it. Never trust it bare — it is proven by `sig`, verified against
+   * the address's registered Ed25519 key ({@link KeyRegistry.keysOf}). `from` and `sig`
+   * travel together: one without the other is malformed. Both optional so v1 payloads
+   * written before attribution existed still decode (and render unattributed).
+   */
+  from?: `0x${string}`;
+  /** Detached Ed25519 author signature over the core payload; see `sign.ts#signAuthor`. */
+  sig?: `0x${string}`;
 }
 
 /** Everything needed to anchor one message on chain. */
@@ -96,16 +106,56 @@ export function encodePlaintext(pt: Plaintext): Uint8Array {
   if (pt.re !== undefined && !isHex32(pt.re)) {
     throw new Error('plaintext.re must be a 0x-prefixed 32-byte hex string when present');
   }
+  if ((pt.from === undefined) !== (pt.sig === undefined)) {
+    throw new Error('plaintext.from and plaintext.sig must be present together or not at all');
+  }
+  if (pt.from !== undefined && !isHexAddress(pt.from)) {
+    throw new Error('plaintext.from must be a 0x-prefixed 20-byte hex address when present');
+  }
+  if (pt.sig !== undefined && !isHexSig(pt.sig)) {
+    throw new Error('plaintext.sig must be a 0x-prefixed 64-byte hex signature when present');
+  }
+  const canonical = coreCanonical(pt);
+  if (pt.sig !== undefined) {
+    canonical['sig'] = pt.sig;
+  }
+  return utf8Encode(JSON.stringify(canonical));
+}
+
+/** The canonical field set WITHOUT the author signature — what the signature covers. */
+function coreCanonical(pt: Plaintext): Record<string, unknown> {
   const canonical: Record<string, unknown> = { v: pt.v, t: pt.t, kind: pt.kind, body: pt.body };
   if (pt.re !== undefined) {
     canonical['re'] = pt.re;
   }
-  return utf8Encode(JSON.stringify(canonical));
+  if (pt.from !== undefined) {
+    canonical['from'] = pt.from.toLowerCase();
+  }
+  return canonical;
+}
+
+/**
+ * Canonically serialises the SIGNED portion of a plaintext: every field except `sig`,
+ * in the same fixed order {@link encodePlaintext} writes. The author signature is computed
+ * over exactly these bytes, so signing and verifying can never disagree about the message.
+ */
+export function encodePlaintextCore(pt: Plaintext): Uint8Array {
+  return utf8Encode(JSON.stringify(coreCanonical(pt)));
 }
 
 /** Whether a value is a `0x`-prefixed 32-byte lowercase-tolerant hex string. */
 function isHex32(value: unknown): value is `0x${string}` {
   return typeof value === 'string' && /^0x[0-9a-fA-F]{64}$/.test(value);
+}
+
+/** Whether a value is a `0x`-prefixed 20-byte hex address. */
+function isHexAddress(value: unknown): value is `0x${string}` {
+  return typeof value === 'string' && /^0x[0-9a-fA-F]{40}$/.test(value);
+}
+
+/** Whether a value is a `0x`-prefixed 64-byte hex detached signature. */
+function isHexSig(value: unknown): value is `0x${string}` {
+  return typeof value === 'string' && /^0x[0-9a-fA-F]{128}$/.test(value);
 }
 
 /**
@@ -138,6 +188,8 @@ export function decodePlaintext(payload: Uint8Array): Plaintext | null {
   const kind = record['kind'];
   const body = record['body'];
   const re = record['re'];
+  const from = record['from'];
+  const sig = record['sig'];
 
   if (record['v'] !== 1) {
     return null;
@@ -154,9 +206,22 @@ export function decodePlaintext(payload: Uint8Array): Plaintext | null {
   if (re !== undefined && !isHex32(re)) {
     return null;
   }
+  if ((from === undefined) !== (sig === undefined)) {
+    return null;
+  }
+  if (from !== undefined && !isHexAddress(from)) {
+    return null;
+  }
+  if (sig !== undefined && !isHexSig(sig)) {
+    return null;
+  }
   const pt: Plaintext = { v: 1, t, kind: kind as Plaintext['kind'], body };
   if (re !== undefined) {
     pt.re = re;
+  }
+  if (from !== undefined && sig !== undefined) {
+    pt.from = (from as string).toLowerCase() as `0x${string}`;
+    pt.sig = sig as `0x${string}`;
   }
   return pt;
 }

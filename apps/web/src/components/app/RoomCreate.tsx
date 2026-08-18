@@ -21,11 +21,11 @@ import {
   type ReactNode,
 } from 'react';
 
-import { Button, Eyebrow, Field, MonthStepper } from '@/components/ui';
+import { Button, Eyebrow, Field, MonthStepper, useToast } from '@/components/ui';
 import { useCreateRoom, useRentQuote } from '@/hooks';
 import { PRICES } from '@/lib/abi';
 import { cx } from '@/lib/cx';
-import { formatToken, formatUsd } from '@/lib/format';
+import { formatDate, formatToken, formatUsd } from '@/lib/format';
 import { useAppSession } from './session';
 import { LockedNotice } from './LockedNotice';
 import s from './RoomCreate.module.css';
@@ -34,6 +34,7 @@ export function RoomCreate(): ReactNode {
   const session = useAppSession();
   const router = useRouter();
   const create = useCreateRoom(session.address);
+  const toast = useToast();
 
   const [name, setName] = useState('');
   const [months, setMonths] = useState(1);
@@ -52,8 +53,17 @@ export function RoomCreate(): ReactNode {
       event.preventDefault();
       if (create.isBusy) return;
       void (async (): Promise<void> => {
-        const groupId = await create.create(name, months);
-        if (groupId === null) return;
+        const created = await create.create(name, months);
+        if (created === null) return;
+        const { groupId, paid } = created;
+        toast.push({
+          kind: 'success',
+          title: 'Room created and paid',
+          body:
+            paid === null
+              ? 'The room exists on chain and this month\u2019s rent is paid.'
+              : `Paid ${formatToken(paid.thoodPaid, { digits: 0, symbol: 'GRAM' })} \u00b7 rent covered until ${formatDate(Number(paid.paidUntil))}.`,
+        });
         router.push(`/app/thread?c=${groupId}`);
       })();
     },
@@ -166,7 +176,7 @@ export function RoomCreate(): ReactNode {
           >
             {quote === null
               ? 'Approve + create'
-              : `Approve + create · ${formatToken(quote, { digits: 0, compact: true })} GRAM`}
+              : `Approve + create · ${formatToken(quote, { digits: 0, compact: true })} GRAM (≈ ${formatUsd(PRICES.roomUsdPerMonth * months, 0)})`}
           </Button>
           <span className={s.actionNote}>
             Two wallet steps at most. The approval is skipped when your allowance already

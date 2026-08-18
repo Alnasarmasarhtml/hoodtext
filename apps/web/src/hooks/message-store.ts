@@ -116,6 +116,7 @@ function parseMessage(raw: unknown): ChatMessage | null {
     blockNumber: int(r['blockNumber']),
     txHash: hex(r['txHash']),
     poster: addr(r['poster']),
+    author: addr(r['author']),
     error: str(r['error']),
   };
 }
@@ -137,6 +138,7 @@ function parsePeer(raw: unknown): PeerRecord | null {
     convoId,
     address: addr(r['address']),
     x25519Pub: hex(r['x25519Pub']),
+    ed25519Pub: hex(r['ed25519Pub']),
     createdAt: createdAt ?? 0,
     lastSeenAt: lastSeenAt ?? createdAt ?? 0,
   };
@@ -179,7 +181,12 @@ export async function loadMessages(owner: Address): Promise<ChatMessage[]> {
 export async function saveMessage(message: ChatMessage): Promise<void> {
   if (!hasIndexedDb()) return;
   try {
-    await idbPut(STORE_MESSAGES, message);
+    // The by-owner index is queried with a LOWERCASED owner (see loadMessages), and
+    // IndexedDB compares string keys case-sensitively — a checksummed owner from wagmi
+    // would strand the row under a key hydration never asks for. Normalise at this one
+    // choke point so every persisted row is findable. (This exact mismatch made a reload
+    // look like message deletion on 2026-08-18.)
+    await idbPut(STORE_MESSAGES, { ...message, owner: message.owner.toLowerCase() });
   } catch {
     /* The in-memory copy is still correct; the cache is best-effort. */
   }
@@ -188,7 +195,10 @@ export async function saveMessage(message: ChatMessage): Promise<void> {
 export async function saveMessages(messages: readonly ChatMessage[]): Promise<void> {
   if (!hasIndexedDb() || messages.length === 0) return;
   try {
-    await idbPutMany(STORE_MESSAGES, messages);
+    await idbPutMany(
+      STORE_MESSAGES,
+      messages.map((m) => ({ ...m, owner: m.owner.toLowerCase() })),
+    );
   } catch {
     /* see saveMessage */
   }
@@ -223,7 +233,8 @@ export async function loadPeers(owner: Address): Promise<PeerRecord[]> {
 export async function savePeer(peer: PeerRecord): Promise<void> {
   if (!hasIndexedDb()) return;
   try {
-    await idbPut(STORE_PEERS, peer);
+    // Lowercased for the by-owner index; see saveMessage.
+    await idbPut(STORE_PEERS, { ...peer, owner: peer.owner.toLowerCase() });
   } catch {
     /* see saveMessage */
   }
@@ -284,7 +295,8 @@ export async function loadRooms(owner: Address): Promise<RoomRecord[]> {
 export async function saveRoom(room: RoomRecord): Promise<void> {
   if (!hasIndexedDb()) return;
   try {
-    await idbPut(STORE_ROOMS, room);
+    // Lowercased for the by-owner index; see saveMessage.
+    await idbPut(STORE_ROOMS, { ...room, owner: room.owner.toLowerCase() });
   } catch {
     /* see saveMessage */
   }

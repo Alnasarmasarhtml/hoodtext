@@ -3,11 +3,14 @@
 import {
   BUCKETS,
   MAX_MEDIA_BYTES,
+  encodePlaintextCore,
   seal,
   sealMedia,
   sealToGroup,
+  signAuthor,
   signDrop,
   type IdentityKeys,
+  type Plaintext,
   type SealedDrop,
 } from '@hoodgram/crypto';
 import { useCallback, useEffect, useState } from 'react';
@@ -68,8 +71,11 @@ export interface EnvelopePreview {
  * so the composer can honestly show which of four size classes it lands in.
  */
 export function previewEnvelope(body: string): EnvelopePreview {
+  // Every live send now carries `from` (42 chars) + `sig` (130 chars) + keys/quotes;
+  // mirror that overhead here or the composer's bucket readout would lie.
+  const ATTRIBUTION_OVERHEAD = 42 + 130 + '"from":"","sig":"",'.length;
   const payload = JSON.stringify({ v: 1, t: Math.floor(Date.now() / 1000), kind: 'text', body });
-  const bytes = encoder.encode(payload).length + 4;
+  const bytes = encoder.encode(payload).length + 4 + ATTRIBUTION_OVERHEAD;
   const bucket = BUCKETS.find((size) => bytes <= size) ?? null;
   return { bytes, bucket, overflow: bucket === null };
 }
@@ -111,6 +117,8 @@ export interface SendReactionInput {
   /** blobRef of the message being reacted to. */
   readonly target: Hex;
   readonly emoji: string;
+  /** Toggle op: `add` turns the emoji on for this sender, `remove` off. */
+  readonly op: 'add' | 'remove';
 }
 
 export interface UseSendMessageParams {
@@ -288,6 +296,7 @@ export function useSendMessage({ owner, keys }: UseSendMessageParams): UseSendMe
           blockNumber: null,
           txHash: null,
           poster: me,
+          author: null,
           error: null,
         });
         setTimeout(() => {
@@ -324,14 +333,30 @@ export function useSendMessage({ owner, keys }: UseSendMessageParams): UseSendMe
             'This device holds no key for the room’s current epoch, so nothing can be encrypted. Ask the admin to re-send the room key.',
           );
         }
-        const pt = {
+        const ptCore: Plaintext = {
           v: 1,
           t: Math.floor(Date.now() / 1000),
           kind,
           body,
           ...(re === null ? {} : { re }),
-        } as const;
-        sealTask = () => sealToGroup(pt, groupKey.key);
+          from: owner.toLowerCase() as `0x${string}`,
+        };
+        let roomScope: Uint8Array;
+        try {
+          roomScope = hexToBytes(room.groupId);
+        } catch {
+          return fail(null, 'This room has a malformed group id on this device.');
+        }
+        sealTask = async () => {
+          // Sign INSIDE the sealed payload, scoped to the room, so the
+          // recipient can verify who wrote it and nobody else learns anything.
+          const sig = await signAuthor(
+            encodePlaintextCore(ptCore),
+            roomScope,
+            keys.ed25519.privateKey,
+          );
+          return sealToGroup({ ...ptCore, sig }, groupKey.key);
+        };
         anchoredConvoId = room.groupId;
       } else {
         const peer = findPeer(convoId);
@@ -349,14 +374,24 @@ export function useSendMessage({ owner, keys }: UseSendMessageParams): UseSendMe
         } catch {
           return fail(null, 'The stored recipient key is not a valid X25519 public key.');
         }
-        const pt = {
+        const ptCore: Plaintext = {
           v: 1,
           t: Math.floor(Date.now() / 1000),
           kind,
           body,
           ...(re === null ? {} : { re }),
-        } as const;
-        sealTask = () => seal(pt, recipient);
+          from: owner.toLowerCase() as `0x${string}`,
+        };
+        sealTask = async () => {
+          // Scope = the recipient's X25519 key: the signature verifies only for
+          // this recipient, so it cannot be replayed into another conversation.
+          const sig = await signAuthor(
+            encodePlaintextCore(ptCore),
+            recipient,
+            keys.ed25519.privateKey,
+          );
+          return seal({ ...ptCore, sig }, recipient);
+        };
         anchoredConvoId = STEALTH_CONVO_ID;
       }
 
@@ -383,6 +418,7 @@ export function useSendMessage({ owner, keys }: UseSendMessageParams): UseSendMe
         blockNumber: null,
         txHash: null,
         poster: owner,
+        author: null,
         error: null,
       };
       setStage('sealing');
@@ -595,11 +631,11 @@ export function useSendMessage({ owner, keys }: UseSendMessageParams): UseSendMe
   );
 
   const sendReaction = useCallback(
-    async ({ convoId, target, emoji }: SendReactionInput): Promise<boolean> => {
+    async ({ convoId, target, emoji, op }: SendReactionInput): Promise<boolean> => {
       return dispatch({
         convoId,
         kind: 'react',
-        body: JSON.stringify({ target, emoji }),
+        body: JSON.stringify({ target, emoji, op }),
         re: null,
       });
     },

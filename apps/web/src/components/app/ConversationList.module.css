@@ -415,3 +415,34 @@
 .rescan:disabled {
   color: var(--steel);
 }
+
+/* ── live search results ─────────────────────────────────────────────── */
+
+.searchResults {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* A row that is a button instead of a link: same body, button resets. */
+.rowButton {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.searchState {
+  margin: 0;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

@@ -15,6 +15,7 @@ import {
   resyncMessenger,
   useMessengerStore,
   type PeerKeyResolver,
+  type ResolvedPeerKeys,
 } from './messenger-store';
 import type { TamperEvent } from './types';
 
@@ -67,29 +68,31 @@ export function useDrops({ owner, keys, enabled = true }: UseDropsParams): UseDr
    */
   const resolvePeerKeys = useCallback<PeerKeyResolver>(
     async (addresses) => {
-      const out = new Map<string, Hex>();
+      const out = new Map<string, ResolvedPeerKeys>();
       if (registry === null || addresses.length === 0) return out;
 
       const results = await Promise.all(
-        addresses.map(async (candidate): Promise<readonly [Address, Hex | null]> => {
-          try {
-            const keysOf = await readContract(config, {
-              address: registry,
-              abi: keyRegistryAbi,
-              functionName: 'keysOf',
-              args: [candidate],
-              chainId: ACTIVE_CHAIN_ID,
-            });
-            return [candidate, keysOf[0]] as const;
-          } catch {
-            return [candidate, null] as const;
-          }
-        }),
+        addresses.map(
+          async (candidate): Promise<readonly [Address, ResolvedPeerKeys | null]> => {
+            try {
+              const keysOf = await readContract(config, {
+                address: registry,
+                abi: keyRegistryAbi,
+                functionName: 'keysOf',
+                args: [candidate],
+                chainId: ACTIVE_CHAIN_ID,
+              });
+              return [candidate, { x25519: keysOf[0], ed25519: keysOf[1] }] as const;
+            } catch {
+              return [candidate, null] as const;
+            }
+          },
+        ),
       );
 
-      for (const [candidate, key] of results) {
-        if (key === null || key.toLowerCase() === ZERO_KEY) continue;
-        out.set(candidate.toLowerCase(), key);
+      for (const [candidate, entry] of results) {
+        if (entry === null || entry.x25519.toLowerCase() === ZERO_KEY) continue;
+        out.set(candidate.toLowerCase(), entry);
       }
       return out;
     },

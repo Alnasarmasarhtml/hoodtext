@@ -36,6 +36,7 @@ import {
   useMessengerStore,
   wipeMessenger,
   type PeerKeyResolver,
+  type ResolvedPeerKeys,
 } from './messenger-store';
 import { subscribeToRelay, type RelayStreamListener } from './relay-stream';
 import { STEALTH_CONVO_ID, UNATTRIBUTED_CONVO_ID, type ChatMessage } from './types';
@@ -336,16 +337,20 @@ function seedMessage(message: ChatMessage): void {
 /* ═════════════════════════════════════════════════════════ harness ══════ */
 
 const resolveKnownSender: PeerKeyResolver = (addresses) => {
-  const out = new Map<string, Hex>();
+  const out = new Map<string, ResolvedPeerKeys>();
   for (const address of addresses) {
     if (address.toLowerCase() === SENDER.toLowerCase()) {
-      out.set(address.toLowerCase(), toHex(senderKeys.x25519.publicKey));
+      out.set(address.toLowerCase(), {
+        x25519: toHex(senderKeys.x25519.publicKey),
+        ed25519: toHex(senderKeys.ed25519.publicKey),
+      });
     }
   }
   return Promise.resolve(out);
 };
 
-const resolveNobody: PeerKeyResolver = () => Promise.resolve(new Map<string, Hex>());
+const resolveNobody: PeerKeyResolver = () =>
+  Promise.resolve(new Map<string, ResolvedPeerKeys>());
 
 function tick(): Promise<void> {
   return new Promise<void>((resolve) => {
@@ -783,6 +788,7 @@ describe('receive engine — routing and integrity', () => {
       blockNumber: null,
       txHash: null,
       poster: null,
+      author: null,
       error: null,
     });
     publish(
@@ -910,6 +916,7 @@ describe('store merges', () => {
       convoId,
       address: SENDER,
       x25519Pub: toHex(senderKeys.x25519.publicKey),
+      ed25519Pub: toHex(senderKeys.ed25519.publicKey),
       createdAt: 100,
       lastSeenAt: 400,
     };

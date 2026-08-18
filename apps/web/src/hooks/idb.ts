@@ -11,8 +11,13 @@
  */
 
 const DB_NAME = 'hoodgram';
-/** v2 added the room stores (`rooms`, `roomKeys`). */
-const DB_VERSION = 2;
+/**
+ * v2 added the room stores (`rooms`, `roomKeys`).
+ * v3 lowercases the persisted `owner` field on messages/peers/rooms so the `by-owner`
+ * index matches the lowercased key hydration queries with — rows written by earlier
+ * builds under a checksummed owner were invisible after reload (fixed 2026-08-18).
+ */
+const DB_VERSION = 3;
 
 export const STORE_IDENTITY = 'identity';
 export const STORE_MESSAGES = 'messages';
@@ -43,6 +48,20 @@ export function hasIndexedDb(): boolean {
   return typeof globalThis.indexedDB !== 'undefined';
 }
 
+/**
+ * v3 migration transform: returns a copy of `value` with a lowercased `owner`, or `null`
+ * when nothing needs to change. Pure so it is unit-testable without an IndexedDB.
+ */
+export function withLowercasedOwner(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const record = value as Record<string, unknown>;
+  const owner = record['owner'];
+  if (typeof owner !== 'string') return null;
+  const lower = owner.toLowerCase();
+  if (lower === owner) return null;
+  return { ...record, owner: lower };
+}
+
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -54,7 +73,7 @@ function openDatabase(): Promise<IDBDatabase> {
 
     const request = globalThis.indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onupgradeneeded = (): void => {
+    request.onupgradeneeded = (event: IDBVersionChangeEvent): void => {
       const db = request.result;
 
       if (!db.objectStoreNames.contains(STORE_IDENTITY)) {
@@ -78,6 +97,25 @@ function openDatabase(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORE_ROOM_KEYS)) {
         const roomKeys = db.createObjectStore(STORE_ROOM_KEYS, { keyPath: 'id' });
         roomKeys.createIndex(INDEX_BY_OWNER, 'owner', { unique: false });
+      }
+
+      // v3 migration: rewrite rows stranded under a checksummed owner. Runs inside the
+      // same versionchange transaction, so it is atomic with the version bump.
+      const tx = request.transaction;
+      if (event.oldVersion >= 1 && event.oldVersion < 3 && tx !== null) {
+        for (const storeName of [STORE_MESSAGES, STORE_PEERS, STORE_ROOMS]) {
+          if (!db.objectStoreNames.contains(storeName)) continue;
+          const cursorRequest = tx.objectStore(storeName).openCursor();
+          cursorRequest.onsuccess = (): void => {
+            const cursor = cursorRequest.result;
+            if (cursor === null) return;
+            const migrated = withLowercasedOwner(cursor.value);
+            if (migrated !== null) {
+              cursor.update(migrated);
+            }
+            cursor.continue();
+          };
+        }
       }
     };
 

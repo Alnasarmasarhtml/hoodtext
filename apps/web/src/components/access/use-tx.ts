@@ -13,7 +13,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Hex } from 'viem';
+import type { Hex, TransactionReceipt } from 'viem';
 import { usePublicClient } from 'wagmi';
 
 import { ACTIVE_CHAIN_ID, explorerTxUrl } from '@/lib/chain';
@@ -24,6 +24,8 @@ export type TxPhase = 'idle' | 'signing' | 'confirming' | 'confirmed' | 'error';
 export interface TxState {
   readonly phase: TxPhase;
   readonly hash: Hex | null;
+  /** The successful receipt — lets panels read event logs for exact amounts. */
+  readonly receipt: TransactionReceipt | null;
   readonly error: ChainErrorInfo | null;
   /** Explorer link for `hash`, or `null` on a chain with no explorer. */
   readonly explorerUrl: string | null;
@@ -41,6 +43,7 @@ export function useTxState(): TxState {
   const publicClient = usePublicClient({ chainId: ACTIVE_CHAIN_ID });
   const [phase, setPhase] = useState<TxPhase>('idle');
   const [hash, setHash] = useState<Hex | null>(null);
+  const [receipt, setReceipt] = useState<TransactionReceipt | null>(null);
   const [error, setError] = useState<ChainErrorInfo | null>(null);
 
   /* A tx can outlive the panel that started it; never set state after unmount. */
@@ -56,6 +59,7 @@ export function useTxState(): TxState {
     if (!aliveRef.current) return;
     setPhase('idle');
     setHash(null);
+    setReceipt(null);
     setError(null);
   }, []);
 
@@ -64,6 +68,7 @@ export function useTxState(): TxState {
       if (aliveRef.current) {
         setPhase('signing');
         setHash(null);
+        setReceipt(null);
         setError(null);
       }
 
@@ -99,11 +104,12 @@ export function useTxState(): TxState {
         return false;
       }
 
+      let confirmedReceipt: TransactionReceipt;
       try {
-        const receipt = await publicClient.waitForTransactionReceipt({
+        confirmedReceipt = await publicClient.waitForTransactionReceipt({
           hash: txHash,
         });
-        if (receipt.status !== 'success') {
+        if (confirmedReceipt.status !== 'success') {
           if (aliveRef.current) {
             setError({
               kind: 'reverted',
@@ -124,7 +130,10 @@ export function useTxState(): TxState {
         return false;
       }
 
-      if (aliveRef.current) setPhase('confirmed');
+      if (aliveRef.current) {
+        setReceipt(confirmedReceipt);
+        setPhase('confirmed');
+      }
       return true;
     },
     [publicClient],
@@ -133,6 +142,7 @@ export function useTxState(): TxState {
   return {
     phase,
     hash,
+    receipt,
     error,
     explorerUrl: hash === null ? null : explorerTxUrl(hash),
     busy: phase === 'signing' || phase === 'confirming',

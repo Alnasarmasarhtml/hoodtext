@@ -143,6 +143,7 @@ function pendingRowsFor(
     size: body.length + 4 <= 256 ? 256 : 1024,
     txHash: null,
     poster: message.sender,
+    author: outbound ? null : message.sender,
     error: null,
   };
 
@@ -197,6 +198,7 @@ function pendingRowsFor(
           size: 256,
           txHash: null,
           poster: from,
+          author: from,
           error: null,
         },
       });
@@ -232,6 +234,7 @@ function buildWorld(): DemoWorld {
       convoId,
       address: conversation.peer,
       x25519Pub: hex64(`x25519:${conversation.peer.toLowerCase()}`),
+      ed25519Pub: hex64(`ed25519:${conversation.peer.toLowerCase()}`),
       createdAt: lastSeenAt - 7 * 86_400,
       lastSeenAt,
     });
