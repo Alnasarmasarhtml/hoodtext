@@ -33,7 +33,14 @@ const MAX_GROUPS_PER_TARGET = 16;
 /** The reactor key one message aggregates under. Exported so send-side toggle state matches. */
 export function reactorKeyOf(message: ChatMessage): string {
   if (message.direction === 'out') return 'me';
-  if (message.author !== null) return message.author.toLowerCase();
+  // Own reactions can arrive INBOUND too (sent from another device, or after a
+  // local wipe): the verified author is then our own address, and keying it
+  // separately from 'me' would double-count. `owner` is the viewing wallet.
+  if (message.author !== null) {
+    return message.author.toLowerCase() === message.owner.toLowerCase()
+      ? 'me'
+      : message.author.toLowerCase();
+  }
   return message.poster?.toLowerCase() ?? 'unknown';
 }
 

@@ -153,6 +153,9 @@ function Thread({ convoId }: ThreadProps): ReactNode {
   const conversation = useConversation(convoId);
   const messages = useConversationMessages(convoId);
   const send = useSendMessage({ owner: session.address, keys: session.keys });
+  /* Reactions ride a SEPARATE send instance: a chip tap must never disable the
+     composer, flip its Retry states, or clobber a media upload's stage. */
+  const reactSend = useSendMessage({ owner: session.address, keys: session.keys });
   const reducedMotion = usePrefersReducedMotion();
 
   const room = conversation?.room ?? null;
@@ -212,7 +215,7 @@ function Thread({ convoId }: ThreadProps): ReactNode {
       const mine =
         reactionsByRef.get(target)?.find((entry) => entry.emoji === emoji)?.mine ?? false;
       reactionsInFlight.current.add(flightKey);
-      void send
+      void reactSend
         .sendReaction({
           convoId,
           target: message.blobRef,
@@ -223,7 +226,7 @@ function Thread({ convoId }: ThreadProps): ReactNode {
           reactionsInFlight.current.delete(flightKey);
         });
     },
-    [convoId, reactionsByRef, send],
+    [convoId, reactionsByRef, reactSend],
   );
 
   /* The device cache has not been read yet — claiming the thread is missing

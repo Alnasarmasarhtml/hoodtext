@@ -1069,9 +1069,13 @@ async function processStealthDrops(
           peerAddress = author;
           peerKeys = registered;
         }
-      } else if (resolveFailed || registered === null) {
-        // Registry unavailable or sender unregistered: re-arm so the drop is
-        // re-attributed on a later pass instead of pinning unattributed.
+      } else if (resolveFailed) {
+        // TRANSIENT failure only (registry unreachable): re-arm so the drop is
+        // re-attributed on a later pass. A definitively-unregistered sender
+        // must NOT re-arm — that answer never changes on its own, and holding
+        // the cursor for it would re-scan the whole tail forever (an attacker
+        // could force that with one junk `from`). Those land unattributed and
+        // heal through the existing-row upgrade path if the sender registers.
         rememberRetry(candidate.drop.seq);
       }
     }

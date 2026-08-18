@@ -184,3 +184,21 @@ describe('config', () => {
     expect(config.priceDriftBps).toBe(50);
   });
 });
+
+describe('per-tick step bound', () => {
+  it('allows the bootstrap correction, then rejects a 4x jump', async () => {
+    let marketUsd = 0.00000325;
+    const { keeper, setRate } = keeperWith({
+      fetchDexScreenerUsd: async () => marketUsd,
+    });
+    // First write: placeholder 1000/USD → ~307,692/USD. A giant, legitimate step.
+    await keeper.tick();
+    expect(setRate).toHaveBeenCalledTimes(1);
+
+    // Feed goes insane (100x price collapse → 100x rate jump): must be refused.
+    marketUsd = marketUsd / 100;
+    await keeper.tick();
+    expect(setRate).toHaveBeenCalledTimes(1);
+    expect(keeper.status().lastError).toContain('4x');
+  });
+});

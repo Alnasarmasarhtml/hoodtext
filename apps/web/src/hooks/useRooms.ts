@@ -423,7 +423,7 @@ export function useCreateRoom(owner: Address | null): UseCreateRoomResult {
           chainId: ACTIVE_CHAIN_ID,
         });
 
-        if (allowance < quote) {
+        if (allowance < (quote * 105n) / 100n) { // gate on the buffered amount: the rate is live
           setPhase('approving');
           const approveHash = await writeContractAsync({
             address: contracts.token,
@@ -602,7 +602,7 @@ export function usePayRent(groupId: Hex | null, payer: Address | null): UsePayRe
           chainId: ACTIVE_CHAIN_ID,
         });
 
-        if (allowance < quote) {
+        if (allowance < (quote * 105n) / 100n) { // gate on the buffered amount: the rate is live
           setPhase('approving');
           const approveHash = await writeContractAsync({
             address: contracts.token,

@@ -124,7 +124,10 @@ function RoomCard({
 
   const allowance = token.registryAllowance;
   const balance = token.balance;
-  const needsApproval = quote !== null && allowance !== null && allowance < quote;
+  /* Gate on the BUFFERED amount: the rate is live, and a thin allowance that
+     merely equals the current quote can strand the payment one tick later. */
+  const needsApproval =
+    quote !== null && allowance !== null && allowance < (quote * 105n) / 100n;
   const shortOnBalance = quote !== null && balance !== null && balance < quote;
 
   const busy = approveTx.busy || payTx.busy || autoRenewTx.busy;
@@ -142,7 +145,7 @@ function RoomCard({
           address: contracts.token,
           abi: hoodGramTokenAbi,
           functionName: 'approve',
-          args: [contracts.groupRegistry, quote],
+          args: [contracts.groupRegistry, (quote * 105n) / 100n],
         }),
       'Approving $GRAM',
     );
@@ -151,7 +154,7 @@ function RoomCard({
       toast.push({
         kind: 'success',
         title: 'Approved',
-        body: `The room registry may now move ${formatToken(quote, { digits: 2, symbol: 'GRAM' })}. And not a wei more.`,
+        body: `The room registry may now move up to ${formatToken((quote * 105n) / 100n, { digits: 2, symbol: 'GRAM' })}: the rent quote plus 5% headroom, because the price tracks the live market. Paying pulls only the moment's quote.`,
       });
     }
   }, [approveTx, contracts, demo, onRefresh, quote, toast, writeContractAsync]);

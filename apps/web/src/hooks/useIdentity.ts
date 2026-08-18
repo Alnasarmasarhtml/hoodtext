@@ -143,8 +143,11 @@ export function useIdentity(): UseIdentityResult {
   /* ── disconnect locks the session; only the explicit "forget" wipes ──── */
   useAccountEffect({
     onDisconnect: () => {
-      // Clear the in-memory keys so a shared machine is safe the moment the wallet
-      // disconnects — but leave IndexedDB alone. Wallets and wagmi fire disconnects for
+      // Clear the in-memory keys so the UI locks the moment the wallet
+      // disconnects — but leave IndexedDB alone. To be explicit about the
+      // trade: cached message bodies and room keys stay on disk until the
+      // explicit "forget", so a genuinely shared machine needs that action,
+      // not just a disconnect. Wallets and wagmi fire disconnects for
       // mundane reasons (extension update, network hiccup, tab sleep), and destroying the
       // sent-message history and room keys on every one of them is data loss the user
       // never asked for (it also caused a paid room to be re-bought after a reload on

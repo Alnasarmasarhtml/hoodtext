@@ -90,11 +90,13 @@ export function ActivationPanel({
   const balance = token.balance;
   const allowance = token.activationAllowance;
 
-  const needsApproval = quote !== null && allowance !== null && allowance < quote;
   /* The rate is live (a keeper repricing $5 against the market), so an
      exact-quote approval can be a wei short by the time activate() runs.
-     5% headroom absorbs a tick; activate() still pulls only the live quote. */
+     5% headroom absorbs a tick; activate() still pulls only the live quote.
+     The GATE also checks against the buffered amount: an old exact-quote
+     allowance would otherwise skip the approve step and still strand. */
   const approveAmount = quote === null ? 0n : (quote * 105n) / 100n;
+  const needsApproval = quote !== null && allowance !== null && allowance < approveAmount;
   const shortOnBalance = quote !== null && balance !== null && balance < quote;
 
   const canWrite =
@@ -146,7 +148,7 @@ export function ActivationPanel({
       toast.push({
         kind: 'success',
         title: 'Approved',
-        body: `The Activation contract may now move up to ${formatToken(approveAmount, { digits: 2, symbol: 'GRAM' })}: the $5 quote plus 5% headroom, because the price now tracks the live market and can tick between approving and paying. Whatever the moment-of-payment quote is, that is all it takes.`,
+        body: `The Activation contract may now move up to ${formatToken(approveAmount, { digits: 2, symbol: 'GRAM' })}: the $5 quote plus 5% headroom, because the price now tracks the live market and can tick between approving and paying. A move bigger than 5% before you pay would need one fresh approval.`,
       });
     }
   }, [approveTx, contracts, onRefresh, quote, toast, writeContractAsync]);
@@ -174,7 +176,7 @@ export function ActivationPanel({
 
   const onActivateFriend = useCallback(async (): Promise<void> => {
     if (contracts === null || friend === null) return;
-    const ok = await sponsorTx.run(
+    const receipt = await sponsorTx.run(
       () =>
         writeContractAsync({
           address: contracts.activation,
@@ -184,15 +186,15 @@ export function ActivationPanel({
         }),
       'Sponsoring an activation',
     );
-    if (ok) {
+    if (receipt !== null) {
       onRefresh();
-      /* Read the exact amount off the receipt's Activated event, so the toast
-         states what actually moved rather than what the quote said. */
+      /* Read the exact amount off the RETURNED receipt's Activated event; the
+         state copy would be a stale closure at this exact moment. */
       let paid: bigint | null = null;
       try {
         const events = parseEventLogs({
           abi: activationAbi,
-          logs: sponsorTx.receipt?.logs ?? [],
+          logs: receipt.logs,
           eventName: 'Activated',
         });
         paid = events[0]?.args.thoodPaid ?? null;

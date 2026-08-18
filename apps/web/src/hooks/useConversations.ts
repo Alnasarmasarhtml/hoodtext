@@ -47,8 +47,13 @@ function buildConversation(
 
   for (const message of messages) {
     if (message.status === 'anchored' || message.status === 'received') anchored += 1;
-    else if (message.status === 'failed') failed += 1;
-    else pending += 1;
+    else if (message.status === 'failed') {
+      // A failed REACTION never renders a row (reactions decorate other rows),
+      // so counting it here would show a "failed" badge with nothing visible
+      // to retry — a permanent phantom. The failed toggle simply reads as
+      // "reaction off", which is already the truthful rollback.
+      if (message.kind !== 'react') failed += 1;
+    } else pending += 1;
     if (message.sentAt > lastActivity) lastActivity = message.sentAt;
     /* Reactions decorate other rows; they never headline a conversation. */
     if (message.kind !== 'react') last = message;

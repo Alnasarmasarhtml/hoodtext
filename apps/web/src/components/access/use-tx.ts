@@ -32,10 +32,12 @@ export interface TxState {
   /** True while the wallet is open or the receipt is outstanding. */
   readonly busy: boolean;
   /**
-   * Send, wait for the receipt, and resolve `true` only when it succeeded.
-   * Never throws: failures land in `error`.
+   * Send, wait for the receipt, and resolve the SUCCESSFUL receipt — `null` on
+   * any failure. Never throws: failures land in `error`. Returning the receipt
+   * (truthy) rather than a boolean lets callers read event logs without going
+   * through state, which would be a stale closure at the moment they need it.
    */
-  readonly run: (send: () => Promise<Hex>, action: string) => Promise<boolean>;
+  readonly run: (send: () => Promise<Hex>, action: string) => Promise<TransactionReceipt | null>;
   readonly reset: () => void;
 }
 
@@ -64,7 +66,7 @@ export function useTxState(): TxState {
   }, []);
 
   const run = useCallback(
-    async (send: () => Promise<Hex>, action: string): Promise<boolean> => {
+    async (send: () => Promise<Hex>, action: string): Promise<TransactionReceipt | null> => {
       if (aliveRef.current) {
         setPhase('signing');
         setHash(null);
@@ -80,7 +82,7 @@ export function useTxState(): TxState {
           setError(describeChainError(caught, { action }));
           setPhase('error');
         }
-        return false;
+        return null;
       }
 
       if (aliveRef.current) {
@@ -101,7 +103,7 @@ export function useTxState(): TxState {
           });
           setPhase('error');
         }
-        return false;
+        return null;
       }
 
       let confirmedReceipt: TransactionReceipt;
@@ -120,21 +122,21 @@ export function useTxState(): TxState {
             });
             setPhase('error');
           }
-          return false;
+          return null;
         }
       } catch (caught) {
         if (aliveRef.current) {
           setError(describeChainError(caught, { action }));
           setPhase('error');
         }
-        return false;
+        return null;
       }
 
       if (aliveRef.current) {
         setReceipt(confirmedReceipt);
         setPhase('confirmed');
       }
-      return true;
+      return confirmedReceipt;
     },
     [publicClient],
   );

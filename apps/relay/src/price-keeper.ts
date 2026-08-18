@@ -108,10 +108,27 @@ function livePorts(config: RelayConfig, log: FastifyBaseLogger): PricePorts | nu
       );
       if (!response.ok) throw new Error(`dexscreener http ${String(response.status)}`);
       const body = (await response.json()) as {
-        pairs: { priceUsd?: string; liquidity?: { usd?: number } }[] | null;
+        pairs:
+          | {
+              priceUsd?: string;
+              liquidity?: { usd?: number };
+              chainId?: string;
+              baseToken?: { address?: string };
+            }[]
+          | null;
       };
       if (!Array.isArray(body.pairs) || body.pairs.length === 0) return null;
-      const best = [...body.pairs].sort(
+      // Same-address deployments exist on other chains, and priceUsd is the
+      // BASE token's price — a pair where our token is the quote side (or a
+      // pair on another chain) would write a wrong asset's price on chain.
+      // Only a Robinhood Chain pair with OUR token as base may ever be used.
+      const eligible = body.pairs.filter(
+        (pair) =>
+          pair.baseToken?.address?.toLowerCase() === token.toLowerCase() &&
+          (pair.chainId === undefined || pair.chainId === 'robinhood'),
+      );
+      if (eligible.length === 0) return null;
+      const best = [...eligible].sort(
         (a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0),
       )[0];
       const price = best?.priceUsd === undefined ? NaN : Number(best.priceUsd);
@@ -259,6 +276,26 @@ export class PriceKeeper {
       if (target < this.#config.priceMinRate || target > this.#config.priceMaxRate) {
         this.#fail(
           `derived rate ${target.toString()} is outside [${this.#config.priceMinRate.toString()}, ${this.#config.priceMaxRate.toString()}]; refusing to write`,
+        );
+        return;
+      }
+
+      // Per-tick step bound: a real market rarely quadruples between two ticks,
+      // but a spoofed feed or wrong pair jumps orders of magnitude at once.
+      // Applied only after this keeper's OWN first write: the bootstrap
+      // correction (a deploy-time placeholder rate to the real market) is a
+      // legitimate giant step, and an operator-fixed rate is an explicit
+      // instruction, not a feed to distrust.
+      const previous = this.#onChainRate;
+      if (
+        this.#strategy !== 'fixed' &&
+        this.#lastUpdatedAt !== null &&
+        previous !== null &&
+        previous > 0n &&
+        (target > previous * 4n || target < previous / 4n)
+      ) {
+        this.#fail(
+          `derived rate ${target.toString()} moves more than 4x from the on-chain ${previous.toString()} in one tick; refusing to write`,
         );
         return;
       }
