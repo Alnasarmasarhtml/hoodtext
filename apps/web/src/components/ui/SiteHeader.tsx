@@ -26,8 +26,9 @@ const NAV: readonly NavItem[] = [
   { href: '/access', label: 'Access', match: (p) => p.startsWith('/access') },
 ];
 
-/** The project's account. Change here and it changes everywhere it appears. */
+/** The project's accounts. Change here and they change everywhere they appear. */
 const X_URL = 'https://x.com/rhoodgram';
+const TELEGRAM_URL = 'https://t.me/hoodgramrh';
 
 /** The X glyph, drawn rather than loaded, so the bar needs no icon dependency. */
 function XMark(): ReactNode {
@@ -37,6 +38,19 @@ function XMark(): ReactNode {
         fill="currentColor"
         stroke="none"
         d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"
+      />
+    </svg>
+  );
+}
+
+/** The Telegram glyph, drawn rather than loaded, matching the X mark's weight. */
+function TelegramMark(): ReactNode {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        stroke="none"
+        d="M21.94 3.42 18.7 20.05c-.24 1.17-.9 1.46-1.82.91l-5.03-3.71-2.43 2.34c-.27.27-.5.5-1.01.5l.36-5.13L18.1 6.5c.4-.36-.09-.56-.63-.2L5.94 13.6l-4.97-1.56c-1.08-.34-1.1-1.08.23-1.6L20.54 2.05c.9-.34 1.69.2 1.4 1.37Z"
       />
     </svg>
   );
@@ -100,6 +114,17 @@ export function SiteHeader(): ReactNode {
         </nav>
 
         <div className={s.side}>
+          <a
+            className={s.social}
+            href={TELEGRAM_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="HoodGram on Telegram"
+            title="HoodGram on Telegram"
+          >
+            <TelegramMark />
+          </a>
+
           <a
             className={s.social}
             href={X_URL}
