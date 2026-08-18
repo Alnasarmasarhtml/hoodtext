@@ -18,23 +18,6 @@ export interface Deployment {
   handles: `0x${string}`;
 }
 
-/** The all-zero address, used as the "not deployed yet" placeholder. */
-const ZERO_ADDRESS: `0x${string}` = '0x0000000000000000000000000000000000000000';
-
-function undeployed(): Deployment {
-  return {
-    token: ZERO_ADDRESS,
-    priceSource: ZERO_ADDRESS,
-    revenueVault: ZERO_ADDRESS,
-    activation: ZERO_ADDRESS,
-    groupRegistry: ZERO_ADDRESS,
-    keyRegistry: ZERO_ADDRESS,
-    anchors: ZERO_ADDRESS,
-    perks: ZERO_ADDRESS,
-    handles: ZERO_ADDRESS,
-  };
-}
-
 /** Local anvil dev chain. */
 const LOCAL_CHAIN_ID = 31337;
 /** Robinhood Chain mainnet (0x1237). */
