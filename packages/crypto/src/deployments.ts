@@ -57,7 +57,7 @@ export const DEPLOYMENTS: Record<number, Deployment> = {
   // changes then; the other eight do not.
   // Deployer / treasury / owner: 0x58b2ed2ed3AEEB756B30aD15EaD8974CeDc9A5aC.
   [ROBINHOOD_CHAIN_ID]: {
-    token: '0x24DAC33de87dBFf11a7B1CBF02dB4b0668C5e3D6',
+    token: '0xCC387aD9635326297cF0DCe6D1D9F4f50B5aB0EF', // real $GRAM, launched 2026-08-19
     priceSource: '0xAA164D5E19F2EeEca56aF3CBBe677533e962f109',
     revenueVault: '0x168946858dB2890022d598C328a4235b2aaE32d5',
     activation: '0x063c91F8311b7183B3EEC8099Ee7961c11Dbdc14',
