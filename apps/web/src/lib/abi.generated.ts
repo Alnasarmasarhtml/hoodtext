@@ -1184,6 +1184,13 @@ export const revenueVaultAbi = [
   },
   {
     "type": "function",
+    "name": "lockToken",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "nextSealAt",
     "inputs": [],
     "outputs": [
@@ -1305,6 +1312,19 @@ export const revenueVaultAbi = [
   },
   {
     "type": "function",
+    "name": "setToken",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setTreasury",
     "inputs": [
       {
@@ -1328,6 +1348,19 @@ export const revenueVaultAbi = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "tokenLocked",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -1602,6 +1635,32 @@ export const revenueVaultAbi = [
   },
   {
     "type": "event",
+    "name": "TokenLocked",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TokenSet",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "TreasurySet",
     "inputs": [
       {
@@ -1723,6 +1782,11 @@ export const revenueVaultAbi = [
   },
   {
     "type": "error",
+    "name": "TokenIsLocked",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "TooManyExcluded",
     "inputs": []
   },
@@ -1734,6 +1798,11 @@ export const revenueVaultAbi = [
   {
     "type": "error",
     "name": "UnknownEpoch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "VaultNotEmpty",
     "inputs": []
   },
   {
@@ -1890,6 +1959,13 @@ export const activationAbi = [
   },
   {
     "type": "function",
+    "name": "lockToken",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "owner",
     "inputs": [],
     "outputs": [
@@ -1975,6 +2051,19 @@ export const activationAbi = [
   },
   {
     "type": "function",
+    "name": "setToken",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setVault",
     "inputs": [
       {
@@ -1985,6 +2074,19 @@ export const activationAbi = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "tokenLocked",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -2109,6 +2211,32 @@ export const activationAbi = [
   },
   {
     "type": "event",
+    "name": "TokenLocked",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TokenSet",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "VaultSet",
     "inputs": [
       {
@@ -2183,6 +2311,11 @@ export const activationAbi = [
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "TokenIsLocked",
+    "inputs": []
   },
   {
     "type": "error",
@@ -2400,6 +2533,13 @@ export const groupRegistryAbi = [
   },
   {
     "type": "function",
+    "name": "lockToken",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "owner",
     "inputs": [],
     "outputs": [
@@ -2595,6 +2735,19 @@ export const groupRegistryAbi = [
   },
   {
     "type": "function",
+    "name": "setToken",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setVault",
     "inputs": [
       {
@@ -2605,6 +2758,19 @@ export const groupRegistryAbi = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "tokenLocked",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -2890,6 +3056,32 @@ export const groupRegistryAbi = [
   },
   {
     "type": "event",
+    "name": "TokenLocked",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TokenSet",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "VaultSet",
     "inputs": [
       {
@@ -2989,6 +3181,11 @@ export const groupRegistryAbi = [
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "TokenIsLocked",
+    "inputs": []
   },
   {
     "type": "error",
@@ -3615,6 +3812,13 @@ export const perksAbi = [
   },
   {
     "type": "function",
+    "name": "lockToken",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "owner",
     "inputs": [],
     "outputs": [
@@ -3641,6 +3845,19 @@ export const perksAbi = [
         "name": "bps",
         "type": "uint16[4]",
         "internalType": "uint16[4]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setToken",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -3718,6 +3935,19 @@ export const perksAbi = [
   },
   {
     "type": "function",
+    "name": "tokenLocked",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "transferOwnership",
     "inputs": [
       {
@@ -3776,6 +4006,32 @@ export const perksAbi = [
   },
   {
     "type": "event",
+    "name": "TokenLocked",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TokenSet",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "VaultSet",
     "inputs": [
       {
@@ -3818,6 +4074,11 @@ export const perksAbi = [
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "TokenIsLocked",
+    "inputs": []
   },
   {
     "type": "error",

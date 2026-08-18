@@ -1,0 +1,27 @@
+# Keep the relay build context small and free of anything secret.
+#
+# apps/web is 40+ MB of video and brand art that the relay image never reads,
+# and .env holds keys that must never be baked into a layer.
+node_modules
+**/node_modules
+.git
+.env
+.env.local
+.env.*.local
+apps/web
+art
+docs
+contracts/out
+contracts/cache
+contracts/broadcast
+contracts/lib
+apps/relay/data
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/.next
+**/out
+**/dist
+**/coverage
+.DS_Store
+*.log

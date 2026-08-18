@@ -49,11 +49,17 @@ contract RevenueVault is IRevenueVault, Ownable, ReentrancyGuard {
     /// @dev Basis-point denominator.
     uint256 private constant BPS_DENOMINATOR = 10_000;
 
-    /// @notice The $THOOD token revenue is denominated in.
-    IERC20 public immutable THOOD;
+    /// @notice The $GRAM token revenue is denominated in.
+    /// @dev Settable by the owner until the first epoch is sealed or {lockToken} freezes it.
+    ///      Claims read `balanceOfAt` on this token at each sealed epoch's snapshot, which is why
+    ///      a seal makes the binding final; see {setToken} for the rehearsal-era flush.
+    IERC20 public THOOD;
 
     /// @notice The same token address, viewed through its historical-balance interface.
-    ICheckpointToken public immutable CHECKPOINTS;
+    ICheckpointToken public CHECKPOINTS;
+
+    /// @notice True once {lockToken} has frozen the token permanently.
+    bool public tokenLocked;
 
     /// @notice Recipient of the treasury half and of anything swept after the claim window.
     address public treasury;
@@ -119,6 +125,10 @@ contract RevenueVault is IRevenueVault, Ownable, ReentrancyGuard {
     event TreasurySet(address indexed treasury);
     /// @notice Emitted when a revenue notifier is allowed or disallowed.
     event NotifierSet(address indexed notifier, bool allowed);
+    /// @notice Emitted when the revenue token changes.
+    event TokenSet(address indexed token);
+    /// @notice Emitted once, when the revenue token is frozen forever.
+    event TokenLocked(address indexed token);
     /// @notice Emitted when a seal finds no eligible supply and routes the holders' half to the treasury.
     event PendingRoutedToTreasury(uint48 snapshot, uint256 amount);
 
@@ -144,6 +154,10 @@ contract RevenueVault is IRevenueVault, Ownable, ReentrancyGuard {
     error TooManyExcluded();
     /// @notice Thrown when revenue is notified that was never actually transferred in.
     error NotFunded();
+    /// @notice Thrown when the token would change after {lockToken} was called.
+    error TokenIsLocked();
+    /// @notice Thrown when the token would change after an epoch has been sealed.
+    error VaultNotEmpty();
 
     /**
      * @notice Deploys the vault.
@@ -160,6 +174,7 @@ contract RevenueVault is IRevenueVault, Ownable, ReentrancyGuard {
         lastSealAt = SafeCast.toUint64(block.timestamp);
 
         emit TreasurySet(treasury_);
+        emit TokenSet(thood_);
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -404,6 +419,45 @@ contract RevenueVault is IRevenueVault, Ownable, ReentrancyGuard {
         if (notifier == address(0)) revert ZeroAddress();
         isNotifier[notifier] = allowed;
         emit NotifierSet(notifier, allowed);
+    }
+
+    /**
+     * @notice Points the vault at a different revenue token.
+     * @dev Refused once any epoch has been sealed: sealed claims are priced off the old token's
+     *      balance history forever, so after the first seal the binding is final in practice.
+     *
+     *      Anything accrued but never sealed — the rehearsal-era activations and rent paid in a
+     *      test token — is flushed to the treasury in the OLD token first. Those amounts could
+     *      never reach holders anyway (a plain test token has no checkpoints, so they could never
+     *      be sealed), and leaving them behind would mix two currencies in one obligation total
+     *      and wedge {notifyRevenue}'s solvency check. After the flush every bucket is zero and
+     *      the new token starts from a clean slate.
+     * @param token The new token. Must be non-zero.
+     */
+    function setToken(address token) external onlyOwner {
+        if (tokenLocked) revert TokenIsLocked();
+        if (token == address(0)) revert ZeroAddress();
+        if (epochs.length != 0) revert VaultNotEmpty();
+
+        uint256 flush = pendingHolders + treasuryAccrued;
+        if (flush != 0) {
+            pendingHolders = 0;
+            treasuryAccrued = 0;
+            THOOD.safeTransfer(treasury, flush);
+            emit TreasuryWithdrawn(treasury, flush);
+        }
+
+        THOOD = IERC20(token);
+        CHECKPOINTS = ICheckpointToken(token);
+        emit TokenSet(token);
+    }
+
+    /**
+     * @notice Freezes the revenue token forever. There is no unlock.
+     */
+    function lockToken() external onlyOwner {
+        tokenLocked = true;
+        emit TokenLocked(address(THOOD));
     }
 
     // ─────────────────────────────────────────────────────────────────────────────

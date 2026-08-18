@@ -31,8 +31,15 @@ import {IActivation, IPriceSource, IRevenueVault} from "./interfaces/IHoodGram.s
 contract Activation is IActivation, Ownable {
     using SafeERC20 for IERC20;
 
-    /// @notice The $THOOD token activations are paid in.
-    IERC20 public immutable THOOD;
+    /// @notice The $GRAM token activations are paid in.
+    /// @dev Settable by the owner until {lockToken} freezes it. This was `immutable`, which made the
+    ///      token the FIRST thing that had to exist rather than the last: pointing the protocol at a
+    ///      different token meant redeploying this contract and losing every `activatedAt` entry, so
+    ///      every paying user would have had to pay again. See {setToken}.
+    IERC20 public THOOD;
+
+    /// @notice True once {lockToken} has frozen {THOOD} permanently.
+    bool public tokenLocked;
 
     /// @notice Destination of 100% of every payment. The 50/50 holder/treasury split happens there.
     IRevenueVault public vault;
@@ -56,6 +63,10 @@ contract Activation is IActivation, Ownable {
     event VaultSet(address indexed vault);
     /// @notice Emitted when the price source changes.
     event PriceSourceSet(address indexed priceSource);
+    /// @notice Emitted when the payment token changes.
+    event TokenSet(address indexed token);
+    /// @notice Emitted once, when the payment token is frozen forever.
+    event TokenLocked(address indexed token);
 
     /// @notice Thrown when activating an address that is already activated.
     error AlreadyActivated();
@@ -65,6 +76,8 @@ contract Activation is IActivation, Ownable {
     error ZeroAddress();
     /// @notice Thrown when a permit call fails and the existing allowance is still insufficient.
     error PermitFailed();
+    /// @notice Thrown when the payment token is changed after {lockToken}.
+    error TokenIsLocked();
 
     /**
      * @notice Deploys the activation gate at the default $5 price.
@@ -84,6 +97,7 @@ contract Activation is IActivation, Ownable {
         emit PriceSet(5e18);
         emit PriceSourceSet(priceSource_);
         emit VaultSet(vault_);
+        emit TokenSet(thood_);
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -191,6 +205,32 @@ contract Activation is IActivation, Ownable {
         if (v == address(0)) revert ZeroAddress();
         vault = IRevenueVault(v);
         emit VaultSet(v);
+    }
+
+    /**
+     * @notice Points activations at a different payment token.
+     * @dev Existing activations are unaffected: `activatedAt` records that an account was paid for,
+     *      not what it was paid in, and activation is permanent. Only the token FUTURE payers are
+     *      charged in changes. That is what makes the real token the last piece of a launch instead
+     *      of the first.
+     *
+     *      Call {lockToken} straight after the final swap. An unlocked payment token is an owner
+     *      power holders can see, and leaving it unlocked forever is not a neutral choice.
+     * @param token The new payment token. Must be non-zero.
+     */
+    function setToken(address token) external onlyOwner {
+        if (tokenLocked) revert TokenIsLocked();
+        if (token == address(0)) revert ZeroAddress();
+        THOOD = IERC20(token);
+        emit TokenSet(token);
+    }
+
+    /**
+     * @notice Freezes the payment token forever. There is no unlock.
+     */
+    function lockToken() external onlyOwner {
+        tokenLocked = true;
+        emit TokenLocked(address(THOOD));
     }
 
     // ─────────────────────────────────────────────────────────────────────────────

@@ -43,11 +43,23 @@ describe('DEPLOYMENTS', () => {
     }
   });
 
-  it('ships Robinhood Chain (4663) as undeployed until mainnet launch', () => {
+  // Deployed 2026-08-18 from block 39819111, wired to the external test token. On launch day the
+  // `token` field changes to the real $GRAM (setToken on chain, then this file); the other eight
+  // addresses are permanent and pinned exactly so a half-swapped edit fails loudly here.
+  it('pins the live Robinhood Chain (4663) deployment', () => {
     const deployment = DEPLOYMENTS[4663];
-    for (const field of FIELDS) {
-      expect(deployment?.[field], `4663.${field}`).toBe(ZERO);
-    }
+    expect(deployment?.priceSource).toBe('0xAA164D5E19F2EeEca56aF3CBBe677533e962f109');
+    expect(deployment?.revenueVault).toBe('0x168946858dB2890022d598C328a4235b2aaE32d5');
+    expect(deployment?.activation).toBe('0x063c91F8311b7183B3EEC8099Ee7961c11Dbdc14');
+    expect(deployment?.groupRegistry).toBe('0x20695Cb87aff1263C4FF60D6e783bd19B465498a');
+    expect(deployment?.keyRegistry).toBe('0x70cF5a2Fcc2869d39B803dBc23907b19f7F6d3Fc');
+    expect(deployment?.anchors).toBe('0x69eD2E0f5257A90cb88920B0E4Fa4C7792428237');
+    expect(deployment?.perks).toBe('0xadAf0D8E2c07dBE120961dadA9f5D1B5f53C6bB9');
+    expect(deployment?.handles).toBe('0xc1A4a50aaF556d08b7D4EB36265Ab1Bd6f44E934');
+    // The token is live too — never the zero sentinel again — but deliberately not pinned to one
+    // address: it is the single field that changes on launch day.
+    expect(deployment?.token).toMatch(/^0x[0-9a-fA-F]{40}$/);
+    expect(deployment?.token).not.toBe(ZERO);
   });
 
   it('gives each chain its own object', () => {

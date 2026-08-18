@@ -57,6 +57,8 @@ contract Deploy is Script {
         address finalOwner;
         address relayer;
         uint256 rate;
+        /// @dev Existing token to wire the protocol to. Zero means "mint a fresh HoodGramToken".
+        address token;
     }
 
     /**
@@ -79,6 +81,7 @@ contract Deploy is Script {
         c.finalOwner = _envAddressOr("OWNER_ADDRESS", c.deployer);
         c.relayer = _envAddressOr("RELAYER_ADDRESS", address(0));
         c.rate = _envUintOr("INITIAL_THOOD_PER_USD", DEFAULT_THOOD_PER_USD);
+        c.token = _envAddressOr("TOKEN_ADDRESS", address(0));
 
         d = _deployAndWire(c);
 
@@ -90,8 +93,13 @@ contract Deploy is Script {
 
     /// @dev Deploys every contract and wires the protocol together.
     function _deployAndWire(Config memory c) internal returns (Deployment memory d) {
-        // 1. Token — mints the whole supply to the treasury. No owner, no mint path afterwards.
-        d.token = address(new HoodGramToken(c.treasury));
+        // 1. Token. TOKEN_ADDRESS wires the protocol to an already-deployed token (the launch
+        //    plan: a test token now, the real $GRAM later via setToken). Unset, it mints a fresh
+        //    HoodGramToken with the whole supply to the treasury and no mint path afterwards.
+        //    NOTE: an external token is almost never an ICheckpointToken — sealEpoch() and every
+        //    claim need balanceOfAt/totalSupplyAt, so with a plain ERC20 the revenue engine
+        //    cannot seal. Payments, rooms and messaging are unaffected.
+        d.token = c.token != address(0) ? c.token : address(new HoodGramToken(c.treasury));
 
         // 2. Price source — USD to $THOOD conversion for activation and rent.
         d.priceSource = address(new ManualPriceSource(c.deployer, c.rate));

@@ -33,11 +33,15 @@ contract Perks is IPerks, Ownable {
     /// @dev Basis-point denominator.
     uint256 private constant BPS_DENOMINATOR = 10_000;
 
-    /// @notice The $THOOD token, for live balances and total supply.
-    IERC20 public immutable THOOD;
+    /// @notice The $GRAM token, for live balances and total supply.
+    /// @dev Settable by the owner until {lockToken} freezes it; see {setToken}.
+    IERC20 public THOOD;
 
     /// @notice The same token address, viewed through its historical-balance interface.
-    ICheckpointToken public immutable CHECKPOINTS;
+    ICheckpointToken public CHECKPOINTS;
+
+    /// @notice True once {lockToken} has frozen the token permanently.
+    bool public tokenLocked;
 
     /// @notice The revenue vault whose latest epoch snapshot anchors the anti-flash-buy check.
     IRevenueVault public vault;
@@ -50,6 +54,10 @@ contract Perks is IPerks, Ownable {
     event ThresholdsSet(uint16[TIER_COUNT] bps);
     /// @notice Emitted when the vault address changes.
     event VaultSet(address indexed vault);
+    /// @notice Emitted when the token changes.
+    event TokenSet(address indexed token);
+    /// @notice Emitted once, when the token is frozen forever.
+    event TokenLocked(address indexed token);
 
     /// @notice Thrown when thresholds are zero, non-increasing or above 100%.
     error InvalidThresholds();
@@ -57,6 +65,8 @@ contract Perks is IPerks, Ownable {
     error InvalidTier();
     /// @notice Thrown when an address argument is the zero address.
     error ZeroAddress();
+    /// @notice Thrown when the token is changed after {lockToken}.
+    error TokenIsLocked();
 
     /**
      * @notice Deploys the perk ladder at the default thresholds.
@@ -74,6 +84,7 @@ contract Perks is IPerks, Ownable {
         thresholdsBps = [uint16(5), 10, 25, 50];
         emit ThresholdsSet(thresholdsBps);
         emit VaultSet(vault_);
+        emit TokenSet(thood_);
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -150,5 +161,27 @@ contract Perks is IPerks, Ownable {
         if (v == address(0)) revert ZeroAddress();
         vault = IRevenueVault(v);
         emit VaultSet(v);
+    }
+
+    /**
+     * @notice Points the ladder at a different token.
+     * @dev Tiers are pure reads over the token's balances — nothing is migrated and nothing is
+     *      lost; the next {tierOf} call simply judges holders by the new token.
+     * @param token The new token. Must be non-zero.
+     */
+    function setToken(address token) external onlyOwner {
+        if (tokenLocked) revert TokenIsLocked();
+        if (token == address(0)) revert ZeroAddress();
+        THOOD = IERC20(token);
+        CHECKPOINTS = ICheckpointToken(token);
+        emit TokenSet(token);
+    }
+
+    /**
+     * @notice Freezes the token forever. There is no unlock.
+     */
+    function lockToken() external onlyOwner {
+        tokenLocked = true;
+        emit TokenLocked(address(THOOD));
     }
 }

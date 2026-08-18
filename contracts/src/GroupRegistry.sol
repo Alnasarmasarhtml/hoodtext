@@ -42,8 +42,14 @@ contract GroupRegistry is IRooms, Ownable {
     /// @notice How early a permissionless {renewFor} may fire ahead of rent lapse.
     uint64 public constant RENEW_WINDOW = 3 days;
 
-    /// @notice The $THOOD token rent is paid in.
-    IERC20 public immutable THOOD;
+    /// @notice The $GRAM token rent is paid in.
+    /// @dev Settable by the owner until {lockToken} freezes it. Rooms record `paidUntil`, never the
+    ///      token a month was bought with, so swapping the token leaves every existing room, its
+    ///      admin, its members and its paid-up date exactly as they were. See {setToken}.
+    IERC20 public THOOD;
+
+    /// @notice True once {lockToken} has frozen {THOOD} permanently.
+    bool public tokenLocked;
 
     /// @notice The one-time account gate; only activated accounts may create rooms.
     IActivation public activation;
@@ -103,6 +109,10 @@ contract GroupRegistry is IRooms, Ownable {
     event ActivationSet(address indexed activation);
     /// @notice Emitted when the revenue vault address changes.
     event VaultSet(address indexed vault);
+    /// @notice Emitted when the rent token changes.
+    event TokenSet(address indexed token);
+    /// @notice Emitted once, when the rent token is frozen forever.
+    event TokenLocked(address indexed token);
     /// @notice Emitted when the price source changes.
     event PriceSourceSet(address indexed priceSource);
 
@@ -122,6 +132,8 @@ contract GroupRegistry is IRooms, Ownable {
     error InvalidPrice();
     /// @notice Thrown when an address argument is the zero address.
     error ZeroAddress();
+    /// @notice Thrown when the rent token is changed after {lockToken}.
+    error TokenIsLocked();
     /// @notice Thrown by {renewFor} when the room's rent is not yet inside {RENEW_WINDOW}.
     error NotDue();
     /// @notice Thrown by {renewFor} when the room has not opted in to auto-renew.
@@ -152,6 +164,7 @@ contract GroupRegistry is IRooms, Ownable {
         emit ActivationSet(activation_);
         emit PriceSourceSet(priceSource_);
         emit VaultSet(vault_);
+        emit TokenSet(thood_);
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -378,6 +391,27 @@ contract GroupRegistry is IRooms, Ownable {
         if (v == address(0)) revert ZeroAddress();
         vault = IRevenueVault(v);
         emit VaultSet(v);
+    }
+
+    /**
+     * @notice Points rent payments at a different token.
+     * @dev Rooms store `paidUntil`, never the token a month was bought with, so existing rooms,
+     *      their members and their paid-up dates are untouched. Only future rent changes currency.
+     * @param token The new rent token. Must be non-zero.
+     */
+    function setToken(address token) external onlyOwner {
+        if (tokenLocked) revert TokenIsLocked();
+        if (token == address(0)) revert ZeroAddress();
+        THOOD = IERC20(token);
+        emit TokenSet(token);
+    }
+
+    /**
+     * @notice Freezes the rent token forever. There is no unlock.
+     */
+    function lockToken() external onlyOwner {
+        tokenLocked = true;
+        emit TokenLocked(address(THOOD));
     }
 
     // ─────────────────────────────────────────────────────────────────────────────

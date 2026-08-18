@@ -68,7 +68,22 @@ export const DEPLOYMENTS: Record<number, Deployment> = {
     perks: '0x53d88E8Dc39d5381823a50a59Ac9056C75Fe6074',
     handles: '0xA5d2c689f89A525869Ad3b4F9f12207cB2Edc867',
   },
-  [ROBINHOOD_CHAIN_ID]: undeployed(),
+  // Robinhood Chain mainnet — deployed 2026-08-18 from block 39819111, wired to the external
+  // test token ($5 = 5,000 tokens at thoodPerUsd 1000e18). The real $GRAM arrives on launch day
+  // via `setToken` on Activation / GroupRegistry / Perks / RevenueVault — the token address here
+  // changes then; the other eight do not.
+  // Deployer / treasury / owner: 0x58b2ed2ed3AEEB756B30aD15EaD8974CeDc9A5aC.
+  [ROBINHOOD_CHAIN_ID]: {
+    token: '0x24DAC33de87dBFf11a7B1CBF02dB4b0668C5e3D6',
+    priceSource: '0xAA164D5E19F2EeEca56aF3CBBe677533e962f109',
+    revenueVault: '0x168946858dB2890022d598C328a4235b2aaE32d5',
+    activation: '0x063c91F8311b7183B3EEC8099Ee7961c11Dbdc14',
+    groupRegistry: '0x20695Cb87aff1263C4FF60D6e783bd19B465498a',
+    keyRegistry: '0x70cF5a2Fcc2869d39B803dBc23907b19f7F6d3Fc',
+    anchors: '0x69eD2E0f5257A90cb88920B0E4Fa4C7792428237',
+    perks: '0xadAf0D8E2c07dBE120961dadA9f5D1B5f53C6bB9',
+    handles: '0xc1A4a50aaF556d08b7D4EB36265Ab1Bd6f44E934',
+  },
 };
 
 /**
