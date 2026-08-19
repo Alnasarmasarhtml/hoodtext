@@ -593,7 +593,14 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
         if (!parsed.success) {
           return fail(reply, 400, 'invalid_body', firstIssue(parsed.error));
         }
-        instance.stream.routeSignal(parsed.data.to, parsed.data.blob);
+        const delivered = instance.stream.routeSignal(parsed.data.to, parsed.data.blob);
+        // Logged for operators only. The tag is a routing address, never the
+        // sealed body, and the RESPONSE stays identical either way so this
+        // cannot be used from outside to probe whether somebody is online.
+        instance.log.info(
+          { tag: parsed.data.to, delivered, bytes: parsed.data.blob.length },
+          'call: signal routed',
+        );
         return reply.code(202).send({ accepted: true });
       },
     );
@@ -606,6 +613,7 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
         const raw = query?.['call'];
         const callTag = typeof raw === 'string' && CALL_TAG.test(raw) ? raw.toLowerCase() : undefined;
         instance.stream.add(socket, callTag);
+        instance.log.info({ callTag: callTag ?? null }, 'stream: subscriber attached');
       },
     );
   });

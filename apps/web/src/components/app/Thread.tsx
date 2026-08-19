@@ -36,6 +36,7 @@ import { AppNotice } from './AppNotice';
 import { Avatar } from './Avatar';
 import { Composer } from './Composer';
 import { LockedNotice } from './LockedNotice';
+import { unlockCallAudio } from '@/lib/call-audio';
 import { aggregateReactions } from '@/hooks/reactions';
 import { useCall } from './CallProvider';
 import { MessageRow } from './MessageRow';
@@ -531,6 +532,9 @@ function CallKey({ conversation }: CallKeyProps): ReactNode {
       disabled={busy}
       title={busy ? 'Already on a call' : 'Start an encrypted voice call'}
       onClick={() => {
+        // The click is the gesture that lets this tab make sound at all; the
+        // ringback is scheduled against a context unlocked right here.
+        unlockCallAudio();
         void call.start({ address, x25519Pub, ed25519Pub: '0x' });
       }}
     >
