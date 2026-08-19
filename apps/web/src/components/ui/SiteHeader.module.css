@@ -242,3 +242,53 @@
     display: none;
   }
 }
+
+/* ── token contract chip ────────────────────────────────────────────────── */
+
+/* Sits between the centred nav and the right-hand controls. Hidden on phones,
+   where the nav collapses and the bar has no room to spare. */
+.contract {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  height: 26px;
+  padding-inline: 9px;
+  border: 1px solid var(--line-2);
+  background-color: transparent;
+  cursor: pointer;
+  clip-path: var(--path-notch-br);
+  transition: border-color var(--dur-1) var(--ease);
+}
+
+.contract:hover,
+.contract:focus-visible {
+  border-color: var(--green);
+}
+
+.contractKey {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--green);
+}
+
+.contractValue {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.contract:hover .contractValue,
+.contract:focus-visible .contractValue {
+  color: var(--bone);
+}
+
+@media (min-width: 900px) {
+  .contract {
+    display: inline-flex;
+  }
+}

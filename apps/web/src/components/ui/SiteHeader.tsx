@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { useAccount } from 'wagmi';
 
 import { asset } from '@/lib/asset';
-import { ACTIVE_CHAIN_ID } from '@/lib/chain';
+import { ACTIVE_CHAIN_ID, tryGetContracts } from '@/lib/chain';
 import { cx } from '@/lib/cx';
 import { truncateAddress } from '@/lib/format';
 import { useConnectSheet } from '@/lib/ui-store';
@@ -25,6 +25,49 @@ const NAV: readonly NavItem[] = [
   { href: '/app', label: 'Messenger', match: (p) => p.startsWith('/app') },
   { href: '/access', label: 'Access', match: (p) => p.startsWith('/access') },
 ];
+
+/**
+ * The token contract, click to copy.
+ *
+ * Read from the build's deployed set rather than hardcoded, so a token swap
+ * moves this with everything else and the bar can never advertise a stale
+ * address. Renders nothing when the build targets a chain with no deployment.
+ */
+function ContractChip(): ReactNode {
+  const contracts = tryGetContracts(ACTIVE_CHAIN_ID);
+  const [copied, setCopied] = useState(false);
+  const token = contracts?.token ?? null;
+
+  const onCopy = useCallback((): void => {
+    if (token === null) return;
+    void navigator.clipboard.writeText(token).then(
+      () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      },
+      () => {
+        /* clipboard blocked: the full address is in the tooltip either way */
+      },
+    );
+  }, [token]);
+
+  if (token === null) return null;
+
+  return (
+    <button
+      type="button"
+      className={s.contract}
+      onClick={onCopy}
+      title={`$GRAM contract ${token} — click to copy`}
+      aria-label={`Copy the $GRAM contract address, ${token}`}
+    >
+      <span className={s.contractKey}>CA</span>
+      <span className={s.contractValue}>
+        {copied ? 'Copied' : `${token.slice(0, 6)}…${token.slice(-4)}`}
+      </span>
+    </button>
+  );
+}
 
 /** The project's accounts. Change here and they change everywhere they appear. */
 const X_URL = 'https://x.com/rhoodgram';
@@ -112,6 +155,8 @@ export function SiteHeader(): ReactNode {
         <nav className={s.nav} aria-label="Primary">
           <NavLinks pathname={pathname} />
         </nav>
+
+        <ContractChip />
 
         <div className={s.side}>
           <a
