@@ -73,7 +73,8 @@ function open(): void {
     onError: (error) => {
       for (const listener of [...listeners]) listener.onError?.(error);
     },
-  }, callTag === null ? {} : { callTag });
+    // A getter, so a reconnect after the identity unlocks still carries the tag.
+  }, { callTag: () => callTag });
 }
 
 /**
@@ -84,8 +85,12 @@ function open(): void {
  */
 export function setRelayCallTag(tag: string | null): void {
   if (callTag === tag) return;
+  const hadNone = callTag === null;
   callTag = tag;
-  if (teardown !== null) {
+  // Reopen so the tag reaches the relay now rather than at the next reconnect.
+  // Going from no tag to a tag is the case that matters: the socket is already
+  // up (the messenger opened it) and would otherwise never register for calls.
+  if (teardown !== null && (hadNone || tag === null)) {
     close();
     if (listeners.size > 0) open();
   }

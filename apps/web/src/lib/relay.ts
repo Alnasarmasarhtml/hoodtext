@@ -626,9 +626,14 @@ export interface RelayStreamOptions {
   readonly url?: string;
   /**
    * Call routing tag to listen on, so incoming call signals reach this socket.
-   * Omitted, the socket behaves exactly as before and receives none.
+   *
+   * A GETTER, not a value: the tag is only known once the identity unlocks,
+   * which is after the socket first opens, and the URL is rebuilt on every
+   * reconnect. Passing a value would pin whatever was known at subscribe time,
+   * so every reconnect would silently drop the tag and calls would stop
+   * arriving. Omitted, the socket receives no call signals.
    */
-  readonly callTag?: string;
+  readonly callTag?: () => string | null;
   /** First retry delay in ms. Default 500. */
   readonly baseDelayMs?: number;
   /** Retry ceiling in ms. Default 15000. */
@@ -650,11 +655,13 @@ export function subscribeRelayStream(
   options: RelayStreamOptions = {},
 ): () => void {
   const base = options.url ?? RELAY_WS_URL;
-  const tag = options.callTag;
-  const url =
-    base === '' || tag === undefined || tag === ''
-      ? base
-      : `${base}${base.includes('?') ? '&' : '?'}call=${encodeURIComponent(tag)}`;
+  const readTag = options.callTag;
+  /** Rebuilt per connection attempt so a reconnect always carries the CURRENT tag. */
+  const currentUrl = (): string => {
+    const tag = readTag?.() ?? null;
+    if (base === '' || tag === null || tag === '') return base;
+    return `${base}${base.includes('?') ? '&' : '?'}call=${encodeURIComponent(tag)}`;
+  };
   const baseDelay = options.baseDelayMs ?? 500;
   const maxDelay = options.maxDelayMs ?? 15_000;
 
@@ -666,7 +673,7 @@ export function subscribeRelayStream(
   /* No relay is configured for this build. Report it the same way as a browser
      without WebSocket — the UI already has a designed state for that — rather
      than opening a socket to nothing and retrying forever. */
-  if (url === '') {
+  if (base === '') {
     handlers.onStatus?.('unsupported');
     return () => undefined;
   }
@@ -730,10 +737,10 @@ export function subscribeRelayStream(
 
     let next: WebSocket;
     try {
-      next = new WebSocket(url);
+      next = new WebSocket(currentUrl());
     } catch (error) {
       handlers.onError?.(
-        new RelayError(`Cannot open relay stream at ${url}`, {
+        new RelayError(`Cannot open relay stream at ${base}`, {
           route: '/v1/stream',
           cause: error,
         }),
