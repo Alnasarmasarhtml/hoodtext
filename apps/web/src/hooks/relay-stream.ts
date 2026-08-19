@@ -18,6 +18,8 @@ import {
 
 export interface RelayStreamListener {
   readonly onDrop?: (drop: DropRow) => void;
+  /** A sealed call-signalling frame for our tag. */
+  readonly onSignal?: (blob: string) => void;
   readonly onStats?: (stats: RelayStats) => void;
   readonly onStatus?: (status: RelayStreamStatus) => void;
   readonly onError?: (error: RelayError) => void;
@@ -27,6 +29,8 @@ const listeners = new Set<RelayStreamListener>();
 
 let teardown: (() => void) | null = null;
 let status: RelayStreamStatus = 'closed';
+/** Our call routing tag. Set before the socket opens; changing it reopens it. */
+let callTag: string | null = null;
 let latestStats: RelayStats | null = null;
 let lastEventAt: number | null = null;
 
@@ -53,6 +57,10 @@ function open(): void {
       lastEventAt = Date.now();
       for (const listener of [...listeners]) listener.onDrop?.(drop);
     },
+    onSignal: (blob) => {
+      lastEventAt = Date.now();
+      for (const listener of [...listeners]) listener.onSignal?.(blob);
+    },
     onStats: (stats) => {
       lastEventAt = Date.now();
       latestStats = stats;
@@ -65,7 +73,22 @@ function open(): void {
     onError: (error) => {
       for (const listener of [...listeners]) listener.onError?.(error);
     },
-  });
+  }, callTag === null ? {} : { callTag });
+}
+
+/**
+ * Register the call tag this device listens on.
+ *
+ * Called once the identity is unlocked. If the socket is already open on a
+ * different tag it is reopened, because the tag is part of the URL.
+ */
+export function setRelayCallTag(tag: string | null): void {
+  if (callTag === tag) return;
+  callTag = tag;
+  if (teardown !== null) {
+    close();
+    if (listeners.size > 0) open();
+  }
 }
 
 function close(): void {

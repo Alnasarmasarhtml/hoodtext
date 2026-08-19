@@ -38,6 +38,7 @@ import {
 import { DEMO_ME } from '@/lib/demo';
 import { lockDocumentScroll } from '@/lib/scroll-lock';
 import { AccountBadge } from './AccountBadge';
+import { CallProvider } from './CallProvider';
 import { AppNotice } from './AppNotice';
 import { ConversationList } from './ConversationList';
 import { DemoBanner } from './DemoBanner';
@@ -205,13 +206,15 @@ export function AppShell({ children }: AppShellProps): ReactNode {
         )
       ) : (
         <AppSessionProvider value={session}>
-          <div className={s.desk} data-view={activeConvoId === null ? 'list' : 'thread'}>
-            <aside className={s.rail} aria-label="Conversation rail">
-              <ConversationList activeConvoId={activeConvoId} />
-            </aside>
+          <CallProvider>
+            <div className={s.desk} data-view={activeConvoId === null ? 'list' : 'thread'}>
+              <aside className={s.rail} aria-label="Conversation rail">
+                <ConversationList activeConvoId={activeConvoId} />
+              </aside>
 
-            <div className={s.pane}>{children}</div>
-          </div>
+              <div className={s.pane}>{children}</div>
+            </div>
+          </CallProvider>
         </AppSessionProvider>
       )}
     </div>

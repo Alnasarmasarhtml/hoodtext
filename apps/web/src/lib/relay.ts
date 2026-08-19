@@ -617,11 +617,18 @@ export interface RelayStreamHandlers {
   readonly onStatus?: (status: RelayStreamStatus) => void;
   /** Transport-level failure. The stream keeps retrying regardless. */
   readonly onError?: (error: RelayError) => void;
+  /** A sealed call-signalling frame addressed to our tag. Base64 of the envelope. */
+  readonly onSignal?: (blob: string) => void;
 }
 
 export interface RelayStreamOptions {
   /** Override the endpoint. Defaults to `NEXT_PUBLIC_RELAY_WS`. */
   readonly url?: string;
+  /**
+   * Call routing tag to listen on, so incoming call signals reach this socket.
+   * Omitted, the socket behaves exactly as before and receives none.
+   */
+  readonly callTag?: string;
   /** First retry delay in ms. Default 500. */
   readonly baseDelayMs?: number;
   /** Retry ceiling in ms. Default 15000. */
@@ -642,7 +649,12 @@ export function subscribeRelayStream(
   handlers: RelayStreamHandlers,
   options: RelayStreamOptions = {},
 ): () => void {
-  const url = options.url ?? RELAY_WS_URL;
+  const base = options.url ?? RELAY_WS_URL;
+  const tag = options.callTag;
+  const url =
+    base === '' || tag === undefined || tag === ''
+      ? base
+      : `${base}${base.includes('?') ? '&' : '?'}call=${encodeURIComponent(tag)}`;
   const baseDelay = options.baseDelayMs ?? 500;
   const maxDelay = options.maxDelayMs ?? 15_000;
 
@@ -703,6 +715,12 @@ export function subscribeRelayStream(
     if (parsed['type'] === 'stats') {
       const stats = parseStats(parsed['stats']);
       if (stats !== null) handlers.onStats?.(stats);
+      return;
+    }
+    if (parsed['type'] === 'signal') {
+      const blob = parsed['blob'];
+      // Still sealed here: the socket only routes it, the caller decrypts.
+      if (typeof blob === 'string' && blob.length > 0) handlers.onSignal?.(blob);
     }
   };
 
@@ -783,4 +801,139 @@ export function subscribeRelayStream(
     if (open !== null && (open.readyState === 0 || open.readyState === 1)) open.close();
     setStatus('closed');
   };
+}
+
+/* ════════════════════════════════════════════════════════ voice calls ═══ */
+
+/** One entry of the `RTCPeerConnection` `iceServers` array. */
+export interface IceServer {
+  readonly urls: readonly string[];
+  readonly username?: string;
+  readonly credential?: string;
+}
+
+export interface TurnCredentials {
+  readonly iceServers: readonly IceServer[];
+  readonly ttlSeconds: number;
+  readonly expiresAt: number;
+}
+
+/**
+ * Fetch short-lived ICE/TURN credentials for one call.
+ *
+ * Minted by the relay because the provider token is account-wide authority that
+ * must never reach a browser. Never cache the result past `expiresAt`.
+ *
+ * @throws {RelayError} when calling is not configured (`turn_disabled`) or the
+ *   provider is unreachable.
+ */
+export async function getTurnCredentials(options?: RequestOptions): Promise<TurnCredentials> {
+  const { signal, done } = withTimeout(options);
+  let response: Response;
+  try {
+    response = await fetch(`${RELAY_URL}/v1/turn`, {
+      method: 'GET',
+      headers: { accept: 'application/json' },
+      signal,
+    });
+  } catch (error) {
+    throw new RelayError(`Relay unreachable at ${RELAY_URL}/v1/turn`, {
+      route: '/v1/turn',
+      cause: error,
+    });
+  } finally {
+    done();
+  }
+
+  let json: unknown = null;
+  try {
+    json = (await response.json()) as unknown;
+  } catch {
+    /* handled below */
+  }
+  const record = isRecord(json) ? json : {};
+
+  if (!response.ok) {
+    const message = record['message'];
+    throw new RelayError(
+      typeof message === 'string' && message !== ''
+        ? message
+        : `the relay responded ${response.status}`,
+      { route: '/v1/turn', status: response.status },
+    );
+  }
+
+  const servers = Array.isArray(record['iceServers']) ? record['iceServers'] : [];
+  const iceServers: IceServer[] = [];
+  for (const entry of servers) {
+    if (!isRecord(entry)) continue;
+    const urls = Array.isArray(entry['urls'])
+      ? entry['urls'].filter((u): u is string => typeof u === 'string')
+      : [];
+    if (urls.length === 0) continue;
+    const username = entry['username'];
+    const credential = entry['credential'];
+    iceServers.push({
+      urls,
+      ...(typeof username === 'string' ? { username } : {}),
+      ...(typeof credential === 'string' ? { credential } : {}),
+    });
+  }
+  if (iceServers.length === 0) {
+    throw new RelayError('The relay returned no ICE servers, so a call cannot connect', {
+      route: '/v1/turn',
+      status: response.status,
+    });
+  }
+
+  const ttl = record['ttlSeconds'];
+  const expires = record['expiresAt'];
+  return {
+    iceServers,
+    ttlSeconds: typeof ttl === 'number' ? ttl : 600,
+    expiresAt:
+      typeof expires === 'number' ? expires : Math.floor(Date.now() / 1000) + 600,
+  };
+}
+
+/**
+ * Push one sealed signalling frame to a call tag.
+ *
+ * Fire and forget by design: the relay answers the same way whether or not
+ * anybody was listening, so this never reveals whether the other person is
+ * online. Liveness is proven instead by their signed `ringing` reply.
+ */
+export async function postCallSignal(
+  to: string,
+  blob: Uint8Array,
+  options?: RequestOptions,
+): Promise<void> {
+  const bytes = new Uint8Array(blob.byteLength);
+  bytes.set(blob);
+  let base64 = '';
+  for (const byte of bytes) base64 += String.fromCharCode(byte);
+
+  const { signal, done } = withTimeout(options);
+  try {
+    const response = await fetch(`${RELAY_URL}/v1/call/signal`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({ to, blob: btoa(base64) }),
+      signal,
+    });
+    if (!response.ok) {
+      throw new RelayError(`Relay refused the call signal (${response.status})`, {
+        route: '/v1/call/signal',
+        status: response.status,
+      });
+    }
+  } catch (error) {
+    if (error instanceof RelayError) throw error;
+    throw new RelayError(`Relay unreachable at ${RELAY_URL}/v1/call/signal`, {
+      route: '/v1/call/signal',
+      cause: error,
+    });
+  } finally {
+    done();
+  }
 }

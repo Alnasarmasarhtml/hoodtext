@@ -392,3 +392,45 @@
     font-size: 16px;
   }
 }
+
+/* ── the call affordance ─────────────────────────────────────────────── */
+
+.callKey {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding-inline: 10px;
+  border: 1px solid var(--line-2);
+  background-color: transparent;
+  color: var(--bone);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: var(--path-notch-br);
+  transition:
+    border-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+
+.callKey:hover:not(:disabled),
+.callKey:focus-visible:not(:disabled) {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.callKey:disabled {
+  color: var(--dim);
+  cursor: default;
+}
+
+.callGlyph {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+  stroke: none;
+}

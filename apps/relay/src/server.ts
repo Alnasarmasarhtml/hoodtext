@@ -20,7 +20,9 @@ import { RelayDb, type DropRow } from './db.js';
 import { Indexer } from './indexer.js';
 import { buildSendPorts } from './sender-chain.js';
 import { PriceKeeper } from './price-keeper.js';
+import { TurnDisabledError, TurnMinter } from './turn.js';
 import { SendPipeline, type BatchPoster, type ChainGate } from './sender.js';
+import type { TurnPorts } from './turn.js';
 import { StreamHub } from './stream.js';
 
 declare module 'fastify' {
@@ -31,6 +33,7 @@ declare module 'fastify' {
     readonly stream: StreamHub;
     readonly sendPipeline: SendPipeline;
     readonly priceKeeper: PriceKeeper;
+    readonly turn: TurnMinter;
   }
 }
 
@@ -41,6 +44,8 @@ export interface BuildServerOptions {
   readonly env?: NodeJS.ProcessEnv;
   /** Test seam: replaces the live-chain send ports (gate + poster). */
   readonly sendPorts?: { gate: ChainGate; poster: BatchPoster } | null;
+  /** Test seam: replaces the live TURN provider. */
+  readonly turnPorts?: TurnPorts | null;
   /**
    * Test seam: where the logger writes. Supplying it also forces a live logger
    * at `logLevel: 'silent'`, so a test can assert on what the relay logged —
@@ -56,6 +61,8 @@ export interface ErrorBody {
 
 const HEX_64 = /^[0-9a-fA-F]{64}$/;
 const CONVO_ID = /^0x[0-9a-fA-F]{64}$/;
+/** A call routing tag: the first 8 bytes of a hash of the recipient's registered key. */
+const CALL_TAG = /^[0-9a-fA-F]{16}$/;
 
 function normalizeBlobRef(raw: string): `0x${string}` | null {
   const body = raw.startsWith('0x') || raw.startsWith('0X') ? raw.slice(2) : raw;
@@ -191,6 +198,8 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   app.decorate('sendPipeline', sendPipeline);
   const priceKeeper = new PriceKeeper({ config, log: app.log });
   app.decorate('priceKeeper', priceKeeper);
+  const turn = new TurnMinter({ config, log: app.log, ...(options.turnPorts !== undefined ? { ports: options.turnPorts } : {}) });
+  app.decorate('turn', turn);
 
   const corsOptions: FastifyCorsOptions = {
     origin: config.webOrigins.includes('*') ? true : [...config.webOrigins],
@@ -232,6 +241,16 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     convoId: z.string().regex(CONVO_ID, 'must be a 32-byte hex string'),
   });
   const BlobParams = z.object({ ref: z.string().min(1) });
+
+  /** A call routing tag: 16 hex chars, derived client-side from a registered key. */
+  const SignalBody = z.object({
+    to: z.string().regex(CALL_TAG, 'must be a 16-character hex call tag'),
+    blob: z
+      .string()
+      .min(1)
+      .max(config.signalMaxBytes)
+      .regex(/^[A-Za-z0-9+/=]+$/, 'must be base64'),
+  });
 
   const HEX_32B = /^0x[0-9a-fA-F]{64}$/;
   const SendStatusParams = z.object({
@@ -496,6 +515,9 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
           // The market-price keeper: strategy, on-chain vs target rate, and the
           // last failure. `lastError` non-null for long means the fee is stale.
           price: instance.priceKeeper.status(),
+          // Voice calling: whether this relay can mint TURN credentials at all,
+          // and how many sockets are currently reachable for a call.
+          calls: { turn: instance.turn.enabled },
         });
       },
     );
@@ -503,11 +525,87 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     // The limiter runs in `onRequest`, which fires before the upgrade is hijacked,
     // so a throttled handshake is answered with a plain 429 and never becomes a
     // socket. This caps upgrade *churn*; `streamMaxClients` caps live sockets.
+    /**
+     * Short-lived ICE/TURN credentials for one call.
+     *
+     * Minted here rather than in the browser because the provider token is
+     * account-wide authority that must never ship to a client.
+     */
+    instance.get(
+      '/v1/turn',
+      { config: readLimit(config.signalRateLimitMax) },
+      async (_request, reply) => {
+        if (!instance.turn.enabled) {
+          return fail(
+            reply,
+            503,
+            'turn_disabled',
+            'This relay has no TURN configuration, so calls cannot connect.',
+          );
+        }
+        try {
+          const credentials = await instance.turn.mint();
+          // Credentials are per-request and expire; never let a cache serve a
+          // used one to somebody else.
+          return reply.header('cache-control', 'no-store').code(200).send(credentials);
+        } catch (error) {
+          if (error instanceof TurnDisabledError) {
+            return fail(reply, 503, 'turn_disabled', 'Calling is not configured on this relay.');
+          }
+          instance.log.error({ err: error }, 'turn: minting failed');
+          return fail(
+            reply,
+            502,
+            'turn_unavailable',
+            'The TURN provider did not answer. Try the call again.',
+          );
+        }
+      },
+    );
+
+    /**
+     * One sealed call-signalling frame, routed to a tag and forgotten.
+     *
+     * Never persisted, never anchored, never queued: if nobody is listening on
+     * the tag the frame is dropped. The response is deliberately identical
+     * whether or not it was delivered, because tags are derivable from the
+     * public key registry and a delivery count would turn this into a presence
+     * oracle for anybody who wanted to know if you are online.
+     */
+    instance.post(
+      '/v1/call/signal',
+      {
+        config: readLimit(config.signalRateLimitMax),
+        bodyLimit: config.signalMaxBytes,
+      },
+      async (request, reply) => {
+        const body: unknown = request.body;
+        if (!Buffer.isBuffer(body)) {
+          return fail(reply, 400, 'invalid_body', 'expected a JSON body');
+        }
+        let parsedJson: unknown;
+        try {
+          parsedJson = JSON.parse(body.toString('utf8'));
+        } catch {
+          return fail(reply, 400, 'invalid_json', 'body is not valid JSON');
+        }
+        const parsed = SignalBody.safeParse(parsedJson);
+        if (!parsed.success) {
+          return fail(reply, 400, 'invalid_body', firstIssue(parsed.error));
+        }
+        instance.stream.routeSignal(parsed.data.to, parsed.data.blob);
+        return reply.code(202).send({ accepted: true });
+      },
+    );
+
     instance.get(
       '/v1/stream',
       { websocket: true, config: readLimit(config.streamRateLimitMax) },
-      (socket) => {
-        instance.stream.add(socket);
+      (socket, request) => {
+        const query = request.query as Record<string, unknown> | undefined;
+        const raw = query?.['call'];
+        const callTag = typeof raw === 'string' && CALL_TAG.test(raw) ? raw.toLowerCase() : undefined;
+        instance.stream.add(socket, callTag);
       },
     );
   });

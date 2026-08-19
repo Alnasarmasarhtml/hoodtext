@@ -37,6 +37,7 @@ import { Avatar } from './Avatar';
 import { Composer } from './Composer';
 import { LockedNotice } from './LockedNotice';
 import { aggregateReactions } from '@/hooks/reactions';
+import { useCall } from './CallProvider';
 import { MessageRow } from './MessageRow';
 import { RoomMembers } from './RoomMembers';
 import { useAppSession } from './session';
@@ -302,6 +303,12 @@ function Thread({ convoId }: ThreadProps): ReactNode {
         </div>
 
         <div className={s.headStats}>
+          {/* Calling is 1:1 only, and only where we hold a real recipient key:
+              a room has many ears and the unattributed bucket has no address to
+              reach. Both are excluded by `canReply` plus the room check. */}
+          {!isRoom && conversation.canReply && conversation.peerAddress !== null && (
+            <CallKey conversation={conversation} />
+          )}
           {/* Rooms keep two things and only two: the roster, because it is a
               control rather than a statistic, and the rent, because a lapsed
               room silently refuses new messages and that has to be visible. */}
@@ -491,4 +498,46 @@ export function ThreadRoute({ convoId }: ThreadRouteProps): ReactNode {
   }
 
   return <Thread convoId={parsed} />;
+}
+
+
+/* ═══════════════════════════════════════════════════════════ calling ═══ */
+
+interface CallKeyProps {
+  readonly conversation: Conversation;
+}
+
+/**
+ * The call affordance in a 1:1 header.
+ *
+ * Hidden entirely when this build has no relay TURN configuration, because a
+ * button that always fails is worse than no button. Disabled while any call is
+ * already up.
+ */
+function CallKey({ conversation }: CallKeyProps): ReactNode {
+  const call = useCall();
+  if (call === null || !call.canCall) return null;
+
+  const address = conversation.peerAddress;
+  const x25519Pub = conversation.peerX25519;
+  if (address === null || x25519Pub === null) return null;
+
+  const busy = call.phase !== 'idle';
+
+  return (
+    <button
+      type="button"
+      className={s.callKey}
+      disabled={busy}
+      title={busy ? 'Already on a call' : 'Start an encrypted voice call'}
+      onClick={() => {
+        void call.start({ address, x25519Pub, ed25519Pub: '0x' });
+      }}
+    >
+      <svg viewBox="0 0 16 16" aria-hidden="true" className={s.callGlyph}>
+        <path d="M4.2 2.6h2.3l1.1 2.8-1.4 1a7.4 7.4 0 0 0 3.4 3.4l1-1.4 2.8 1.1v2.3a1 1 0 0 1-1.1 1A10.9 10.9 0 0 1 3.2 3.7a1 1 0 0 1 1-1.1Z" />
+      </svg>
+      Call
+    </button>
+  );
 }

@@ -25,7 +25,20 @@ export interface StatsMessage {
   readonly stats: RelayStats;
 }
 
-export type StreamMessage = DropMessage | StatsMessage;
+/**
+ * One sealed call-signalling frame, delivered to a single tag.
+ *
+ * The relay cannot read it: the body is the same sealed envelope the messenger
+ * uses, opened only by the holder of the recipient's X25519 key. It is never
+ * stored and never anchored, so a call leaves no record here.
+ */
+export interface SignalMessage {
+  readonly type: 'signal';
+  /** Base64 of the sealed envelope. */
+  readonly blob: string;
+}
+
+export type StreamMessage = DropMessage | StatsMessage | SignalMessage;
 
 export interface StreamHubOptions {
   readonly statsIntervalMs: number;
@@ -56,6 +69,18 @@ const MAX_BUFFERED_BYTES = 1_048_576;
 export class StreamHub {
   readonly #clients = new Set<StreamSocket>();
   readonly #detach = new Map<StreamSocket, () => void>();
+  /**
+   * Call-signalling routing table: tag -> the sockets listening on it.
+   *
+   * A tag is derived by the client from its own registered X25519 key, so it is
+   * a routing address, not a secret. HONEST LEAK, stated because the project
+   * refuses to overclaim: every X25519 key is public in KeyRegistry, so the
+   * relay can precompute the tag table and therefore learns WHO CALLS WHOM and
+   * WHEN. It still learns nothing about what is said. The message lane does not
+   * leak this; the call lane does, because a live call needs a live route.
+   */
+  readonly #byTag = new Map<string, Set<StreamSocket>>();
+  readonly #tagOf = new Map<StreamSocket, string>();
   readonly #options: StreamHubOptions;
   #timer: NodeJS.Timeout | null = null;
   #closed = false;
@@ -78,7 +103,7 @@ export class StreamHub {
    * Register a freshly upgraded socket. Sends an immediate stats frame so a new
    * client renders something before the first tick.
    */
-  add(socket: StreamSocket): void {
+  add(socket: StreamSocket, callTag?: string): void {
     if (this.#closed) {
       this.#safeClose(socket, CLOSE_SERVICE_RESTART, 'relay shutting down');
       return;
@@ -104,12 +129,58 @@ export class StreamHub {
     });
 
     this.#clients.add(socket);
+    if (callTag !== undefined && callTag !== '') {
+      this.#tagOf.set(socket, callTag);
+      let sockets = this.#byTag.get(callTag);
+      if (sockets === undefined) {
+        sockets = new Set();
+        this.#byTag.set(callTag, sockets);
+      }
+      sockets.add(socket);
+    }
     this.#sendStatsTo(socket);
     this.#ensureTimer();
   }
 
+  /**
+   * Deliver one sealed signalling frame to every socket on `tag`.
+   *
+   * @returns true when at least one socket was written to. The ROUTE must not
+   *   expose this: answering "nobody is listening" would turn the endpoint into
+   *   a presence oracle, since tags are derivable from the public registry.
+   */
+  routeSignal(tag: string, blob: string): boolean {
+    const sockets = this.#byTag.get(tag);
+    if (sockets === undefined || sockets.size === 0) return false;
+    const frame = JSON.stringify({ type: 'signal', blob } satisfies SignalMessage);
+    let delivered = false;
+    for (const socket of [...sockets]) {
+      if (socket.readyState !== WS_OPEN) {
+        this.remove(socket);
+        continue;
+      }
+      this.#sendFrame(socket, frame);
+      delivered = true;
+    }
+    return delivered;
+  }
+
+  /** Sockets currently listening on a call tag. Tests assert on this. */
+  tagSize(tag: string): number {
+    return this.#byTag.get(tag)?.size ?? 0;
+  }
+
   /** Detach every listener we added and forget the socket. Safe to call twice. */
   remove(socket: StreamSocket): void {
+    const tag = this.#tagOf.get(socket);
+    if (tag !== undefined) {
+      this.#tagOf.delete(socket);
+      const sockets = this.#byTag.get(tag);
+      if (sockets !== undefined) {
+        sockets.delete(socket);
+        if (sockets.size === 0) this.#byTag.delete(tag);
+      }
+    }
     const detach = this.#detach.get(socket);
     if (detach !== undefined) {
       this.#detach.delete(socket);
@@ -146,6 +217,8 @@ export class StreamHub {
     }
     this.#clients.clear();
     this.#detach.clear();
+    this.#byTag.clear();
+    this.#tagOf.clear();
   }
 
   #ensureTimer(): void {

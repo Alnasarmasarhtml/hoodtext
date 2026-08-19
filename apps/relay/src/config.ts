@@ -78,6 +78,15 @@ export const STREAM_RATE_MAX = 30;
 /** Hard cap on simultaneously connected `/v1/stream` subscribers. */
 export const STREAM_MAX_CLIENTS = 2_000;
 
+/**
+ * Hard ceiling on one sealed call-signalling frame.
+ *
+ * The largest real frame is an SDP offer, which seals into the 4096-byte bucket
+ * (about 4.2 KB on the wire, base64 to ~5.6 KB). 8 KB leaves headroom without
+ * letting the lane carry anything message-sized.
+ */
+export const SIGNAL_MAX_BYTES = 8_192;
+
 /** How often the blob retention sweep runs when `RELAY_BLOB_TTL_DAYS > 0`. */
 export const BLOB_PRUNE_INTERVAL_MS = 3_600_000;
 
@@ -123,6 +132,16 @@ export interface RelayConfig {
   readonly priceMaxRate: bigint;
   /** Manual override: when set the keeper writes exactly this rate. */
   readonly priceFixedRate: bigint | null;
+  /** Cloudflare Realtime TURN key id. `null` disables voice calls. */
+  readonly turnKeyId: string | null;
+  /** Cloudflare Realtime TURN API token. Never leaves the relay. */
+  readonly turnApiToken: string | null;
+  /** Lifetime of a minted TURN credential, in seconds. */
+  readonly turnTtlSeconds: number;
+  /** Per-IP-per-window ceiling on call signalling. */
+  readonly signalRateLimitMax: number;
+  /** Hard cap on one sealed signalling frame, in bytes. */
+  readonly signalMaxBytes: number;
   /** Funded key for `Anchors.postBatch`. `null` disables gasless send. */
   readonly relayerPrivateKey: `0x${string}` | null;
   readonly sendFlushMs: number;
@@ -248,6 +267,16 @@ const EnvSchema = z.object({
   PRICE_MIN_RATE: uintString('1000000000000000000'),
   PRICE_MAX_RATE: uintString('1000000000000000000000000000000'),
   PRICE_FIXED_RATE: z.string().regex(/^\d+$/, 'must be a non-negative integer').optional(),
+  // ── voice calls ────────────────────────────────────────────────────────────
+  TURN_KEY_ID: z.string().min(1).optional(),
+  TURN_API_TOKEN: z.string().min(1).optional(),
+  // Short by design: a credential the browser holds should outlive the call it
+  // was minted for and nothing more.
+  TURN_TTL_SECONDS: z.coerce.number().int().min(60).max(86_400).default(3_600),
+  // Signalling is chatty in bursts (offer, answer, a few ICE frames, hangup)
+  // and then silent. 240/min per IP clears a dozen calls a minute and still
+  // bounds anyone trying to use the lane as a free message bus.
+  SIGNAL_RATE_MAX: z.coerce.number().int().min(1).max(100_000).default(240),
 });
 
 const ENV_KEYS = Object.keys(EnvSchema.shape) as readonly (keyof typeof EnvSchema.shape)[];
@@ -345,6 +374,11 @@ export function loadConfig(
     priceMinRate: BigInt(raw.PRICE_MIN_RATE),
     priceMaxRate: BigInt(raw.PRICE_MAX_RATE),
     priceFixedRate: raw.PRICE_FIXED_RATE === undefined ? null : BigInt(raw.PRICE_FIXED_RATE),
+    turnKeyId: raw.TURN_KEY_ID ?? null,
+    turnApiToken: raw.TURN_API_TOKEN ?? null,
+    turnTtlSeconds: raw.TURN_TTL_SECONDS,
+    signalRateLimitMax: raw.SIGNAL_RATE_MAX,
+    signalMaxBytes: SIGNAL_MAX_BYTES,
     relayerPrivateKey:
       raw.RELAYER_PRIVATE_KEY === undefined ? null : (raw.RELAYER_PRIVATE_KEY as `0x${string}`),
     sendFlushMs: raw.RELAY_SEND_FLUSH_MS,

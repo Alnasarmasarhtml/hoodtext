@@ -1,0 +1,224 @@
+/* Incoming call: the only surface in the messenger allowed to interrupt. */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  background-color: rgba(8, 9, 10, 0.82);
+  backdrop-filter: none;
+}
+
+.sheet {
+  width: min(100%, 380px);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  background-color: var(--panel);
+  border: 1px solid var(--line-2);
+  clip-path: var(--path-notch-tr);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.name {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--bone);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-3);
+}
+
+.decline,
+.answer {
+  height: 44px;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: var(--path-notch-br);
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.decline {
+  border: 1px solid var(--line-2);
+  background-color: transparent;
+  color: var(--bone);
+}
+
+.decline:hover,
+.decline:focus-visible {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}
+
+/* Green is reserved. Answering a call is a primary action, so it earns it. */
+.answer {
+  border: 1px solid var(--green);
+  background-color: var(--green);
+  color: var(--void);
+}
+
+.answer:hover,
+.answer:focus-visible {
+  background-color: #2ee03a;
+}
+
+/* ── the in-call bar ──────────────────────────────────────────────────── */
+
+.bar {
+  position: fixed;
+  left: 50%;
+  bottom: var(--sp-4);
+  transform: translateX(-50%);
+  z-index: 55;
+  width: min(calc(100vw - 2 * var(--sp-4)), 520px);
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px var(--sp-4);
+  background-color: var(--panel-2);
+  border: 1px solid var(--line-2);
+  clip-path: var(--path-notch-tr);
+}
+
+.barDot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background-color: var(--muted);
+}
+
+/* The only other green: a call that is actually up. */
+.barDot[data-live='true'] {
+  background-color: var(--green);
+}
+
+.barName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bone);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.barPhase {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.barError {
+  flex: 1 1 100%;
+  order: 9;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--crimson);
+  min-width: 0;
+}
+
+.barSpacer {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.barKey,
+.barEnd {
+  flex: none;
+  height: 28px;
+  padding-inline: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: var(--path-notch-br);
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.barKey {
+  border: 1px solid var(--line-2);
+  background-color: transparent;
+  color: var(--bone);
+}
+
+.barKey:hover,
+.barKey:focus-visible {
+  border-color: var(--steel);
+}
+
+.barKey[aria-pressed='true'] {
+  border-color: var(--steel);
+  color: var(--steel);
+}
+
+.barEnd {
+  border: 1px solid var(--crimson);
+  background-color: transparent;
+  color: var(--crimson);
+}
+
+.barEnd:hover,
+.barEnd:focus-visible {
+  background-color: var(--crimson);
+  color: var(--void);
+}
+
+@media (max-width: 559.98px) {
+  .bar {
+    flex-wrap: wrap;
+  }
+
+  .barSpacer {
+    display: none;
+  }
+}
