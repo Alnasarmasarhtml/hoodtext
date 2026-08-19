@@ -76,6 +76,11 @@ export interface CallState {
   readonly endReason: CallEndReason | null;
   /** Human-readable failure, when something the user must understand went wrong. */
   readonly error: string | null;
+  /**
+   * Live connection detail: ICE state and whether a relay path was found.
+   * Shown in the bar so a failure is diagnosable instead of just "it broke".
+   */
+  readonly diagnostic: string | null;
 }
 
 export interface UseVoiceCallResult extends CallState {
@@ -105,6 +110,7 @@ const INITIAL: CallState = {
   muted: false,
   endReason: null,
   error: null,
+  diagnostic: null,
 };
 
 /* ══════════════════════════════════════════════════════════ hook ════════ */
@@ -122,9 +128,21 @@ export function useVoiceCall({ owner, keys }: UseVoiceCallParams): UseVoiceCallR
   const callIdRef = useRef<string | null>(null);
   const isCallerRef = useRef(false);
   const ringTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const connectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const iceQueueRef = useRef<IceLine[]>([]);
   const iceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingOfferRef = useRef<{ sdp: string; peer: CallPeer; callId: string } | null>(null);
+  /**
+   * Candidates that arrived before we could apply them.
+   *
+   * The caller starts trickling the moment it has a local description, which is
+   * BEFORE the callee has answered (and before the callee even has a peer
+   * connection). Applying a candidate needs a remote description, so anything
+   * early has to wait here. Dropping them is fatal rather than degrading: with
+   * `iceTransportPolicy: 'relay'` a peer gathers only a handful of candidates
+   * and never re-sends them, so a lost one is a call that can never connect.
+   */
+  const pendingIceRef = useRef<IceLine[]>([]);
   const seenCallsRef = useRef<Set<string>>(new Set());
 
   /* ── sending ─────────────────────────────────────────────────────────── */
@@ -188,11 +206,16 @@ export function useVoiceCall({ owner, keys }: UseVoiceCallParams): UseVoiceCallR
       clearTimeout(ringTimerRef.current);
       ringTimerRef.current = null;
     }
+    if (connectTimerRef.current !== null) {
+      clearTimeout(connectTimerRef.current);
+      connectTimerRef.current = null;
+    }
     if (iceTimerRef.current !== null) {
       clearTimeout(iceTimerRef.current);
       iceTimerRef.current = null;
     }
     iceQueueRef.current = [];
+    pendingIceRef.current = [];
     pendingOfferRef.current = null;
   }, []);
 
@@ -232,7 +255,54 @@ export function useVoiceCall({ owner, keys }: UseVoiceCallParams): UseVoiceCallR
     [finish, sendSignal],
   );
 
+  /**
+   * Give up on a negotiation that never completes.
+   *
+   * WebRTC can sit in `connecting` indefinitely when no candidate pair ever
+   * works, so a call that cannot connect must say so rather than spin forever.
+   */
+  const armConnectWatchdog = useCallback((): void => {
+    if (connectTimerRef.current !== null) clearTimeout(connectTimerRef.current);
+    connectTimerRef.current = setTimeout(() => {
+      const pc = pcRef.current;
+      if (pc !== null && pc.connectionState === 'connected') return;
+      finish(
+        'failed',
+        'The call could not connect within 25 seconds. Both sides need to reach the relay server; a strict firewall or VPN is the usual cause.',
+      );
+    }, 25_000);
+  }, [finish]);
+
   /* ── the peer connection ─────────────────────────────────────────────── */
+
+  /** Apply one candidate now, or hold it until a remote description exists. */
+  const applyIce = useCallback(async (lines: readonly IceLine[]): Promise<void> => {
+    const pc = pcRef.current;
+    if (pc === null || pc.remoteDescription === null) {
+      pendingIceRef.current.push(...lines);
+      return;
+    }
+    for (const line of lines) {
+      try {
+        await pc.addIceCandidate({
+          candidate: line.candidate,
+          sdpMid: line.sdpMid ?? undefined,
+          sdpMLineIndex: line.sdpMLineIndex ?? undefined,
+          usernameFragment: line.usernameFragment ?? undefined,
+        });
+      } catch {
+        /* a rejected candidate is normal during trickling */
+      }
+    }
+  }, []);
+
+  /** Drain everything that was waiting on a remote description. */
+  const drainPendingIce = useCallback(async (): Promise<void> => {
+    const queued = pendingIceRef.current;
+    if (queued.length === 0) return;
+    pendingIceRef.current = [];
+    await applyIce(queued);
+  }, [applyIce]);
 
   const flushIce = useCallback((): void => {
     const peer = peerRef.current;
@@ -288,27 +358,33 @@ export function useVoiceCall({ owner, keys }: UseVoiceCallParams): UseVoiceCallR
         });
       };
 
+      pc.oniceconnectionstatechange = (): void => {
+        setState((current) => ({ ...current, diagnostic: `ice: ${pc.iceConnectionState}` }));
+      };
+
       pc.onconnectionstatechange = (): void => {
         const status = pc.connectionState;
         if (status === 'connected') {
-          if (ringTimerRef.current !== null) {
-            clearTimeout(ringTimerRef.current);
-            ringTimerRef.current = null;
+          for (const timer of [ringTimerRef, connectTimerRef]) {
+            if (timer.current !== null) {
+              clearTimeout(timer.current);
+              timer.current = null;
+            }
           }
           setState((current) => ({
             ...current,
             phase: 'connected',
             connectedAt: current.connectedAt ?? Date.now(),
             error: null,
+            diagnostic: null,
           }));
           return;
         }
         if (status === 'failed') {
-          finish('failed', 'The connection failed. Your network may be blocking calls.');
-          return;
-        }
-        if (status === 'closed') {
-          setState((current) => (current.phase === 'idle' ? current : current));
+          finish(
+            'failed',
+            'The two devices could not find a path to each other. This is usually a network that blocks relayed media.',
+          );
         }
       };
 
@@ -376,7 +452,10 @@ export function useVoiceCall({ owner, keys }: UseVoiceCallParams): UseVoiceCallR
     try {
       const { iceServers } = await getTurnCredentials();
       const pc = await buildConnection(iceServers);
+      armConnectWatchdog();
       await pc.setRemoteDescription({ type: 'offer', sdp: pending.sdp });
+      // The caller trickled while we were ringing; those are queued.
+      await drainPendingIce();
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       const sdp = pc.localDescription?.sdp ?? answer.sdp ?? '';
@@ -394,7 +473,7 @@ export function useVoiceCall({ owner, keys }: UseVoiceCallParams): UseVoiceCallR
           : 'The call could not be answered.';
       endCall('failed', message);
     }
-  }, [buildConnection, endCall, keys, owner, sendSignal]);
+  }, [armConnectWatchdog, buildConnection, drainPendingIce, endCall, keys, owner, sendSignal]);
 
   const decline = useCallback((): void => {
     pendingOfferRef.current = null;
@@ -436,31 +515,22 @@ export function useVoiceCall({ owner, keys }: UseVoiceCallParams): UseVoiceCallR
       }
       if (signal.op === 'answer') {
         if (pc === null || pc.signalingState === 'stable') return;
+        armConnectWatchdog();
         setState((current) => ({ ...current, phase: 'connecting' }));
         await pc.setRemoteDescription({ type: 'answer', sdp: signal.sdp });
+        // Everything the caller trickled at us while we were still ringing.
+        await drainPendingIce();
         return;
       }
       if (signal.op === 'ice') {
-        if (pc === null) return;
-        for (const line of signal.cands) {
-          try {
-            await pc.addIceCandidate({
-              candidate: line.candidate,
-              sdpMid: line.sdpMid ?? undefined,
-              sdpMLineIndex: line.sdpMLineIndex ?? undefined,
-              usernameFragment: line.usernameFragment ?? undefined,
-            });
-          } catch {
-            /* a rejected candidate is normal during trickling */
-          }
-        }
+        await applyIce(signal.cands);
         return;
       }
       if (signal.op === 'end') {
         finish(signal.reason === 'hangup' ? 'hangup' : signal.reason);
       }
     },
-    [finish],
+    [applyIce, armConnectWatchdog, drainPendingIce, finish],
   );
 
   /* Subscribe to sealed signalling frames for our tag. */

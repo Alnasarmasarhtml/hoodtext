@@ -18,8 +18,10 @@ import type { CallPeer, CallPhase, UseVoiceCallResult } from '@/hooks/useVoiceCa
 import { Avatar } from './Avatar';
 import s from './CallSurface.module.css';
 
-/** Ring pattern: two short pulses, then a rest, looping. */
-const RING_PATTERN_MS = [0, 400, 900, 1300] as const;
+/** Incoming ring: two short pulses, then a rest, looping. */
+const RING_PATTERN_MS = [0, 400] as const;
+/** Outgoing ringback: the long single tone a phone makes while it rings out. */
+const RINGBACK_PATTERN_MS = [0] as const;
 
 function useDisplayName(peer: CallPeer | null): string {
   const handle = useHandle(peer?.address ?? null);
@@ -42,22 +44,37 @@ function useElapsed(connectedAt: number | null): string {
   return `${String(minutes)}:${String(seconds).padStart(2, '0')}`;
 }
 
+type ToneMode = 'off' | 'ring' | 'ringback';
+
 /**
- * Ring tone, synthesised rather than shipped as a file.
+ * Call tones, synthesised rather than shipped as audio files.
  *
- * WebAudio needs a user gesture before it will make noise, and an INCOMING call
- * has no gesture by definition. So the context is created on the first call the
- * user places or answers and reused after that; before that ever happens, the
- * page title flashing is the whole alert.
+ * `ringback` is what the CALLER hears while the other phone rings: a long, low
+ * double tone on a slow cycle, the sound every telephone has made for a
+ * century. `ring` is the brighter, faster pattern the CALLEE hears.
+ *
+ * WebAudio will not make noise until the page has had a user gesture. The
+ * caller always has one (they pressed Call), so ringback is reliable. An
+ * incoming call has no gesture by definition, so the first ever inbound ring on
+ * a fresh tab may be silent; the flashing title and the notification are the
+ * alert that always works.
  */
-function useRinger(active: boolean): void {
+function useCallTone(mode: ToneMode): void {
   const ctxRef = useRef<AudioContext | null>(null);
+
   useEffect(() => {
-    if (!active) return;
+    if (mode === 'off') return;
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    const beep = (): void => {
+    const ringback = mode === 'ringback';
+    const pattern = ringback ? RINGBACK_PATTERN_MS : RING_PATTERN_MS;
+    // Ringback: 425 Hz, the European tone. Ring: brighter so it cuts through.
+    const frequency = ringback ? 425 : 620;
+    const duration = ringback ? 1.0 : 0.3;
+    const cycleMs = ringback ? 3_000 : 2_400;
+
+    const pulse = (): void => {
       let ctx = ctxRef.current;
       if (ctx === null) {
         try {
@@ -67,35 +84,48 @@ function useRinger(active: boolean): void {
           return;
         }
       }
-      if (ctx.state === 'suspended') {
-        void ctx.resume().catch(() => undefined);
+      const audio = ctx;
+      if (audio.state === 'suspended') {
+        void audio.resume().catch(() => undefined);
       }
-      for (const at of RING_PATTERN_MS) {
+      for (const at of pattern) {
         timers.push(
           setTimeout(() => {
-            if (cancelled || ctx === null) return;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.frequency.value = 620;
-            gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
-            osc.connect(gain).connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.32);
+            if (cancelled) return;
+            const osc = audio.createOscillator();
+            const gain = audio.createGain();
+            osc.frequency.value = frequency;
+            osc.type = 'sine';
+            const now = audio.currentTime;
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(ringback ? 0.05 : 0.08, now + 0.03);
+            gain.gain.setValueAtTime(ringback ? 0.05 : 0.08, now + duration - 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            osc.connect(gain).connect(audio.destination);
+            osc.start(now);
+            osc.stop(now + duration + 0.02);
           }, at),
         );
       }
     };
 
-    beep();
-    const loop = setInterval(beep, 2_400);
+    pulse();
+    const loop = setInterval(pulse, cycleMs);
     return () => {
       cancelled = true;
       clearInterval(loop);
       for (const timer of timers) clearTimeout(timer);
     };
-  }, [active]);
+  }, [mode]);
+
+  // Release the audio device when no call is up.
+  useEffect(() => {
+    return () => {
+      const ctx = ctxRef.current;
+      ctxRef.current = null;
+      if (ctx !== null) void ctx.close().catch(() => undefined);
+    };
+  }, []);
 }
 
 /** Flash the tab title so a backgrounded tab still shows a call is waiting. */
@@ -153,8 +183,15 @@ export function CallSurface({ call }: CallSurfaceProps): ReactNode {
   const name = useDisplayName(call.peer);
   const elapsed = useElapsed(call.connectedAt);
   const incoming = call.phase === 'ringing-in';
+  // The caller hears ringback from the moment they press Call until the other
+  // side picks up; the callee hears the ring while deciding.
+  const tone: ToneMode = incoming
+    ? 'ring'
+    : call.phase === 'dialing' || call.phase === 'ringing-out'
+      ? 'ringback'
+      : 'off';
 
-  useRinger(incoming);
+  useCallTone(tone);
   useTitleAlert(incoming, name);
   useCallNotification(incoming, name);
 
@@ -196,6 +233,9 @@ export function CallSurface({ call }: CallSurfaceProps): ReactNode {
       <span className={s.barPhase}>
         {connected ? elapsed : PHASE_LABEL[call.phase]}
       </span>
+      {call.diagnostic !== null && call.phase === 'connecting' && (
+        <span className={s.barPhase}>{call.diagnostic}</span>
+      )}
       {call.error !== null && <span className={s.barError}>{call.error}</span>}
       <span className={s.barSpacer} />
       {(connected || call.phase === 'connecting') && (
